@@ -1,82 +1,81 @@
-import { Encoding } from "./Encoding";
-import { alignBottom, hSpace } from "./Gestalt";
-import { Bag, BFInstance, RefT } from "./Instance";
-import { text } from "./Mark";
+import { Encoding } from './Encoding';
+import { alignBottom, hSpace } from './Gestalt';
+import { Bag, BFInstance, RefT } from './Instance';
+import { text } from './Mark';
 
-export const parse = (input: BFInstance) => {
-  return input;
-}
+export const parse = (input: BFInstance) => input;
 
 type courseSchema = {
-  "course": Bag<{
-      "instructors": string,
-      "name": string,
-      "num": string,
+  'course': Bag<{
+    'instructors': string,
+    'name': string,
+    'num': string,
   }>,
-  "sibling": Bag<{
-      "curr": RefT<"course">,
-      "next": RefT<"course">,
+  'sibling': Bag<{
+    'curr': RefT<'course'>,
+    'next': RefT<'course'>,
   }>,
 }
 
-let courseInstance: courseSchema = {
-    "course": [
-        {
-            "instructors": "Jackson & Satyanarayan",
-            "name": "Software Studio",
-            "num": "6.170",
-            },
-            {
-            "instructors": "Mueller",
-            "name": "Engineering Interactive Technologies",
-            "num": "6.810",
-            },
-            {
-            "instructors": "Miller, Greenberg, Keane",
-            "name": "Principles and Practice of Assistive Technology",
-            "num": "6.811",
-            },
-    ],
-    "sibling": [
+const courseInstance: courseSchema = {
+  course: [
     {
-        "curr": {location: "course", index: 0},
-        "next": {location: "course", index: 1},
+      instructors: 'Jackson & Satyanarayan',
+      name: 'Software Studio',
+      num: '6.170',
     },
     {
-        "curr": {location: "course", index: 1},
-        "next": {location: "course", index: 2},
+      instructors: 'Mueller',
+      name: 'Engineering Interactive Technologies',
+      num: '6.810',
     },
-    ],
+    {
+      instructors: 'Miller, Greenberg, Keane',
+      name: 'Principles and Practice of Assistive Technology',
+      num: '6.811',
+    },
+  ],
+  sibling: [
+    {
+      curr: { location: 'course', index: 0 },
+      next: { location: 'course', index: 1 },
+    },
+    {
+      curr: { location: 'course', index: 1 },
+      next: { location: 'course', index: 2 },
+    },
+  ],
+};
+
+type course = {
+  instructors: string,
+  name: string,
+  num: string,
 }
 
-let courseEncoding = ({
-  instructors,
-  name,
-  num,
-}: {instructors: string, name: string, num: string}): Encoding => ({
-  marks: [
+const courseEncoding = ({ instructors, name, num, }: course): Encoding => (
+  {
+    marks: [
       text(instructors),
       text(name),
-      text(num)
-  ],
-  relations: [
+      text(num),
+    ],
+    relations: [
       {
-          left: num,
-          right: name,
-          gestalt: [
-              alignBottom,
-              hSpace(9.5),
-          ]
+        left: num,
+        right: name,
+        gestalt: [alignBottom, hSpace(9.5)],
       },
       // (num, name) => [alignBottom, hSpace(9.5)]
-  ]
-})
+    ],
+  }
+);
 
-courseEncoding({
-          "instructors": "Mueller",
-          "name": "Engineering Interactive Technologies",
-          "num": "6.810",
-          },)
+export const foo = () => courseEncoding({
+  instructors: 'Mueller',
+  name: 'Engineering Interactive Technologies',
+  num: '6.810',
+});
 
 /* existentials cheat sheet from https://github.com/microsoft/TypeScript/issues/14466#issuecomment-771277782 */
 // type hktval<a> = {

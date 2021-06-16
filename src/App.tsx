@@ -1,7 +1,7 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import { parse } from './Parser';
+import { parse, foo } from './Parser';
 
 function App() {
   return (
@@ -9,9 +9,15 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.tsx</code> and save to reload.
+          Edit
+          {' '}
+          <code>src/App.tsx</code>
+          {' '}
+          and save to reload.
           {
-            console.log(parse("foo"))
+            console.log(parse('foo'))
+          }{
+            console.log(foo())
           }
         </p>
         <a

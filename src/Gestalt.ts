@@ -1,4 +1,4 @@
-import { Gestalt } from "./Encoding";
+import { Gestalt } from './Encoding';
 
-export const alignBottom: Gestalt = "";
-export const hSpace: (spacing: number) => Gestalt = (_) => "";
+export const alignBottom: Gestalt = '';
+export const hSpace: (spacing: number) => Gestalt = (_) => '';
