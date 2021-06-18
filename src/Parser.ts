@@ -1,23 +1,27 @@
 import { Encoding } from './Encoding';
-import { alignBottom, hSpace } from './Gestalt';
+import { alignBottom, alignLeft, hSpace, vSpace } from './Gestalt';
 import { Bag, BFInstance, RefT } from './Instance';
 import { text } from './Mark';
 
 export const parse = (input: BFInstance) => input;
 
-type courseSchema = {
-  'course': Bag<{
-    'instructors': string,
-    'name': string,
-    'num': string,
-  }>,
-  'sibling': Bag<{
-    'curr': RefT<'course'>,
-    'next': RefT<'course'>,
-  }>,
-}
+type course = {
+  'instructors': string,
+  'name': string,
+  'num': string,
+};
 
-const courseInstance: courseSchema = {
+type sibling = {
+  'curr': RefT<'course'>,
+  'next': RefT<'course'>,
+};
+
+type coursesSchema = {
+  'course': Bag<course>,
+  'sibling': Bag<sibling>,
+};
+
+const coursesInstance: coursesSchema = {
   course: [
     {
       instructors: 'Jackson & Satyanarayan',
@@ -47,15 +51,15 @@ const courseInstance: courseSchema = {
   ],
 };
 
-type course = {
-  instructors: string,
-  name: string,
-  num: string,
-}
+// TODO: make a stronger type on encoding??
+const bag = (encoding: (data: any) => Encoding, data: Bag<BFInstance>): Encoding => ({
+  encodings: data.map(encoding),
+  // relations: []
+})
 
 const courseEncoding = ({ instructors, name, num, }: course): Encoding => (
   {
-    marks: [
+    encodings: [
       text(instructors),
       text(name),
       text(num),
@@ -76,6 +80,27 @@ export const foo = () => courseEncoding({
   name: 'Engineering Interactive Technologies',
   num: '6.810',
 });
+
+const siblingEncoding = ({ curr, next }: sibling): Encoding => ({
+  // marks: [],
+  relations: [
+    {
+      left: curr,
+      right: next,
+      gestalt: [alignLeft, vSpace(10.)],
+    }
+  ]
+})
+
+const coursesEncoding = (courses: coursesSchema): Encoding => ({
+  encodings: [
+    bag(courseEncoding, courses.course),
+    bag(siblingEncoding, courses.sibling),
+  ],
+  // relations: []
+})
+
+export const bar = () => coursesEncoding(coursesInstance);
 
 /* existentials cheat sheet from https://github.com/microsoft/TypeScript/issues/14466#issuecomment-771277782 */
 // type hktval<a> = {

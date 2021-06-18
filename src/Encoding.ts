@@ -8,7 +8,19 @@ export type Relation = {
 };
 // type Relation = (left: any, right: any) => Gestalt[];
 
+// Default values when one of the fields is not provided is [].
 export type Encoding = {
-  marks: Mark[],
+  encodings?: Encoding[],
+  relations?: Relation[],
+}
+
+// two "pure" forms: Glyph and Relational (names WIP). These are _emergent_ from the more general
+// Encoding type
+
+export type Glyph = {
+  encodings: Encoding[],
+}
+
+export type Relational = {
   relations: Relation[],
 }

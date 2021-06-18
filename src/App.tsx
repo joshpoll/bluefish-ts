@@ -1,7 +1,7 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import { parse, foo } from './Parser';
+import { parse, foo, bar } from './Parser';
 
 function App() {
   return (
@@ -18,6 +18,8 @@ function App() {
             console.log(parse('foo'))
           }{
             console.log(foo())
+          }{
+            console.log(bar())
           }
         </p>
         <a
