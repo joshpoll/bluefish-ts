@@ -1,3 +1,6 @@
+import { Variable } from "kiwi.js";
+import { makeBBoxVars } from "./KiwiBBox";
+
 export type Mark = any;
 export type Gestalt = any;
 
@@ -23,4 +26,29 @@ export type Glyph = {
 
 export type Relational = {
   relations: Relation[],
+}
+
+export const toBBoxes = (e: any): any => {
+  let encodings = e.encodings ?? [];
+  for (let e of encodings) {
+    console.log(makeBBoxVars(e.$path));
+  }
+}
+
+export const toConstraints = (data: any, e: any): any => {
+  let relations = e.relations ?? [];
+  for (let r of relations) {
+    console.log(r)
+    let left = data[r.left].$path;
+    let right = data[r.right].$path;
+    let variables = {
+      leftBox: {
+        bottom: new Variable("leftBox.bottom")
+      },
+      rightBox: {
+        top: new Variable("rightBox.top"),
+      }
+    }
+    console.log(r.gestalt[0](variables, left, right))
+  }
 }
