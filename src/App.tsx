@@ -24,18 +24,18 @@ function App() {
           {/* {
             console.log(foo())
           } */}
-          {
+          {/* {
             console.log(baz())
-          }
+          } */}
           {/* {
             console.log("makeBBoxVars", makeBBoxVars("foo"))
           } */}
-          {
+          {/* {
             toBBoxes(baz())
-          }
-          {
+          } */}
+          {/* {
             toConstraints(simpleExample, baz())
-          }
+          } */}
         </p>
         {Simple.render(Simple.encoding)};
         <a

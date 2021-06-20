@@ -1,14 +1,15 @@
 import { Gestalt } from './Encoding';
 import { Constraint, Expression, Operator } from 'kiwi.js';
+import { bboxVars } from './KiwiBBox';
 
 export const alignBottom: Gestalt = '';
 export const alignLeft: Gestalt = '';
 export const hSpace: (spacing: number) => Gestalt = (_) => '';
 
-export const vSpace = (spacing: number) => (variables: any, left: string, right: string) => {
+export const vSpace = (spacing: number) => (left: bboxVars, right: bboxVars) => {
   return new Constraint(
-    new Expression(variables[left].bottom, spacing),
+    new Expression(left.bottom, spacing),
     Operator.Eq,
-    new Expression(variables[right].top)
+    new Expression(right.top)
   );
 }
