@@ -59,6 +59,7 @@ export const makeBBoxConstraints = (bboxVars: bboxVars): Constraint[] => {
   ]
 }
 
+// TODO: make this simpler?
 export const makeGlyphConstraints = (bboxVars: bboxVars, bboxValues: maybeBboxValues): Constraint[] => {
   const constraints = [];
   if (bboxValues.left !== undefined) {

@@ -36,8 +36,8 @@ export const encoding = {
   encodings2: {
     /* TODO: maybe make RHS a _list_ of glyphs? */
     // leftColor can be primitive or compound data!
-    "leftColor": rect2({ width: 10., height: 10., fill: data.leftColor }),
-    "rightColor": rect2({ width: 10., height: 10., fill: data.rightColor }),
+    "leftColor": rect2({ width: 50., height: 10., fill: data.leftColor }),
+    "rightColor": rect2({ width: 30., height: 10., fill: data.rightColor }),
   },
   relations: [
     // vSpace(10.)("leftColor", "rightColor")
