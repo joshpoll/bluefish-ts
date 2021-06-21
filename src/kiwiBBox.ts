@@ -2,6 +2,17 @@ import { Constraint, Expression, Operator, Solver, Variable } from 'kiwi.js';
 
 export type bbox = string;
 
+export type bboxVars = {
+  left: Variable,
+  right: Variable,
+  top: Variable,
+  bottom: Variable,
+  width: Variable,
+  height: Variable,
+  centerX: Variable,
+  centerY: Variable,
+}
+
 export type maybeBboxValues = {
   left?: number,
   right?: number,
@@ -9,6 +20,8 @@ export type maybeBboxValues = {
   bottom?: number,
   width?: number,
   height?: number,
+  centerX?: number,
+  centerY?: number,
 }
 
 export type bboxValues = {
@@ -18,25 +31,22 @@ export type bboxValues = {
   bottom: number,
   width: number,
   height: number,
-}
-
-export type bboxVars = {
-  left: Variable,
-  right: Variable,
-  top: Variable,
-  bottom: Variable,
-  width: Variable,
-  height: Variable,
+  centerX: number,
+  centerY: number,
 }
 
 export const makeBBoxVars = (bbox: bbox): bboxVars => {
-  let left = new Variable(bbox + ".left");
-  let right = new Variable(bbox + ".right");
-  let top = new Variable(bbox + ".top");
-  let bottom = new Variable(bbox + ".bottom");
+  const left = new Variable(bbox + ".left");
+  const right = new Variable(bbox + ".right");
+  const top = new Variable(bbox + ".top");
+  const bottom = new Variable(bbox + ".bottom");
 
-  let width = new Variable(bbox + ".width");
-  let height = new Variable(bbox + ".height");
+  const width = new Variable(bbox + ".width");
+  const height = new Variable(bbox + ".height");
+
+
+  const centerX = new Variable(bbox + ".centerX");
+  const centerY = new Variable(bbox + ".centerY");
 
   return {
     left,
@@ -44,7 +54,9 @@ export const makeBBoxVars = (bbox: bbox): bboxVars => {
     top,
     bottom,
     width,
-    height
+    height,
+    centerX,
+    centerY,
   }
 }
 
@@ -56,6 +68,8 @@ export const makeBBoxConstraints = (bboxVars: bboxVars): Constraint[] => {
     new Constraint(bboxVars.top, Operator.Ge, 0),
     new Constraint(bboxVars.width, Operator.Eq, new Expression(bboxVars.right, [-1, bboxVars.left])),
     new Constraint(bboxVars.height, Operator.Eq, new Expression(bboxVars.bottom, [-1, bboxVars.top])),
+    new Constraint(bboxVars.centerX, Operator.Eq, new Expression(bboxVars.left, bboxVars.right).divide(2)),
+    new Constraint(bboxVars.centerY, Operator.Eq, new Expression(bboxVars.top, bboxVars.bottom).divide(2)),
   ]
 }
 
@@ -80,6 +94,12 @@ export const makeGlyphConstraints = (bboxVars: bboxVars, bboxValues: maybeBboxVa
   if (bboxValues.height !== undefined) {
     constraints.push(new Constraint(bboxVars.height, Operator.Eq, bboxValues.height))
   }
+  if (bboxValues.centerX !== undefined) {
+    constraints.push(new Constraint(bboxVars.centerX, Operator.Eq, bboxValues.centerX))
+  }
+  if (bboxValues.centerY !== undefined) {
+    constraints.push(new Constraint(bboxVars.centerY, Operator.Eq, bboxValues.centerY))
+  }
   return constraints;
 }
 
@@ -90,4 +110,6 @@ export const getBBoxValues = (bboxVars: bboxVars): bboxValues => ({
   bottom: bboxVars.bottom.value(),
   width: bboxVars.width.value(),
   height: bboxVars.height.value(),
+  centerX: bboxVars.centerX.value(),
+  centerY: bboxVars.centerY.value(),
 })
