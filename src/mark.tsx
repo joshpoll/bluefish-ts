@@ -42,14 +42,14 @@ type TextParams = {
   x?: number,
   y?: number,
   text: string,
-  "font-family"?: string,
-  "font-size"?: string,
-  "font-style"?: string,
+  fontFamily?: string,
+  fontSize?: string,
+  fontStyle?: string,
   fill?: string,
 }
 
 // TODO: maybe use https://airbnb.io/visx/docs/text?
-export const text = ({ x, y, text, "font-family": fontFamily, "font-size": fontSize, "font-style": fontStyle, fill }: TextParams) => {
+export const text = ({ x, y, text, fontFamily, fontSize, fontStyle, fill }: TextParams) => {
   const measurements = measure("$measuring", <text fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fill={fill}>
     {text}
   </text>)
