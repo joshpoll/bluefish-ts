@@ -3,8 +3,13 @@ import { bboxVars } from './kiwiBBox';
 
 export type Gestalt = (left: bboxVars, right: bboxVars) => Constraint;
 
-// export const alignBottom: Gestalt = '';
-// export const alignLeft: Gestalt = '';
+export const alignCenterY: Gestalt = (left: bboxVars, right: bboxVars) => {
+  return new Constraint(
+    left.centerY,
+    Operator.Eq,
+    right.centerY
+  )
+}
 
 export const hSpace = (spacing: number): Gestalt => (left: bboxVars, right: bboxVars) => {
   return new Constraint(
