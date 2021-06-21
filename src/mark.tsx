@@ -50,7 +50,7 @@ type TextParams = {
 
 // TODO: maybe use https://airbnb.io/visx/docs/text?
 export const text = ({ x, y, text, "font-family": fontFamily, "font-size": fontSize, "font-style": fontStyle, fill }: TextParams) => {
-  const measurements = measure("$measuring", <text font-family={fontFamily} font-size={fontSize} font-style={fontStyle} fill={fill}>
+  const measurements = measure("$measuring", <text fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fill={fill}>
     {text}
   </text>)
   return [
@@ -58,7 +58,7 @@ export const text = ({ x, y, text, "font-family": fontFamily, "font-size": fontS
     { left: x, bottom: y, width: measurements.width, height: measurements.height },
     // and the rendering function itself
     (bbox: bboxValues) => {
-      return <text x={x ?? bbox.left} y={y ?? bbox.bottom} font-family={fontFamily} font-size={fontSize} font-style={fontStyle} fill={fill}>
+      return <text x={x ?? bbox.left} y={y ?? bbox.bottom} fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fill={fill}>
         {text}
       </text>
     }]
