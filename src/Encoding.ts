@@ -1,8 +1,7 @@
 import { Variable } from "kiwi.js";
-import { makeBBoxVars } from "./KiwiBBox";
+import { makeBBoxVars } from "./kiwiBBox";
 
 export type Mark = any;
-export type Gestalt = any;
 
 export type Relation = {
   left: any,

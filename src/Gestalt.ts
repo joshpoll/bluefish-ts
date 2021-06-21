@@ -1,6 +1,7 @@
-import { Gestalt } from './Encoding';
 import { Constraint, Expression, Operator } from 'kiwi.js';
-import { bboxVars } from './KiwiBBox';
+import { bboxVars } from './kiwiBBox';
+
+export type Gestalt = any;
 
 export const alignBottom: Gestalt = '';
 export const alignLeft: Gestalt = '';
