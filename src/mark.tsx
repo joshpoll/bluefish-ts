@@ -1,7 +1,5 @@
-import { Mark } from './encoding';
 import { bboxValues } from './kiwiBBox';
-
-export const text: Mark = (text: any) => text;
+import measure from './measure';
 
 type RectParams = {
   x?: number,
@@ -37,5 +35,31 @@ export const ellipse = ({ cx, cy, rx, ry, fill }: EllipseParams) => {
     // and the rendering function itself
     (bbox: bboxValues) => {
       return <ellipse cx={cx ?? bbox.centerX} cy={cy ?? bbox.centerY} rx={rx ?? bbox.width / 2} ry={ry ?? bbox.height / 2} fill={fill} />
+    }]
+}
+
+type TextParams = {
+  x?: number,
+  y?: number,
+  text: string,
+  "font-family"?: string,
+  "font-size"?: string,
+  "font-style"?: string,
+  fill?: string,
+}
+
+// TODO: maybe use https://airbnb.io/visx/docs/text?
+export const text = ({ x, y, text, "font-family": fontFamily, "font-size": fontSize, "font-style": fontStyle, fill }: TextParams) => {
+  const measurements = measure("$measuring", <text font-family={fontFamily} font-size={fontSize} font-style={fontStyle} fill={fill}>
+    {text}
+  </text>)
+  return [
+    // return the positioning parameters the user gave us
+    { left: x, bottom: y, width: measurements.width, height: measurements.height },
+    // and the rendering function itself
+    (bbox: bboxValues) => {
+      return <text x={x ?? bbox.left} y={y ?? bbox.bottom} font-family={fontFamily} font-size={fontSize} font-style={fontStyle} fill={fill}>
+        {text}
+      </text>
     }]
 }

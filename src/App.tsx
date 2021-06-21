@@ -1,6 +1,6 @@
 import './App.css';
 import render from './render';
-import simple from './simple';
+import simple from './sample';
 
 function App() {
   return (
