@@ -5,8 +5,7 @@ export type Measurements = {
   height: number,
 }
 
-/* TODO: make e's type better? */
-export default (id: string, e: any): Measurements => {
+export default (id: string, e: JSX.Element): Measurements => {
   // https://stackoverflow.com/a/63984284
   // https://stackoverflow.com/a/3492557
   const xmlns = "http://www.w3.org/2000/svg";
