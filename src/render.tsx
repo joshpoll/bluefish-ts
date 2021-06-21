@@ -17,7 +17,7 @@ export default (encoding: any) => {
   bboxConstraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
 
   // 1.75. Add the constraints specified by the glyph
-  const glyphConstraints = keys.map((glyphKey) => makeGlyphConstraints(bboxVars[glyphKey], encoding.encodings[glyphKey][0])).flat();
+  const glyphConstraints = keys.map((glyphKey) => makeGlyphConstraints(bboxVars[glyphKey], encoding.encodings[glyphKey].bboxParams)).flat();
   glyphConstraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
 
   // 2. add gestalt constraints
@@ -38,7 +38,7 @@ export default (encoding: any) => {
   // 4. render
   return (
     <svg width="800" height="700">
-      {keys.map((glyphKey: any, index: number) => (<g key={index}>{encoding.encodings[glyphKey][1](bboxValues[glyphKey])}</g>))}
+      {keys.map((glyphKey: any, index: number) => (<g key={index}>{encoding.encodings[glyphKey].renderFn(bboxValues[glyphKey])}</g>))}
     </svg>
   )
 }
