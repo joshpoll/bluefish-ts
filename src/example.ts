@@ -1,9 +1,14 @@
-import { hSpace, vSpace, alignCenterY, alignCenterX } from './gestalt';
+import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignTop } from './gestalt';
 import { ellipse, rect, text } from './mark';
+import { Encoding } from './render';
 
 const data = { color1: "firebrick", color2: "steelblue", color3: "black" };
 
-export default {
+export const example: Encoding = {
+  canvas: {
+    width: 800,
+    height: 700,
+  },
   encodings: {
     /* TODO: maybe make RHS a _list_ of glyphs? */
     "topRect": rect({ width: 500 / 3, height: 200 / 3, fill: data.color1 }),
@@ -16,5 +21,6 @@ export default {
     { left: "topRect", right: "bottomEllipse", gestalt: [vSpace(50.)] },
     { left: "topRect", right: "rightEllipse", gestalt: [hSpace(50.), alignCenterY] },
     { left: "rightEllipse", right: "some text", gestalt: [vSpace(50.), alignCenterX] },
+    { left: "canvas", right: "topRect", gestalt: [alignLeft] },
   ]
 }

@@ -34,7 +34,7 @@ type EllipseParams = {
   fill?: string,
 }
 
-export const ellipse = ({ cx, cy, rx, ry, fill }: EllipseParams) => (
+export const ellipse = ({ cx, cy, rx, ry, fill }: EllipseParams): Mark => (
   {
     // return the positioning parameters the user gave us
     bboxParams: { centerX: cx, centerY: cy, width: rx ? 2 * rx : undefined, height: ry ? 2 * ry : undefined },
@@ -56,7 +56,7 @@ type TextParams = {
 }
 
 // TODO: maybe use https://airbnb.io/visx/docs/text?
-export const text = ({ x, y, text, fontFamily, fontSize, fontStyle, fill }: TextParams) => {
+export const text = ({ x, y, text, fontFamily, fontSize, fontStyle, fill }: TextParams): Mark => {
   const measurements = measure("$measuring", <text fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fill={fill}>
     {text}
   </text>)

@@ -1,12 +1,12 @@
 import './App.css';
+import { example } from './example';
 import render from './render';
-import simple from './example';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        {render(simple)};
+        {render(example)};
       </header>
     </div>
   );
