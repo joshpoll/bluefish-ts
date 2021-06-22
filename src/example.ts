@@ -5,16 +5,16 @@ import { Encoding } from './render';
 const data = { color1: "firebrick", color2: "steelblue", color3: "black" };
 
 export const example: Encoding = {
-  canvas: {
+  /* canvas: {
     width: 800,
     height: 700,
-  },
+  }, */
   encodings: {
     /* TODO: maybe make RHS a _list_ of glyphs? */
     "topRect": rect({ width: 500 / 3, height: 200 / 3, fill: data.color1 }),
     "bottomEllipse": ellipse({ rx: 300 / 6, ry: 200 / 6, fill: data.color2 }),
     "rightEllipse": ellipse({ rx: 50, ry: 50, fill: data.color3 }),
-    "some text": text({ text: "hello world!" }),
+    "some text": text({ text: "hello world!", fontSize: "calc(10px + 2vmin)" }),
   },
   relations: [
     // e.g. "topRect" refers to the bbox of the "topRect" glyph defined above
