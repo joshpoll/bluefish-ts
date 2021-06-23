@@ -17,5 +17,7 @@ module.exports = {
     "@typescript-eslint"
   ],
   "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react/display-name": "off",
   }
 };

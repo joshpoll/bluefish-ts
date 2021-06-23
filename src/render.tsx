@@ -1,7 +1,7 @@
 import { Constraint, Operator, Solver, Strength } from "kiwi.js";
-import { Mark } from "./encoding";
 import { Gestalt } from "./gestalt";
 import { getBBoxValues, makeBBoxConstraints, makeBBoxVars, makeGlyphConstraints, bboxVars } from './kiwiBBox';
+import { Mark } from './mark';
 
 export type Relation = {
   left: string,

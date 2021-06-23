@@ -1,7 +1,7 @@
 import { bboxValues, maybeBboxValues } from './kiwiBBox';
 import measure from './measure';
 
-type Mark = {
+export type Mark = {
   bboxParams: maybeBboxValues,
   renderFn: (bbox: bboxValues) => JSX.Element,
 }

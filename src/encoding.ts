@@ -1,8 +1,6 @@
 import { Variable } from "kiwi.js";
 import { makeBBoxVars } from "./kiwiBBox";
 
-export type Mark = any;
-
 export type Relation = {
   left: any,
   right: any,

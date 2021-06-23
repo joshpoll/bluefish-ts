@@ -13,27 +13,8 @@ export type bboxVars = {
   centerY: Variable,
 }
 
-export type maybeBboxValues = {
-  left?: number,
-  right?: number,
-  top?: number,
-  bottom?: number,
-  width?: number,
-  height?: number,
-  centerX?: number,
-  centerY?: number,
-}
-
-export type bboxValues = {
-  left: number,
-  right: number,
-  top: number,
-  bottom: number,
-  width: number,
-  height: number,
-  centerX: number,
-  centerY: number,
-}
+export type bboxValues = { [key in keyof bboxVars]: number }
+export type maybeBboxValues = Partial<bboxValues>
 
 export const makeBBoxVars = (bbox: bbox): bboxVars => {
   const left = new Variable(bbox + ".left");
@@ -73,33 +54,14 @@ export const makeBBoxConstraints = (bboxVars: bboxVars): Constraint[] => {
   ]
 }
 
-// TODO: make this simpler?
 export const makeGlyphConstraints = (bboxVars: bboxVars, bboxValues: maybeBboxValues): Constraint[] => {
   const constraints = [];
-  if (bboxValues.left !== undefined) {
-    constraints.push(new Constraint(bboxVars.left, Operator.Eq, bboxValues.left))
+  for (const key of Object.keys(bboxVars) as (keyof bboxVars)[]) {
+    if (bboxValues[key] !== undefined) {
+      constraints.push(new Constraint(bboxVars[key], Operator.Eq, bboxValues[key]));
+    }
   }
-  if (bboxValues.right !== undefined) {
-    constraints.push(new Constraint(bboxVars.right, Operator.Eq, bboxValues.right))
-  }
-  if (bboxValues.top !== undefined) {
-    constraints.push(new Constraint(bboxVars.top, Operator.Eq, bboxValues.top))
-  }
-  if (bboxValues.bottom !== undefined) {
-    constraints.push(new Constraint(bboxVars.bottom, Operator.Eq, bboxValues.bottom))
-  }
-  if (bboxValues.width !== undefined) {
-    constraints.push(new Constraint(bboxVars.width, Operator.Eq, bboxValues.width))
-  }
-  if (bboxValues.height !== undefined) {
-    constraints.push(new Constraint(bboxVars.height, Operator.Eq, bboxValues.height))
-  }
-  if (bboxValues.centerX !== undefined) {
-    constraints.push(new Constraint(bboxVars.centerX, Operator.Eq, bboxValues.centerX))
-  }
-  if (bboxValues.centerY !== undefined) {
-    constraints.push(new Constraint(bboxVars.centerY, Operator.Eq, bboxValues.centerY))
-  }
+
   return constraints;
 }
 
