@@ -67,13 +67,25 @@ export const makeGlyphConstraints = (bboxVars: bboxVars, bboxValues: maybeBboxVa
   return constraints;
 }
 
-export const getBBoxValues = (bboxVars: bboxVars): bboxValues => ({
-  left: bboxVars.left.value(),
-  right: bboxVars.right.value(),
-  top: bboxVars.top.value(),
-  bottom: bboxVars.bottom.value(),
-  width: bboxVars.width.value(),
-  height: bboxVars.height.value(),
-  centerX: bboxVars.centerX.value(),
-  centerY: bboxVars.centerY.value(),
-})
+export type BBoxTree<T> = {
+  bbox: T,
+  children: { [key: string]: BBoxTree<T> },
+}
+
+export const getBBoxValues = (bboxVars: BBoxTree<bboxVars>): BBoxTree<bboxValues> => {
+  return {
+    bbox: {
+      left: bboxVars.bbox.left.value(),
+      right: bboxVars.bbox.right.value(),
+      top: bboxVars.bbox.top.value(),
+      bottom: bboxVars.bbox.bottom.value(),
+      width: bboxVars.bbox.width.value(),
+      height: bboxVars.bbox.height.value(),
+      centerX: bboxVars.bbox.centerX.value(),
+      centerY: bboxVars.bbox.centerY.value(),
+    },
+    children: Object.keys(bboxVars.children).reduce((o: { [key: string]: BBoxTree<bboxValues> }, glyphKey: any) => ({
+      ...o, [glyphKey]: getBBoxValues(bboxVars.children[glyphKey])
+    }), {})
+  }
+}

@@ -1,6 +1,6 @@
 import './App.css';
 import compile from './compile';
-import { course } from './examples/courses';
+import { courses } from './examples/courses';
 import { example } from './examples/example';
 import render from './render';
 
@@ -12,7 +12,7 @@ function App() {
         <br />
         <br />
         <br />
-        {render(compile(course))}
+        {render(compile(courses))}
       </header>
     </div>
   );

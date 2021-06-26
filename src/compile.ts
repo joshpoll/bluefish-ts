@@ -1,6 +1,6 @@
 import { Constraint, Operator, Solver, Strength } from "kiwi.js";
 import { Gestalt } from "./gestalt";
-import { getBBoxValues, makeBBoxConstraints, makeBBoxVars, makeGlyphConstraints, bboxVars, bboxValues, maybeBboxValues } from './kiwiBBox';
+import { BBoxTree, getBBoxValues, makeBBoxConstraints, makeBBoxVars, makeGlyphConstraints, bboxVars, bboxValues, maybeBboxValues } from './kiwiBBox';
 
 export type CompiledAST = {
   bboxValues: BBoxTree<bboxValues>
@@ -23,11 +23,6 @@ export type Glyph = {
 export type Mark = {
   bbox: maybeBboxValues,
   renderFn: (bbox: bboxValues) => JSX.Element,
-}
-
-type BBoxTree<T> = {
-  bbox: T,
-  children: { [key: string]: BBoxTree<T> },
 }
 
 /* mutates constraints */
@@ -79,7 +74,7 @@ const makeBBoxTree = (path: string, encoding: Glyph, constraints: Constraint[]):
   const keys = Object.keys(children);
   const compiledChildren: { [key: string]: BBoxTree<bboxVars> } = keys.reduce((o: { [key: string]: BBoxTree<bboxVars> }, glyphKey: any) => (
     {
-      ...o, [glyphKey]: makeBBoxTree(path + "." + glyphKey, children[glyphKey], constraints)
+      ...o, [glyphKey]: makeBBoxTree(glyphKey, children[glyphKey], constraints)
     }
   ), {});
 
@@ -94,15 +89,32 @@ const makeBBoxTree = (path: string, encoding: Glyph, constraints: Constraint[]):
   }
 }
 
-export default (encoding: Glyph): CompiledAST => {
+const resolvePaths = (path: string, encoding: Glyph): Glyph => {
   const children = encoding.children === undefined ? {} : encoding.children;
-  const keys = Object.keys(children);
+  const compiledChildren: { [key: string]: Glyph } = Object.keys(children).reduce((o: { [key: string]: Glyph }, glyphKey: any) => (
+    {
+      ...o, [path + "." + glyphKey]: resolvePaths(path + "." + glyphKey, children[glyphKey])
+    }
+  ), {});
+
+  return {
+    ...encoding,
+    children: compiledChildren,
+  }
+}
+
+export default (encoding: Glyph): CompiledAST => {
+  const resolvedEncoding = resolvePaths("canvas", encoding);
+  const children = resolvedEncoding.children === undefined ? {} : resolvedEncoding.children;
+  let keys = Object.keys(children);
 
   // 1. construct variables
   const constraints: Constraint[] = [];
-  let bboxTree = makeBBoxTree("canvas", encoding, constraints);
+  let bboxTree = makeBBoxTree("canvas", resolvedEncoding, constraints);
+  keys = Object.keys(bboxTree.children);
+  // console.log("keys", keys);
 
-  addCanvasConstraints(bboxTree, encoding, constraints);
+  addCanvasConstraints(bboxTree, resolvedEncoding, constraints);
   // console.log("step 1 complete", constraints)
 
   const solver = new Solver();
@@ -114,41 +126,32 @@ export default (encoding: Glyph): CompiledAST => {
   // 1.5. add bbox constraints
   const bboxConstraints = keys.map((bboxKey) => makeBBoxConstraints(bboxTree.children[bboxKey].bbox)).flat();
   bboxConstraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
-  // console.log("step 1.5 complete")
+  console.log("step 1.5 complete")
 
   // 1.75. Add the constraints specified by the glyph
   const glyphConstraints = keys.map((glyphKey) => makeGlyphConstraints(bboxTree.children[glyphKey].bbox, children[glyphKey].bbox)).flat();
   glyphConstraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
-  // console.log("step 1.75 complete")
+  console.log("step 1.75 complete")
 
   // 2. add gestalt constraints
-  const relations = encoding.relations === undefined ? [] : encoding.relations;
+  const relations = resolvedEncoding.relations === undefined ? [] : resolvedEncoding.relations;
   const gestaltConstraints = relations.map(
     ({ left, right, gestalt }: Relation) =>
       gestalt.map((g: Gestalt) => {
-        const leftBBox = left === "canvas" ? bboxTree.bbox : bboxTree.children[left].bbox;
-        const rightBBox = left === "canvas" ? bboxTree.bbox : bboxTree.children[right].bbox;
+        const leftBBox = left === "canvas" ? bboxTree.bbox : bboxTree.children["canvas." + left].bbox;
+        const rightBBox = left === "canvas" ? bboxTree.bbox : bboxTree.children["canvas." + right].bbox;
         return g(leftBBox, rightBBox)
       }))
     .flat();
   gestaltConstraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
-  // console.log("step 2 complete")
+  console.log("step 2 complete")
 
   // 3. solve variables
   solver.updateVariables();
   // console.log("bboxVars", bboxTree.children);
 
   // 3.5. extract values
-  const bboxValues = {
-    bbox: getBBoxValues(bboxTree.bbox),
-    children: keys.reduce((o: { [key: string]: BBoxTree<bboxValues> }, glyphKey: any) => ({
-      ...o, [glyphKey]: {
-        bbox: getBBoxValues(bboxTree.children[glyphKey].bbox),
-        children: {}
-      }
-    }), {})
-  }
-  // console.log("bboxValues", bboxTree.children);
+  const bboxValues = getBBoxValues(bboxTree);
 
-  return { bboxValues, encoding };
+  return { bboxValues, encoding: resolvedEncoding };
 }
