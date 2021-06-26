@@ -1,6 +1,6 @@
 import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignBottom } from '../gestalt';
 import { ellipse, Mark, rect, text } from '../mark';
-import { Encoding, Relation } from '../render';
+import { Encoding, Relation } from '../compile';
 
 const data = {
   instructors: "Jackson & Satyanarayan", name: "Software Studio", num: "6.170"

@@ -1,6 +1,6 @@
 import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignTop, Gestalt } from '../gestalt';
 import { ellipse, Mark, rect, text } from '../mark';
-import { Encoding, Relation } from '../render';
+import { Encoding, Relation } from '../compile';
 
 const data = { color1: "firebrick", color2: "steelblue", color3: "black" };
 
