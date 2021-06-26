@@ -11,6 +11,14 @@ export const alignTop: Gestalt = (left: bboxVars, right: bboxVars) => {
   )
 }
 
+export const alignBottom: Gestalt = (left: bboxVars, right: bboxVars) => {
+  return new Constraint(
+    left.bottom,
+    Operator.Eq,
+    right.bottom
+  )
+}
+
 export const alignLeft: Gestalt = (left: bboxVars, right: bboxVars) => {
   return new Constraint(
     left.left,
