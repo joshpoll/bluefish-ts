@@ -14,7 +14,7 @@ export type bboxVars = {
 }
 
 export type bboxValues = { [key in keyof bboxVars]: number }
-export type maybeBboxValues = Partial<bboxValues>
+export type maybeBboxValues = Partial<bboxValues> | undefined
 
 export const makeBBoxVars = (bbox: bbox): bboxVars => {
   const left = new Variable(bbox + ".left");
@@ -56,9 +56,11 @@ export const makeBBoxConstraints = (bboxVars: bboxVars): Constraint[] => {
 
 export const makeGlyphConstraints = (bboxVars: bboxVars, bboxValues: maybeBboxValues): Constraint[] => {
   const constraints = [];
-  for (const key of Object.keys(bboxVars) as (keyof bboxVars)[]) {
-    if (bboxValues[key] !== undefined) {
-      constraints.push(new Constraint(bboxVars[key], Operator.Eq, bboxValues[key]));
+  if (bboxValues !== undefined) {
+    for (const key of Object.keys(bboxVars) as (keyof bboxVars)[]) {
+      if (bboxValues[key] !== undefined) {
+        constraints.push(new Constraint(bboxVars[key], Operator.Eq, bboxValues[key]));
+      }
     }
   }
 

@@ -1,15 +1,15 @@
 import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignTop, Gestalt } from '../gestalt';
-import { ellipse, Mark, rect, text } from '../mark';
-import { Encoding, Relation } from '../compile';
+import { ellipse, rect, text } from '../mark';
+import { Encoding, Mark, Relation } from '../compile';
 
 const data = { color1: "firebrick", color2: "steelblue", color3: "black" };
 
 export const example: Encoding = {
-  /* canvas: {
+  /* bbox: {
     width: 800,
     height: 700,
   }, */
-  encodings: {
+  children: {
     /* TODO: maybe make RHS a _list_ of glyphs? */
     "topRect": rect({ width: 500 / 3, height: 200 / 3, fill: data.color1 }),
     "bottomEllipse": ellipse({ rx: 300 / 6, ry: 200 / 6, fill: data.color2 }),
