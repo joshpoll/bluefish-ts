@@ -1,10 +1,10 @@
 import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignTop, Gestalt } from '../gestalt';
 import { ellipse, rect, text } from '../mark';
-import { Encoding, Mark, Relation } from '../compile';
+import { Glyph, Mark, Relation } from '../compile';
 
 const data = { color1: "firebrick", color2: "steelblue", color3: "black" };
 
-export const example: Encoding = {
+export const example: Glyph = {
   /* bbox: {
     width: 800,
     height: 700,

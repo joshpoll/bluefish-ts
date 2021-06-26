@@ -1,12 +1,12 @@
 import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignBottom } from '../gestalt';
 import { ellipse, rect, text } from '../mark';
-import { Encoding, Relation } from '../compile';
+import { Glyph, Relation } from '../compile';
 
 const data = {
   instructors: "Jackson & Satyanarayan", name: "Software Studio", num: "6.170"
 };
 
-export const course: Encoding = {
+export const course: Glyph = {
   /* canvas: {
     width: 800,
     height: 700,
