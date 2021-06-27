@@ -1,5 +1,5 @@
 import { Constraint, Expression, Operator, Solver, Variable } from 'kiwi.js';
-import { GlyphWithPath } from './compile';
+import { BBoxTreeVV, GlyphWithPath } from './compile';
 
 export type bbox = string;
 
@@ -43,35 +43,22 @@ export const makeBBoxVars = (bbox: bbox): bboxVars => {
 }
 
 /* mutates constraints */
-export const addBBoxConstraints = (bboxTree: BBoxTree<bboxVars>, encoding: GlyphWithPath, constraints: Constraint[]): void => {
+export const addBBoxConstraints = (bboxTree: BBoxTreeVV, constraints: Constraint[]): void => {
   const keys = Object.keys(bboxTree.children);
-  keys.forEach((key) => addBBoxConstraints(bboxTree.children[key], encoding.children[key], constraints));
+  keys.forEach((key) => addBBoxConstraints(bboxTree.children[key], constraints));
 
-  if (encoding.bbox !== undefined) {
-    for (const key of Object.keys(encoding.bbox) as (keyof bboxValues)[]) {
-      if (encoding.bbox[key] !== undefined) {
-        constraints.push(new Constraint(bboxTree.bbox[key], Operator.Eq, encoding.bbox[key]));
+  if (bboxTree.bbox.bboxValues !== undefined) {
+    for (const key of Object.keys(bboxTree.bbox.bboxValues) as (keyof bboxValues)[]) {
+      if (bboxTree.bbox.bboxValues[key] !== undefined) {
+        constraints.push(new Constraint(bboxTree.bbox.bboxVars[key], Operator.Eq, bboxTree.bbox.bboxValues[key]));
       }
     }
   }
 
-  constraints.push(new Constraint(bboxTree.bbox.width, Operator.Eq, new Expression(bboxTree.bbox.right, [-1, bboxTree.bbox.left])));
-  constraints.push(new Constraint(bboxTree.bbox.height, Operator.Eq, new Expression(bboxTree.bbox.bottom, [-1, bboxTree.bbox.top])));
-  constraints.push(new Constraint(bboxTree.bbox.centerX, Operator.Eq, new Expression(bboxTree.bbox.left, bboxTree.bbox.right).divide(2)));
-  constraints.push(new Constraint(bboxTree.bbox.centerY, Operator.Eq, new Expression(bboxTree.bbox.top, bboxTree.bbox.bottom).divide(2)));
-}
-
-export const makeGlyphConstraints = (bboxVars: bboxVars, bboxValues: maybeBboxValues): Constraint[] => {
-  const constraints = [];
-  if (bboxValues !== undefined) {
-    for (const key of Object.keys(bboxVars) as (keyof bboxVars)[]) {
-      if (bboxValues[key] !== undefined) {
-        constraints.push(new Constraint(bboxVars[key], Operator.Eq, bboxValues[key]));
-      }
-    }
-  }
-
-  return constraints;
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.width, Operator.Eq, new Expression(bboxTree.bbox.bboxVars.right, [-1, bboxTree.bbox.bboxVars.left])));
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.height, Operator.Eq, new Expression(bboxTree.bbox.bboxVars.bottom, [-1, bboxTree.bbox.bboxVars.top])));
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerX, Operator.Eq, new Expression(bboxTree.bbox.bboxVars.left, bboxTree.bbox.bboxVars.right).divide(2)));
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerY, Operator.Eq, new Expression(bboxTree.bbox.bboxVars.top, bboxTree.bbox.bboxVars.bottom).divide(2)));
 }
 
 export type BBoxTree<T> = {
@@ -79,17 +66,17 @@ export type BBoxTree<T> = {
   children: { [key: string]: BBoxTree<T> },
 }
 
-export const getBBoxValues = (bboxVars: BBoxTree<bboxVars>): BBoxTree<bboxValues> => {
+export const getBBoxValues = (bboxVars: BBoxTreeVV): BBoxTree<bboxValues> => {
   return {
     bbox: {
-      left: bboxVars.bbox.left.value(),
-      right: bboxVars.bbox.right.value(),
-      top: bboxVars.bbox.top.value(),
-      bottom: bboxVars.bbox.bottom.value(),
-      width: bboxVars.bbox.width.value(),
-      height: bboxVars.bbox.height.value(),
-      centerX: bboxVars.bbox.centerX.value(),
-      centerY: bboxVars.bbox.centerY.value(),
+      left: bboxVars.bbox.bboxVars.left.value(),
+      right: bboxVars.bbox.bboxVars.right.value(),
+      top: bboxVars.bbox.bboxVars.top.value(),
+      bottom: bboxVars.bbox.bboxVars.bottom.value(),
+      width: bboxVars.bbox.bboxVars.width.value(),
+      height: bboxVars.bbox.bboxVars.height.value(),
+      centerX: bboxVars.bbox.bboxVars.centerX.value(),
+      centerY: bboxVars.bbox.bboxVars.centerY.value(),
     },
     children: Object.keys(bboxVars.children).reduce((o: { [key: string]: BBoxTree<bboxValues> }, glyphKey: any) => ({
       ...o, [glyphKey]: getBBoxValues(bboxVars.children[glyphKey])
