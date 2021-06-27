@@ -115,14 +115,10 @@ const addGestaltConstraints = (bboxTree: BBoxTreeVV, encoding: GlyphWithPath, co
 
 export default (encoding: Glyph): CompiledAST => {
   const resolvedEncoding = resolvePaths("canvas", encoding);
-  const children = resolvedEncoding.children === undefined ? {} : resolvedEncoding.children;
-  let keys = Object.keys(children);
 
   // 1. construct variables
   const constraints: Constraint[] = [];
   let bboxTree = makeBBoxTree(resolvedEncoding);
-  keys = Object.keys(bboxTree.children);
-  // console.log("keys", keys);
 
   // 1.25 add canvas and children constraints
   constraints.push(new Constraint(bboxTree.bbox.bboxVars.left, Operator.Eq, 0));
