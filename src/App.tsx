@@ -3,6 +3,7 @@ import compile from './compile';
 import { course, courses, data } from './examples/courses';
 import { example } from './examples/example';
 import render from './render';
+import { dataGlyph } from './examples/barchart';
 
 function App() {
   return (
@@ -18,6 +19,10 @@ function App() {
         <br />
         <br />
         {render(compile(courses))}
+        <br />
+        <br />
+        <br />
+        {render(compile(dataGlyph))}
       </header>
     </div>
   );

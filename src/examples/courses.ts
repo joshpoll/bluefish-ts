@@ -51,19 +51,19 @@ export const course = (data: Course): Glyph => ({
 
 export const courses: Glyph = {
   children: {
-    "course0": course(datadata[0]),
-    "course1": course(datadata[1]),
-    "course2": course(datadata[2]),
+    "0": course(datadata[0]),
+    "1": course(datadata[1]),
+    "2": course(datadata[2]),
   },
   relations: [
     {
-      left: "course0",
-      right: "course1",
+      left: "0",
+      right: "1",
       gestalt: [alignLeft, vSpace(10.)],
     },
     {
-      left: "course1",
-      right: "course2",
+      left: "1",
+      right: "2",
       gestalt: [alignLeft, vSpace(10.)],
     },
   ]
