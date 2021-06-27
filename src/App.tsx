@@ -12,6 +12,7 @@ function App() {
         <br />
         <br />
         <br />
+        {/* TODO: this _doesn't_ work properly, because text measurement happens too late */}
         {render(compile(course(data)))}
         <br />
         <br />

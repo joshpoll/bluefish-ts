@@ -1,12 +1,12 @@
 import { Constraint, Operator, Solver, Strength } from "kiwi.js";
 import { Gestalt } from "./gestalt";
-import { BBoxTree, getBBoxValues, addBBoxConstraints, makeBBoxVars, bboxVars, bboxValues, maybeBboxValues } from './kiwiBBox';
+import { BBoxTree, getBBoxValues, addBBoxConstraints, makeBBoxVars, bboxVars, BBoxValues, MaybeBBoxValues } from './kiwiBBox';
 
-export type BBoxTreeVV = BBoxTree<{ bboxVars: bboxVars, bboxValues?: maybeBboxValues }>;
+export type BBoxTreeVV = BBoxTree<{ bboxVars: bboxVars, bboxValues?: MaybeBBoxValues }>;
 
 export type CompiledAST = {
-  bboxValues: BBoxTree<bboxValues>
-  encoding: Glyph
+  bboxValues: BBoxTree<BBoxValues>
+  encoding: GlyphWithPath
 }
 
 export type Relation = {
@@ -16,23 +16,23 @@ export type Relation = {
 }
 
 export type Glyph = {
-  bbox?: maybeBboxValues,
-  renderFn?: (bbox: bboxValues) => JSX.Element,
+  bbox?: MaybeBBoxValues,
+  renderFn?: (bbox: BBoxValues) => JSX.Element,
   children?: { [key: string]: Glyph },
   relations?: Relation[]
 }
 
 export type GlyphWithPath = {
   path: string,
-  bbox?: maybeBboxValues,
-  renderFn?: (bbox: bboxValues) => JSX.Element,
+  bbox?: MaybeBBoxValues,
+  renderFn?: (bbox: BBoxValues) => JSX.Element,
   children: { [key: string]: GlyphWithPath },
   relations?: Relation[]
 }
 
 export type Mark = {
-  bbox: maybeBboxValues,
-  renderFn: (bbox: bboxValues) => JSX.Element,
+  bbox: MaybeBBoxValues,
+  renderFn: (bbox: BBoxValues) => JSX.Element,
 }
 
 /* mutates constraints */
@@ -100,6 +100,19 @@ const resolvePaths = (path: string, encoding: Glyph): GlyphWithPath => {
   }
 }
 
+/* mutates constraints */
+const addGestaltConstraints = (bboxTree: BBoxTreeVV, encoding: GlyphWithPath, constraints: Constraint[]): void => {
+  const keys = Object.keys(bboxTree.children);
+  keys.forEach((key) => addGestaltConstraints(bboxTree.children[key], encoding.children[key], constraints));
+
+  const relations = encoding.relations === undefined ? [] : encoding.relations;
+  relations.forEach(({ left, right, gestalt }: Relation) => gestalt.forEach((g: Gestalt) => {
+    const leftBBox = left === "canvas" ? bboxTree.bbox.bboxVars : bboxTree.children[left].bbox.bboxVars;
+    const rightBBox = right === "canvas" ? bboxTree.bbox.bboxVars : bboxTree.children[right].bbox.bboxVars;
+    constraints.push(g(leftBBox, rightBBox));
+  }))
+}
+
 export default (encoding: Glyph): CompiledAST => {
   const resolvedEncoding = resolvePaths("canvas", encoding);
   const children = resolvedEncoding.children === undefined ? {} : resolvedEncoding.children;
@@ -115,37 +128,22 @@ export default (encoding: Glyph): CompiledAST => {
   constraints.push(new Constraint(bboxTree.bbox.bboxVars.left, Operator.Eq, 0));
   constraints.push(new Constraint(bboxTree.bbox.bboxVars.top, Operator.Eq, 0));
   addChildrenConstraints(bboxTree, constraints);
-  // console.log("step 1 complete", constraints)
-
-  const solver = new Solver();
-
-  // 1.25. add canvas constraints
-  // console.log("step 1.25 complete")
+  // console.log("step 1.25 complete", constraints)
 
   // 1.5. add bbox constraints
   addBBoxConstraints(bboxTree, constraints);
   console.log("step 1.5 complete")
 
-  constraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
-
   // 2. add gestalt constraints
-  const relations = resolvedEncoding.relations === undefined ? [] : resolvedEncoding.relations;
-  const gestaltConstraints = relations.map(
-    ({ left, right, gestalt }: Relation) =>
-      gestalt.map((g: Gestalt) => {
-        const leftBBox = left === "canvas" ? bboxTree.bbox.bboxVars : bboxTree.children[left].bbox.bboxVars;
-        const rightBBox = left === "canvas" ? bboxTree.bbox.bboxVars : bboxTree.children[right].bbox.bboxVars;
-        return g(leftBBox, rightBBox)
-      }))
-    .flat();
-  gestaltConstraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
+  addGestaltConstraints(bboxTree, resolvedEncoding, constraints);
   console.log("step 2 complete")
 
   // 3. solve variables
+  const solver = new Solver();
+  constraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
   solver.updateVariables();
-  // console.log("bboxVars", bboxTree.children);
 
-  // 3.5. extract values
+  // 4. extract values
   const bboxValues = getBBoxValues(bboxTree);
 
   return { bboxValues, encoding: resolvedEncoding };

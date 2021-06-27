@@ -17,16 +17,16 @@ export const data: Course = {
 const datadata: Courses = [{
   instructors: "Jackson & Satyanarayan", name: "Software Studio", num: "6.170"
 },
-  /* {
-    instructors: "Mueller",
-    name: "Engineering Interactive Technologies",
-    num: "6.810",
-  },
-  {
-    instructors: "Miller, Greenberg, Keane",
-    name: "Principles and Practice of Assistive Technology",
-    num: "6.811",
-  }, */
+{
+  instructors: "Mueller",
+  name: "Engineering Interactive Technologies",
+  num: "6.810",
+},
+{
+  instructors: "Miller, Greenberg, Keane",
+  name: "Principles and Practice of Assistive Technology",
+  num: "6.811",
+},
 ];
 
 export const course = (data: Course): Glyph => ({
@@ -52,19 +52,19 @@ export const course = (data: Course): Glyph => ({
 export const courses: Glyph = {
   children: {
     "course0": course(datadata[0]),
-    // "course1": course(datadata[1]),
-    // "course2": course(datadata[2]),
+    "course1": course(datadata[1]),
+    "course2": course(datadata[2]),
   },
   relations: [
-    /*  {
-       left: "course0",
-       right: "course1",
-       gestalt: [alignLeft, vSpace(10.)],
-     },
-     {
-       left: "course1",
-       right: "course2",
-       gestalt: [alignLeft, vSpace(10.)],
-     }, */
+    {
+      left: "course0",
+      right: "course1",
+      gestalt: [alignLeft, vSpace(10.)],
+    },
+    {
+      left: "course1",
+      right: "course2",
+      gestalt: [alignLeft, vSpace(10.)],
+    },
   ]
 }

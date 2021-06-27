@@ -14,8 +14,8 @@ export type bboxVars = {
   centerY: Variable,
 }
 
-export type bboxValues = { [key in keyof bboxVars]: number }
-export type maybeBboxValues = Partial<bboxValues> | undefined
+export type BBoxValues = { [key in keyof bboxVars]: number }
+export type MaybeBBoxValues = Partial<BBoxValues> | undefined
 
 export const makeBBoxVars = (bbox: bbox): bboxVars => {
   const left = new Variable(bbox + ".left");
@@ -48,7 +48,7 @@ export const addBBoxConstraints = (bboxTree: BBoxTreeVV, constraints: Constraint
   keys.forEach((key) => addBBoxConstraints(bboxTree.children[key], constraints));
 
   if (bboxTree.bbox.bboxValues !== undefined) {
-    for (const key of Object.keys(bboxTree.bbox.bboxValues) as (keyof bboxValues)[]) {
+    for (const key of Object.keys(bboxTree.bbox.bboxValues) as (keyof BBoxValues)[]) {
       if (bboxTree.bbox.bboxValues[key] !== undefined) {
         constraints.push(new Constraint(bboxTree.bbox.bboxVars[key], Operator.Eq, bboxTree.bbox.bboxValues[key]));
       }
@@ -66,7 +66,7 @@ export type BBoxTree<T> = {
   children: { [key: string]: BBoxTree<T> },
 }
 
-export const getBBoxValues = (bboxVars: BBoxTreeVV): BBoxTree<bboxValues> => {
+export const getBBoxValues = (bboxVars: BBoxTreeVV): BBoxTree<BBoxValues> => {
   return {
     bbox: {
       left: bboxVars.bbox.bboxVars.left.value(),
@@ -78,7 +78,7 @@ export const getBBoxValues = (bboxVars: BBoxTreeVV): BBoxTree<bboxValues> => {
       centerX: bboxVars.bbox.bboxVars.centerX.value(),
       centerY: bboxVars.bbox.bboxVars.centerY.value(),
     },
-    children: Object.keys(bboxVars.children).reduce((o: { [key: string]: BBoxTree<bboxValues> }, glyphKey: any) => ({
+    children: Object.keys(bboxVars.children).reduce((o: { [key: string]: BBoxTree<BBoxValues> }, glyphKey: any) => ({
       ...o, [glyphKey]: getBBoxValues(bboxVars.children[glyphKey])
     }), {})
   }

@@ -1,17 +1,19 @@
 import { CompiledAST } from "./compile"
+import { BBoxValues } from './kiwiBBox';
 
 const renderAux = (name: string, { bboxValues, encoding }: CompiledAST): JSX.Element => {
   console.log("name", name);
   console.log("bboxValues", bboxValues);
   console.log("encoding", encoding);
-  const children = encoding.children === undefined ? {} : encoding.children;
   return (<>
-    {Object.keys(children).map((glyphKey: any, index: number) => (
-      <>
-        {renderAux(glyphKey, { bboxValues: bboxValues.children[glyphKey], encoding: children[glyphKey] })}
-        <g key={`${index}.renderFn`}>{
-          children[glyphKey].renderFn !== undefined ? (children[glyphKey].renderFn as ((bbox: any) => JSX.Element))(bboxValues.children[glyphKey].bbox) : <></>
-        }</g></>))}
+    {Object.keys(encoding.children).map((glyphKey: any, index: number) => (
+      <g key={index}>
+        {renderAux(glyphKey, { bboxValues: bboxValues.children[glyphKey], encoding: encoding.children[glyphKey] })}
+      </g>)
+    )}
+    {
+      encoding.renderFn !== undefined ? (encoding.renderFn as ((bbox: BBoxValues) => JSX.Element))(bboxValues.bbox) : <></>
+    }
   </>)
 }
 
