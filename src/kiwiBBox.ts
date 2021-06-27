@@ -1,4 +1,5 @@
 import { Constraint, Expression, Operator, Solver, Variable } from 'kiwi.js';
+import { GlyphWithPath } from './compile';
 
 export type bbox = string;
 
@@ -41,17 +42,23 @@ export const makeBBoxVars = (bbox: bbox): bboxVars => {
   }
 }
 
-export const makeBBoxConstraints = (bboxVars: bboxVars): Constraint[] => {
-  return [
-    // TODO: hacking in canvas constraints for now, but they should really go on some canvas object
-    // somewhere
-    new Constraint(bboxVars.left, Operator.Ge, 0),
-    new Constraint(bboxVars.top, Operator.Ge, 0),
-    new Constraint(bboxVars.width, Operator.Eq, new Expression(bboxVars.right, [-1, bboxVars.left])),
-    new Constraint(bboxVars.height, Operator.Eq, new Expression(bboxVars.bottom, [-1, bboxVars.top])),
-    new Constraint(bboxVars.centerX, Operator.Eq, new Expression(bboxVars.left, bboxVars.right).divide(2)),
-    new Constraint(bboxVars.centerY, Operator.Eq, new Expression(bboxVars.top, bboxVars.bottom).divide(2)),
-  ]
+/* mutates constraints */
+export const addBBoxConstraints = (bboxTree: BBoxTree<bboxVars>, encoding: GlyphWithPath, constraints: Constraint[]): void => {
+  const keys = Object.keys(bboxTree.children);
+  keys.forEach((key) => addBBoxConstraints(bboxTree.children[key], encoding.children[key], constraints));
+
+  if (encoding.bbox !== undefined) {
+    for (const key of Object.keys(encoding.bbox) as (keyof bboxValues)[]) {
+      if (encoding.bbox[key] !== undefined) {
+        constraints.push(new Constraint(bboxTree.bbox[key], Operator.Eq, encoding.bbox[key]));
+      }
+    }
+  }
+
+  constraints.push(new Constraint(bboxTree.bbox.width, Operator.Eq, new Expression(bboxTree.bbox.right, [-1, bboxTree.bbox.left])));
+  constraints.push(new Constraint(bboxTree.bbox.height, Operator.Eq, new Expression(bboxTree.bbox.bottom, [-1, bboxTree.bbox.top])));
+  constraints.push(new Constraint(bboxTree.bbox.centerX, Operator.Eq, new Expression(bboxTree.bbox.left, bboxTree.bbox.right).divide(2)));
+  constraints.push(new Constraint(bboxTree.bbox.centerY, Operator.Eq, new Expression(bboxTree.bbox.top, bboxTree.bbox.bottom).divide(2)));
 }
 
 export const makeGlyphConstraints = (bboxVars: bboxVars, bboxValues: maybeBboxValues): Constraint[] => {

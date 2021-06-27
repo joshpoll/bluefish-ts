@@ -1,6 +1,6 @@
 import { Constraint, Operator, Solver, Strength } from "kiwi.js";
 import { Gestalt } from "./gestalt";
-import { BBoxTree, getBBoxValues, makeBBoxConstraints, makeBBoxVars, makeGlyphConstraints, bboxVars, bboxValues, maybeBboxValues } from './kiwiBBox';
+import { BBoxTree, getBBoxValues, addBBoxConstraints, makeBBoxVars, makeGlyphConstraints, bboxVars, bboxValues, maybeBboxValues } from './kiwiBBox';
 
 export type CompiledAST = {
   bboxValues: BBoxTree<bboxValues>
@@ -20,68 +20,64 @@ export type Glyph = {
   relations?: Relation[]
 }
 
+export type GlyphWithPath = {
+  path: string,
+  bbox?: maybeBboxValues,
+  renderFn?: (bbox: bboxValues) => JSX.Element,
+  children: { [key: string]: GlyphWithPath },
+  relations?: Relation[]
+}
+
 export type Mark = {
   bbox: maybeBboxValues,
   renderFn: (bbox: bboxValues) => JSX.Element,
 }
 
 /* mutates constraints */
-const addCanvasConstraints = (bboxTree: BBoxTree<bboxVars>, encoding: Glyph, constraints: Constraint[]) => {
-  const canvasBBox = bboxTree.bbox;
+const addChildrenConstraints = (bboxTree: BBoxTree<bboxVars>, encoding: GlyphWithPath, constraints: Constraint[]): void => {
+  const keys = Object.keys(bboxTree.children);
+  keys.forEach((key) => addChildrenConstraints(bboxTree.children[key], encoding.children[key], constraints));
 
-  // 1. add canvas constraints
-  constraints.push(new Constraint(canvasBBox.left, Operator.Eq, 0));
-  constraints.push(new Constraint(canvasBBox.top, Operator.Eq, 0));
+  const bboxWidthDefined = encoding.bbox !== undefined && encoding.bbox.width !== undefined;
+  const bboxHeightDefined = encoding.bbox !== undefined && encoding.bbox.height !== undefined;
 
-  let canvasWidthDefined = false;
-  let canvasHeightDefined = false;
-
-  if (encoding.bbox !== undefined) {
-    if (encoding.bbox.width !== undefined) {
-      constraints.push(new Constraint(canvasBBox.width, Operator.Eq, encoding.bbox.width))
-      canvasWidthDefined = true;
-    }
-    if (encoding.bbox.height !== undefined) {
-      constraints.push(new Constraint(canvasBBox.height, Operator.Eq, encoding.bbox.height))
-      canvasHeightDefined = true;
-    }
-  }
-
-  // 2. add canvas shrink-wrap constraints
+  // 2. add bbox shrink-wrap + container constraints
   for (const bboxKey of Object.keys(bboxTree.children)) {
-    if (!canvasWidthDefined) {
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.left, Operator.Eq, canvasBBox.left, Strength.strong));
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.right, Operator.Eq, canvasBBox.right, Strength.strong));
+    // only shrink-wrap if width and/or height aren't defined
+    if (!bboxWidthDefined) {
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.left, Operator.Eq, bboxTree.bbox.left, Strength.strong));
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.right, Operator.Eq, bboxTree.bbox.right, Strength.strong));
     }
 
-    if (!canvasHeightDefined) {
-
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.top, Operator.Eq, canvasBBox.top, Strength.strong));
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bottom, Operator.Eq, canvasBBox.bottom, Strength.strong));
+    if (!bboxHeightDefined) {
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.top, Operator.Eq, bboxTree.bbox.top, Strength.strong));
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bottom, Operator.Eq, bboxTree.bbox.bottom, Strength.strong));
     }
 
-    constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.left, Operator.Ge, canvasBBox.left));
-    constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.left, Operator.Eq, canvasBBox.left, Strength.strong));
-    constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.right, Operator.Le, canvasBBox.right));
-    constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.top, Operator.Ge, canvasBBox.top));
-    constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bottom, Operator.Le, canvasBBox.bottom));
+    // add containment constraints always
+    constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.left, Operator.Ge, bboxTree.bbox.left));
+    constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.left, Operator.Eq, bboxTree.bbox.left, Strength.strong));
+    constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.right, Operator.Le, bboxTree.bbox.right));
+    constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.top, Operator.Ge, bboxTree.bbox.top));
+    constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bottom, Operator.Le, bboxTree.bbox.bottom));
   }
 }
 
 /* mutates constraints */
-const makeBBoxTree = (path: string, encoding: Glyph, constraints: Constraint[]): BBoxTree<bboxVars> => {
+/* TODO: can I remove `constraints` from this? */
+const makeBBoxTree = (encoding: GlyphWithPath, constraints: Constraint[]): BBoxTree<bboxVars> => {
   const children = encoding.children === undefined ? {} : encoding.children;
   const keys = Object.keys(children);
   const compiledChildren: { [key: string]: BBoxTree<bboxVars> } = keys.reduce((o: { [key: string]: BBoxTree<bboxVars> }, glyphKey: any) => (
     {
-      ...o, [glyphKey]: makeBBoxTree(glyphKey, children[glyphKey], constraints)
+      ...o, [glyphKey]: makeBBoxTree(children[glyphKey], constraints)
     }
   ), {});
 
-  const bbox = makeBBoxVars(path);
-  for (const constraint of makeBBoxConstraints(bbox)) {
-    constraints.push(constraint);
-  }
+  const bbox = makeBBoxVars(encoding.path);
+  // for (const constraint of makeBBoxConstraints(bbox, encoding.bbox)) {
+  //   constraints.push(constraint);
+  // }
 
   return {
     bbox,
@@ -89,16 +85,17 @@ const makeBBoxTree = (path: string, encoding: Glyph, constraints: Constraint[]):
   }
 }
 
-const resolvePaths = (path: string, encoding: Glyph): Glyph => {
+const resolvePaths = (path: string, encoding: Glyph): GlyphWithPath => {
   const children = encoding.children === undefined ? {} : encoding.children;
-  const compiledChildren: { [key: string]: Glyph } = Object.keys(children).reduce((o: { [key: string]: Glyph }, glyphKey: any) => (
+  const compiledChildren: { [key: string]: GlyphWithPath } = Object.keys(children).reduce((o: { [key: string]: Glyph }, glyphKey: any) => (
     {
-      ...o, [path + "." + glyphKey]: resolvePaths(path + "." + glyphKey, children[glyphKey])
+      ...o, [glyphKey]: resolvePaths(path + "." + glyphKey, children[glyphKey])
     }
   ), {});
 
   return {
     ...encoding,
+    path,
     children: compiledChildren,
   }
 }
@@ -110,23 +107,26 @@ export default (encoding: Glyph): CompiledAST => {
 
   // 1. construct variables
   const constraints: Constraint[] = [];
-  let bboxTree = makeBBoxTree("canvas", resolvedEncoding, constraints);
+  let bboxTree = makeBBoxTree(resolvedEncoding, constraints);
   keys = Object.keys(bboxTree.children);
   // console.log("keys", keys);
 
-  addCanvasConstraints(bboxTree, resolvedEncoding, constraints);
+  // 1.25 add canvas and children constraints
+  constraints.push(new Constraint(bboxTree.bbox.left, Operator.Eq, 0));
+  constraints.push(new Constraint(bboxTree.bbox.top, Operator.Eq, 0));
+  addChildrenConstraints(bboxTree, resolvedEncoding, constraints);
   // console.log("step 1 complete", constraints)
 
   const solver = new Solver();
 
   // 1.25. add canvas constraints
-  constraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
   // console.log("step 1.25 complete")
 
   // 1.5. add bbox constraints
-  const bboxConstraints = keys.map((bboxKey) => makeBBoxConstraints(bboxTree.children[bboxKey].bbox)).flat();
-  bboxConstraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
+  addBBoxConstraints(bboxTree, resolvedEncoding, constraints);
   console.log("step 1.5 complete")
+
+  constraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
 
   // 1.75. Add the constraints specified by the glyph
   const glyphConstraints = keys.map((glyphKey) => makeGlyphConstraints(bboxTree.children[glyphKey].bbox, children[glyphKey].bbox)).flat();
@@ -138,8 +138,8 @@ export default (encoding: Glyph): CompiledAST => {
   const gestaltConstraints = relations.map(
     ({ left, right, gestalt }: Relation) =>
       gestalt.map((g: Gestalt) => {
-        const leftBBox = left === "canvas" ? bboxTree.bbox : bboxTree.children["canvas." + left].bbox;
-        const rightBBox = left === "canvas" ? bboxTree.bbox : bboxTree.children["canvas." + right].bbox;
+        const leftBBox = left === "canvas" ? bboxTree.bbox : bboxTree.children[left].bbox;
+        const rightBBox = left === "canvas" ? bboxTree.bbox : bboxTree.children[right].bbox;
         return g(leftBBox, rightBBox)
       }))
     .flat();
