@@ -1,3 +1,32 @@
+# Bluefish
+
+Bluefish is a TypeScript data visualization library. The library is designed to be expressive,
+declarative, and extensible. Bluefish can represent not only bar charts, but also tables and trees
+all with the same set of compositional primitives. Bluefish is easy to extend with your own
+primitives including axes. You can even write a custom axis primitive pretty easily.
+
+Bluefish draws inspiration from many existing data visualization frameworks, but tries to unify them
+as simply as possible:
+- Observable Plot: many syntax choices and composition ideas
+- Visception: nested plots
+- GoTree: tree plots
+- Charticulator: LP for charts
+
+Bluefish's implementation draws inspiration from the Basalt prototype and from Charticulator. The
+use of LP constraints allows for a more declarative specification of things like bars and padding.
+
+Bluefish's design/implementation philosophy is based on several core principles:
+- data manipulation should be completely separable from data visualization. that means no transforms
+  built into the framework. You can always write a glyph/mark that transforms data internally if you
+  want to
+- effortless composition. marks and complex glyphs should be virtually indistinguishable so
+  everything has the same data type and new data types can be added at any time. composition doesn't
+  just mean you can smash two charts side by side, but also that you can recursively compose charts
+  together just as easily
+- relational properties of data should be visually encodable. when we write down a record, we are
+  implicitly specifying that the fields of that record are related to each other. Bluefish allows
+  users to visualize these relationships
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
