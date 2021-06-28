@@ -1,4 +1,4 @@
-import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignBottom } from '../gestalt';
+import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignBottom, alignRight, alignTop } from '../gestalt';
 import { ellipse, rect, text } from '../mark';
 import { Glyph, Relation } from '../compile';
 
@@ -31,11 +31,17 @@ export const data: Data[] = [
 //   ]
 // })
 
-export const dataGlyph: Glyph = {
+export const bars = (data: Data[]): Glyph => ({
   children: {
     "0": rect({ width: 20., height: data[0].b, fill: "steelblue" }),
     "1": rect({ width: 20., height: data[1].b, fill: "steelblue" }),
     "2": rect({ width: 20., height: data[2].b, fill: "steelblue" }),
+    "3": rect({ width: 20., height: data[3].b, fill: "steelblue" }),
+    "4": rect({ width: 20., height: data[4].b, fill: "steelblue" }),
+    "5": rect({ width: 20., height: data[5].b, fill: "steelblue" }),
+    "6": rect({ width: 20., height: data[6].b, fill: "steelblue" }),
+    "7": rect({ width: 20., height: data[7].b, fill: "steelblue" }),
+    "8": rect({ width: 20., height: data[8].b, fill: "steelblue" }),
   },
   relations: [
     {
@@ -47,6 +53,62 @@ export const dataGlyph: Glyph = {
       left: "1",
       right: "2",
       gestalt: [alignBottom, hSpace(5.)],
+    },
+    {
+      left: "2",
+      right: "3",
+      gestalt: [alignBottom, hSpace(5.)],
+    },
+    {
+      left: "3",
+      right: "4",
+      gestalt: [alignBottom, hSpace(5.)],
+    },
+    {
+      left: "4",
+      right: "5",
+      gestalt: [alignBottom, hSpace(5.)],
+    },
+    {
+      left: "5",
+      right: "6",
+      gestalt: [alignBottom, hSpace(5.)],
+    },
+    {
+      left: "6",
+      right: "7",
+      gestalt: [alignBottom, hSpace(5.)],
+    },
+    {
+      left: "7",
+      right: "8",
+      gestalt: [alignBottom, hSpace(5.)],
+    },
+  ]
+})
+
+/* TODO:
+   - replace rect with line?
+   - add tick marks
+   - add coordinate system? similar to observable plot, but on any glyph
+*/
+
+export const dataGlyph: Glyph = {
+  children: {
+    "xAxis": rect({ height: 3, fill: "red" }),
+    "yAxis": rect({ width: 3, fill: "red" }),
+    "bars": bars(data),
+  },
+  relations: [
+    {
+      left: "bars",
+      right: "xAxis",
+      gestalt: [vSpace(0.), alignLeft, alignRight],
+    },
+    {
+      left: "yAxis",
+      right: "bars",
+      gestalt: [hSpace(0.), alignTop, alignBottom],
     },
   ]
 }

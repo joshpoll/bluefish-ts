@@ -27,6 +27,14 @@ export const alignLeft: Gestalt = (left: bboxVars, right: bboxVars) => {
   )
 }
 
+export const alignRight: Gestalt = (left: bboxVars, right: bboxVars) => {
+  return new Constraint(
+    left.right,
+    Operator.Eq,
+    right.right
+  )
+}
+
 export const alignCenterX: Gestalt = (left: bboxVars, right: bboxVars) => {
   return new Constraint(
     left.centerX,
