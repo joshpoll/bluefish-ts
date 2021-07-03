@@ -4,6 +4,7 @@ import { course, courses, data } from './examples/courses';
 import { example } from './examples/example';
 import render from './render';
 import { dataGlyph } from './examples/barchart';
+import groupedbarchart from './examples/groupedbarchart';
 
 function App() {
   return (
@@ -23,6 +24,10 @@ function App() {
         <br />
         <br />
         {render(compile(dataGlyph))}
+        <br />
+        <br />
+        <br />
+        {render(compile(groupedbarchart))}
       </header>
     </div>
   );
