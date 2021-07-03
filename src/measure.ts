@@ -1,11 +1,6 @@
 import ReactDOM from "react-dom";
 
-export type Measurements = {
-  width: number,
-  height: number,
-}
-
-export default (id: string, e: JSX.Element): Measurements => {
+export default (id: string, e: JSX.Element): DOMRect => {
   // https://stackoverflow.com/a/63984284
   // https://stackoverflow.com/a/3492557
   const xmlns = "http://www.w3.org/2000/svg";
@@ -35,8 +30,7 @@ export default (id: string, e: JSX.Element): Measurements => {
   ReactDOM.render(e, domG);
 
   /* measure g */
-  const measuredWidth = domG.getBoundingClientRect().width;
-  const measuredHeight = domG.getBoundingClientRect().height;
+  const boundingClientRect = domG.getBoundingClientRect();
 
   /* clean up */
   const domSVG = document.getElementById(id + "-svg");
@@ -47,8 +41,5 @@ export default (id: string, e: JSX.Element): Measurements => {
   ReactDOM.unmountComponentAtNode(domSVG); // Clean up React
   domSVG.parentNode?.removeChild(domSVG); // Clean up DOM
 
-  return {
-    width: measuredWidth,
-    height: measuredHeight
-  }
+  return boundingClientRect;
 };
