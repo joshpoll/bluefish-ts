@@ -5,17 +5,18 @@ import { example } from './examples/example';
 import render from './render';
 import { dataGlyph } from './examples/barchart';
 import groupedbarchart from './examples/groupedbarchart';
+import { dataGlyph as reduced } from './examples/reducebug';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
         {render(compile(example))}
-        <br />
+        {/* <br />
         <br />
         <br />
         {/* TODO: this _doesn't_ work properly, because text measurement happens too late */}
-        {render(compile(course(data)))}
+        {/* {render(compile(course(data)))} */}
         <br />
         <br />
         <br />
@@ -28,6 +29,10 @@ function App() {
         <br />
         <br />
         {render(compile(groupedbarchart))}
+        {/* <br />
+        <br />
+        <br />
+        {render(compile(reduced))} */}
       </header>
     </div>
   );

@@ -85,8 +85,7 @@ export const dataGlyph: Glyph = {
     {
       left: "yAxis",
       right: "bars",
-      // TODO: not sure why this constraints makes the problem unsat :(
-      gestalt: [/* hSpace(0),  */alignTop, alignBottom],
+      gestalt: [hSpace(0.), alignTop, alignBottom],
     },
   ]
 }
