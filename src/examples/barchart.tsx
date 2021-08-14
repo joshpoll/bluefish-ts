@@ -82,8 +82,6 @@ export const dataGlyph: Glyph = {
   children: {
     // "xAxis": rect({ height: 3, fill: "red" }),
     "xAxis": xAxis(data.map((_, i) => 10 + 25 * i)),
-    // "yAxis": rect({ width: 3, fill: "red" }),
-    // TODO: this is buggy, but not if used for xAxis!!!!
     "yAxis": yAxis(ticks),
     "bars": bars(data),
   },
