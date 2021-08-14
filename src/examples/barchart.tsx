@@ -5,6 +5,8 @@ import { BBoxValues, bboxVars } from '../kiwiBBox';
 import { Constraint, Operator } from 'kiwi.js';
 import * as _ from "lodash";
 import { zipWith } from 'lodash';
+import * as scale from "d3-scale";
+import { summarize, tidy, min, max } from '@tidyjs/tidy';
 
 type Data = { category: string, value: number };
 
@@ -68,12 +70,21 @@ export const yAxis = (ticks: number[]): Glyph => ({
   relations: _.range(ticks.length).map((i) => ({ left: i.toString(), right: "axis", gestalt: [hSpace(3)] }))
 })
 
+const extent = tidy(data, summarize({
+  min: min('value'),
+  max: max('value'),
+}))[0];
+const s = scale.scaleLinear().domain([extent.min!, extent.max!]);
+const ticks = s.nice().ticks(5);
+console.log("ticks", ticks);
+
 export const dataGlyph: Glyph = {
   children: {
     // "xAxis": rect({ height: 3, fill: "red" }),
-    "xAxis": xAxis([10, 10 + 25, 10 + 25 * 2]),
+    "xAxis": xAxis(data.map((_, i) => 10 + 25 * i)),
     // "yAxis": rect({ width: 3, fill: "red" }),
-    "yAxis": yAxis([10, 10 + 25, 10 + 25 * 2]),
+    // TODO: this is buggy, but not if used for xAxis!!!!
+    "yAxis": yAxis(ticks),
     "bars": bars(data),
   },
   relations: [

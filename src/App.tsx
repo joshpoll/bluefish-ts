@@ -11,7 +11,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        {render(compile(example))}
+        {/* {render(compile(example))} */}
         {/* <br />
         <br />
         <br />
@@ -29,10 +29,10 @@ function App() {
         <br />
         <br />
         {render(compile(groupedbarchart))}
-        {/* <br />
         <br />
         <br />
-        {render(compile(reduced))} */}
+        <br />
+        {render(compile(reduced))}
       </header>
     </div>
   );

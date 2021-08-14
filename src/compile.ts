@@ -16,23 +16,23 @@ export type Relation = {
 }
 
 export type Glyph = {
-  canvas?: MaybeBBoxValues,
-  renderFn?: (canvas: BBoxValues) => JSX.Element,
+  bbox?: MaybeBBoxValues,
+  renderFn?: (bbox: BBoxValues, index?: number) => JSX.Element,
   children?: { [key: string]: Glyph },
   relations?: Relation[]
 }
 
 export type GlyphWithPath = {
   path: string,
-  canvas?: MaybeBBoxValues,
-  renderFn?: (canvas: BBoxValues) => JSX.Element,
+  bbox?: MaybeBBoxValues,
+  renderFn?: (bbox: BBoxValues, index?: number) => JSX.Element,
   children: { [key: string]: GlyphWithPath },
   relations?: Relation[]
 }
 
 export type Mark = {
-  canvas: MaybeBBoxValues,
-  renderFn: (canvas: BBoxValues) => JSX.Element,
+  bbox: MaybeBBoxValues,
+  renderFn: (bbox: BBoxValues, index?: number) => JSX.Element,
 }
 
 /* mutates constraints */
@@ -66,7 +66,6 @@ const addChildrenConstraints = (bboxTree: BBoxTreeVV, constraints: Constraint[])
 
     // add containment constraints always
     constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.left, Operator.Ge, bboxTree.canvas.bboxVars.left));
-    constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.left, Operator.Eq, bboxTree.canvas.bboxVars.left, Strength.strong));
     constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.right, Operator.Le, bboxTree.canvas.bboxVars.right));
     constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.top, Operator.Ge, bboxTree.canvas.bboxVars.top));
     constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.bottom, Operator.Le, bboxTree.canvas.bboxVars.bottom));
@@ -84,11 +83,11 @@ const makeBBoxTree = (encoding: GlyphWithPath): BBoxTreeVV => {
 
   const bbox = {
     bboxVars: makeBBoxVars(encoding.path),
+    bboxValues: encoding.bbox,
   };
 
   const canvas = {
     bboxVars: makeBBoxVars(encoding.path + ".canvas"),
-    bboxValues: encoding.canvas,
   };
 
   return {

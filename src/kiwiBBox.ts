@@ -47,10 +47,10 @@ export const addBBoxConstraints = (bboxTree: BBoxTreeVV, constraints: Constraint
   const keys = Object.keys(bboxTree.children);
   keys.forEach((key) => addBBoxConstraints(bboxTree.children[key], constraints));
 
-  if (bboxTree.canvas.bboxValues !== undefined) {
-    for (const key of Object.keys(bboxTree.canvas.bboxValues) as (keyof BBoxValues)[]) {
-      if (bboxTree.canvas.bboxValues[key] !== undefined) {
-        constraints.push(new Constraint(bboxTree.canvas.bboxVars[key], Operator.Eq, bboxTree.canvas.bboxValues[key]));
+  if (bboxTree.bbox.bboxValues !== undefined) {
+    for (const key of Object.keys(bboxTree.bbox.bboxValues) as (keyof BBoxValues)[]) {
+      if (bboxTree.bbox.bboxValues[key] !== undefined) {
+        constraints.push(new Constraint(bboxTree.bbox.bboxVars[key], Operator.Eq, bboxTree.bbox.bboxValues[key]));
       }
     }
   }
