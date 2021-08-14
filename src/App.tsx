@@ -11,8 +11,8 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        {/* {render(compile(example))} */}
-        {/* <br />
+        {render(compile(example))}
+        <br />
         <br />
         <br />
         {/* TODO: this _doesn't_ work properly, because text measurement happens too late */}
