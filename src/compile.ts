@@ -17,7 +17,7 @@ export type Relation = {
 
 export type Glyph = {
   bbox?: MaybeBBoxValues,
-  renderFn?: (bbox: BBoxValues, index?: number) => JSX.Element,
+  renderFn?: (canvas: BBoxValues, index?: number) => JSX.Element,
   children?: { [key: string]: Glyph },
   relations?: Relation[]
 }
@@ -25,14 +25,14 @@ export type Glyph = {
 export type GlyphWithPath = {
   path: string,
   bbox?: MaybeBBoxValues,
-  renderFn?: (bbox: BBoxValues, index?: number) => JSX.Element,
+  renderFn?: (canvas: BBoxValues, index?: number) => JSX.Element,
   children: { [key: string]: GlyphWithPath },
   relations?: Relation[]
 }
 
 export type Mark = {
   bbox: MaybeBBoxValues,
-  renderFn: (bbox: BBoxValues, index?: number) => JSX.Element,
+  renderFn: (canvas: BBoxValues, index?: number) => JSX.Element,
 }
 
 /* mutates constraints */

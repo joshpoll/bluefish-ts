@@ -15,9 +15,9 @@ export const rect = ({ x, y, width, height, fill }: RectParams): Mark => (
     // return the positioning parameters the user gave us
     bbox: { left: x, top: y, width, height },
     // and the rendering function itself
-    renderFn: (bbox: BBoxValues, index?: number) => {
-      return <rect key={index} x={bbox.left} y={bbox.top
-      } width={bbox.width} height={bbox.height} fill={fill} />
+    renderFn: (canvas: BBoxValues, index?: number) => {
+      return <rect key={index} x={canvas.left} y={canvas.top
+      } width={canvas.width} height={canvas.height} fill={fill} />
     }
   }
 )
@@ -35,8 +35,8 @@ export const ellipse = ({ cx, cy, rx, ry, fill }: EllipseParams): Mark => (
     // return the positioning parameters the user gave us
     bbox: { centerX: cx, centerY: cy, width: rx ? 2 * rx : undefined, height: ry ? 2 * ry : undefined },
     // and the rendering function itself
-    renderFn: (bbox: BBoxValues, index?: number) => {
-      return <ellipse key={index} cx={bbox.centerX} cy={bbox.centerY} rx={bbox.width / 2} ry={bbox.height / 2} fill={fill} />
+    renderFn: (canvas: BBoxValues, index?: number) => {
+      return <ellipse key={index} cx={canvas.centerX} cy={canvas.centerY} rx={canvas.width / 2} ry={canvas.height / 2} fill={fill} />
     }
   }
 )
@@ -64,8 +64,8 @@ export const text = ({ x, y, text, fontFamily, fontSize, fontStyle, fontWeight, 
     // return the positioning parameters the user gave us
     bbox: { left: x, bottom: y, width: measurements.width, height: measurements.height },
     // and the rendering function itself
-    renderFn: (bbox: BBoxValues, index?: number) => {
-      return <text key={index} x={bbox.left} y={bbox.bottom} fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fontWeight={fontWeight} fill={fill}>
+    renderFn: (canvas: BBoxValues, index?: number) => {
+      return <text key={index} x={canvas.left} y={canvas.bottom} fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fontWeight={fontWeight} fill={fill}>
         {text}
       </text>
     }

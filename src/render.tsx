@@ -24,7 +24,7 @@ const renderAux = (index: number, name: string, { bboxValues, encoding }: Compil
       centerY: canvas.centerY + top,
     };
 
-    return encoding.renderFn !== undefined ? (encoding.renderFn as ((bbox: BBoxValues, index?: number) => JSX.Element))(values, index) : <></>;
+    return encoding.renderFn !== undefined ? (encoding.renderFn as ((canvas: BBoxValues, index?: number) => JSX.Element))(values, index) : <></>;
   } else {
     return (<g key={index} transform={`translate(${bboxValues.bbox.left} ${bboxValues.bbox.top})`}>
       {Object.keys(encoding.children).map((glyphKey: any, index: number) => (
@@ -32,7 +32,7 @@ const renderAux = (index: number, name: string, { bboxValues, encoding }: Compil
       )
       )}
       {
-        encoding.renderFn !== undefined ? (encoding.renderFn as ((bbox: BBoxValues, index?: number) => JSX.Element))(bboxValues.canvas) : <></>
+        encoding.renderFn !== undefined ? (encoding.renderFn as ((canvas: BBoxValues, index?: number) => JSX.Element))(bboxValues.canvas) : <></>
       }
     </g>)
   }
