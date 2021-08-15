@@ -4,33 +4,51 @@ import { alignBottom, hSpace, vSpace, alignLeft, alignRight, alignTop } from "..
 import { rect } from "../mark";
 import * as population from "./population";
 import * as d3Array from "d3-array";
+import { filter, groupBy, tidy, map } from '@tidyjs/tidy';
 
 let data = population.data;
 data = _.filter(population.data, ({ year }) => year === 2000);
-let groupedData = d3Array.group(data, d => d.age);
+let shrunkData = data.map((d) => ({ ...d, people: d.people / 100_000 }));
+let groupedData = d3Array.group(shrunkData, d => d.age);
+console.log("grouped data", groupedData);
 
-// inching closer to list/set
-export const bars = (data: number[]): Glyph => ({
+const tidyGroup =
+  tidy(
+    data,
+    filter(({ year }) => year === 2000),
+    map((d) => ({ ...d, people: d.people / 100_000 })),
+    groupBy('age' as any, [map((d: any) => d.people)], groupBy.object()),
+  );
+
+console.log("tidy group", tidyGroup);
+
+export const bar = (data: number): Glyph => ({
+  children: {
+    "bar": rect({ width: 20., height: data, fill: "steelblue" }),
+  }
+})
+
+export const groupedBar = (data: number[]): Glyph => ({
   children: data
     .reduce((o: { [key: string]: Glyph }, x: number, i) =>
-      ({ ...o, [i]: rect({ width: 20., height: x, fill: "steelblue" }) }),
+      ({ ...o, [i]: bar(x) }),
       {}),
   relations: zipWith(
     _.range(data.length - 1),
     _.range(1, data.length),
-    (curr, next) => ({ left: curr.toString(), right: next.toString(), gestalt: [alignBottom, hSpace(5.)] })
+    (curr, next) => ({ left: curr.toString(), right: next.toString(), gestalt: [alignBottom, hSpace(1.)] })
   ),
 })
 
 /* TODO: make this take in some grouped d3 data and produce some grouped bars */
-export const groupedBars = (data: number[]): Glyph => ({
-  children: data
-    .reduce((o: { [key: string]: Glyph }, x: number, i) =>
-      ({ ...o, [i]: rect({ width: 20., height: x, fill: "steelblue" }) }),
+export const groupedBars = (data: { [key: number]: number[] }): Glyph => ({
+  children: Object.keys(data)
+    .reduce((o: { [key: string]: Glyph }, key: string, i) =>
+      ({ ...o, [i]: groupedBar(data[+key]) }),
       {}),
   relations: zipWith(
-    _.range(data.length - 1),
-    _.range(1, data.length),
+    _.range(Object.keys(data).length - 1),
+    _.range(1, Object.keys(data).length),
     (curr, next) => ({ left: curr.toString(), right: next.toString(), gestalt: [alignBottom, hSpace(5.)] })
   ),
 })
@@ -70,7 +88,7 @@ export const dataGlyph: Glyph = {
     "xAxis": xAxis([10, 10 + 25, 10 + 25 * 2]),
     // "yAxis": rect({ width: 3, fill: "red" }),
     "yAxis": yAxis([10, 10 + 25, 10 + 25 * 2]),
-    "bars": bars(data.map(({ people }) => people / 100_000)),
+    "bars": groupedBars(tidyGroup),
   },
   relations: [
     {
