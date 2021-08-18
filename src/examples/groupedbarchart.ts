@@ -1,7 +1,7 @@
 import _, { zipWith } from "lodash";
 import { Glyph } from "../compile";
-import { alignBottom, hSpace, vSpace, alignLeft, alignRight, alignTop } from "../gestalt";
-import { rect } from "../mark";
+import { alignBottom, hSpace, vSpace, alignLeft, alignRight, alignTop, Gestalt, alignCenterX } from '../gestalt';
+import { rect, text } from "../mark";
 import * as population from "./population";
 import * as d3Array from "d3-array";
 import { filter, groupBy, tidy, map } from '@tidyjs/tidy';
@@ -51,6 +51,49 @@ export const groupedBars = (data: { [key: number]: number[] }): Glyph => ({
     _.range(1, Object.keys(data).length),
     (curr, next) => ({ left: curr.toString(), right: next.toString(), gestalt: [alignBottom, hSpace(5.)] })
   ),
+})
+
+export const listTest = (gestalt: Gestalt[]): Glyph => ({
+  children: {
+    "0": rect({}),
+    "1": rect({}),
+    "2": rect({}),
+    "3": rect({}),
+  },
+  relations: zipWith(
+    _.range(Object.keys(data).length - 1),
+    _.range(1, Object.keys(data).length),
+    (curr, next) => ({ left: curr.toString(), right: next.toString(), gestalt })
+  ),
+})
+
+export const listSugared = (gestalt: Gestalt[]): any => ({
+  children: [rect({}), rect({}), rect({}), rect({})],
+  gestalt,
+})
+
+export const listSugared2 = (gestalt: Gestalt[]): any => ({
+  children: {
+    "list": [rect({}), rect({}), rect({}), rect({})],
+  },
+  relations: [
+    {
+      left: "list",
+      right: "list",
+      gestalt: [vSpace(3)],
+    }],
+})
+
+export const setSugared = (gestalt: Gestalt[]): any => ({
+  children: {
+    "set": [rect({}), rect({}), rect({}), rect({})],
+  },
+  relations: [
+    {
+      left: "list",
+      right: "list",
+      gestalt: [vSpace(3)],
+    }],
 })
 
 /* TODO:
@@ -104,4 +147,18 @@ export const dataGlyph: Glyph = {
   ]
 }
 
-export default dataGlyph;
+export const chart: Glyph = {
+  children: {
+    "chart": dataGlyph,
+    "title": text({ text: "This is a grouped bar chart", fontSize: "calc(10px + 2vmin)" }),
+  },
+  relations: [
+    {
+      left: "title",
+      right: "chart",
+      gestalt: [vSpace(15.), alignCenterX]
+    }
+  ]
+}
+
+export default chart;
