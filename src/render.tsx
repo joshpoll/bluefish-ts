@@ -25,6 +25,24 @@ const renderAux = (index: number, name: string, { bboxValues, encoding }: Compil
     };
 
     return encoding.renderFn !== undefined ? (encoding.renderFn as ((canvas: BBoxValues, index?: number) => JSX.Element))(values, index) : <></>;
+  } else if (childKeys.length == 1 && encoding.renderFn === undefined) {
+    const glyphKey = childKeys[0];
+
+    const left = bboxValues.bbox.left;
+    const top = bboxValues.bbox.top;
+    const childBBox = bboxValues.children[glyphKey].bbox;
+    const bbox = {
+      left: childBBox.left + left,
+      right: childBBox.right + left,
+      top: childBBox.top + top,
+      bottom: childBBox.bottom + top,
+      width: childBBox.width,
+      height: childBBox.height,
+      centerX: childBBox.centerX + left,
+      centerY: childBBox.centerY + top,
+    };
+
+    return renderAux(0, glyphKey, { bboxValues: { ...bboxValues.children[glyphKey], bbox }, encoding: encoding.children[glyphKey] })
   } else {
     return (<g key={index} transform={`translate(${bboxValues.bbox.left} ${bboxValues.bbox.top})`}>
       {Object.keys(encoding.children).map((glyphKey: any, index: number) => (
