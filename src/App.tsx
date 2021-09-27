@@ -6,11 +6,25 @@ import render from './render';
 import { dataGlyph } from './examples/barchart';
 import groupedbarchart from './examples/groupedbarchart';
 import { dataGlyph as reduced } from './examples/reducebug';
+import { textspans } from './examples/textspans';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <br />
+        <br />
+        <br />
+        {render(compile(textspans))}
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
         {render(compile(example))}
         <br />
         <br />
@@ -33,6 +47,9 @@ function App() {
         <br />
         <br />
         {render(compile(reduced))}
+        <br />
+        <br />
+        <br />
       </header>
     </div>
   );
