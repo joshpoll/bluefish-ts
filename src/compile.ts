@@ -1,11 +1,12 @@
-import { Constraint, Operator, Solver, Strength } from "kiwi.js";
+import { Constraint, Operator, Solver, Strength, Variable } from "kiwi.js";
 import { Gestalt } from "./gestalt";
-import { BBoxTree, getBBoxValues, addBBoxConstraints, makeBBoxVars, bboxVars, BBoxValues, MaybeBBoxValues } from './kiwiBBox';
+import { BBoxTree, getBBoxValues, addBBoxConstraints, makeBBoxVars, bboxVars, BBoxValues, MaybeBBoxValues, BBoxTreeValue, BBoxTreeVV } from './kiwiBBoxTransform';
 
-export type BBoxTreeVV = BBoxTree<{ bboxVars: bboxVars, bboxValues?: MaybeBBoxValues }>;
+// export type BBoxTreeVV = BBoxTree<{ bboxVars: bboxVars, bboxValues?: MaybeBBoxValues }>;
 
 export type CompiledAST = {
-  bboxValues: BBoxTree<BBoxValues>
+  // bboxValues: BBoxTree<BBoxValues>
+  bboxValues: BBoxTreeValue,
   encoding: GlyphWithPath
 }
 
@@ -86,12 +87,20 @@ const makeBBoxTree = (encoding: GlyphWithPath): BBoxTreeVV => {
     bboxValues: encoding.bbox,
   };
 
+  const transform = {
+    translate: {
+      x: new Variable(encoding.path + ".transform" + ".translate" + ".x"),
+      y: new Variable(encoding.path + ".transform" + ".translate" + ".y"),
+    }
+  };
+
   const canvas = {
     bboxVars: makeBBoxVars(encoding.path + ".canvas"),
   };
 
   return {
     bbox,
+    transform,
     canvas,
     children: compiledChildren,
   }

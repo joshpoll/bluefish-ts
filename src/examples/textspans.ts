@@ -3,7 +3,7 @@ import { ellipse, line, nil, rect, text } from '../mark';
 import { Glyph, Relation } from '../compile';
 import _, { split } from 'lodash';
 import { zipWith } from 'lodash';
-import { MaybeBBoxValues, BBoxValues } from '../kiwiBBox';
+import { MaybeBBoxValues, BBoxValues } from '../kiwiBBoxTransform';
 
 // export type GlyphData<T> = {
 //   data: T,

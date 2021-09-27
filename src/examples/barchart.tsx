@@ -1,7 +1,7 @@
 import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignBottom, alignRight, alignTop } from '../gestalt';
 import { ellipse, rect, text } from '../mark';
 import { Glyph, Relation, Mark } from '../compile';
-import { BBoxValues, bboxVars } from '../kiwiBBox';
+import { BBoxValues, bboxVars } from '../kiwiBBoxTransform';
 import { Constraint, Operator } from 'kiwi.js';
 import * as _ from "lodash";
 import { zipWith } from 'lodash';

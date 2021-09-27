@@ -1,5 +1,5 @@
 import { Constraint, Expression, Operator } from 'kiwi.js';
-import { bboxVars } from './kiwiBBox';
+import { bboxVars } from './kiwiBBoxTransform';
 
 export type Gestalt = (left: bboxVars, right: bboxVars) => Constraint;
 

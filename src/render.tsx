@@ -1,5 +1,5 @@
 import { CompiledAST } from "./compile"
-import { BBoxValues } from './kiwiBBox';
+import { BBoxValues } from './kiwiBBoxTransform';
 
 const renderAux = (index: number, name: string, { bboxValues, encoding }: CompiledAST): JSX.Element => {
   console.log("name", name);

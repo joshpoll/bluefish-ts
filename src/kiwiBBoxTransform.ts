@@ -1,6 +1,12 @@
 import { Constraint, Expression, Operator, Solver, Variable } from 'kiwi.js';
 
-export type BBoxTreeVV = BBoxTree<{ bboxVars: bboxVars, bboxValues?: MaybeBBoxValues }>;
+export type BBoxTreeVV = BBoxTree<{ bboxVars: bboxVars, bboxValues?: MaybeBBoxValues }, Variable>;
+
+export type BBoxTreeValue = BBoxTree<BBoxValues, number>;
+
+// like kiwiBBox, but uses canvas + transform instead of canvas + bbox
+// canvas + transform = bbox
+// this is useful because it allows us to reference other bboxes in the tree by composing transforms
 
 export type bbox = string;
 
@@ -65,15 +71,36 @@ export const addBBoxConstraints = (bboxTree: BBoxTreeVV, constraints: Constraint
   constraints.push(new Constraint(bboxTree.canvas.bboxVars.height, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.bottom, [-1, bboxTree.canvas.bboxVars.top])));
   constraints.push(new Constraint(bboxTree.canvas.bboxVars.centerX, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.left, bboxTree.canvas.bboxVars.right).divide(2)));
   constraints.push(new Constraint(bboxTree.canvas.bboxVars.centerY, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.top, bboxTree.canvas.bboxVars.bottom).divide(2)));
+
+  // bbox = transform(canvas)
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.width, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.width)));
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.height, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.height)));
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerX, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerX, bboxTree.transform.translate.x)));
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerY, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerY, bboxTree.transform.translate.y)));
 }
 
-export type BBoxTree<T> = {
-  bbox: T,
+export type Transform<T> = {
+  translate: {
+    x: T,
+    y: T,
+  }
+}
+
+export type BBoxTree<T, U> = {
+  bbox: T, // equals transform(canvas)
   canvas: T,
-  children: { [key: string]: BBoxTree<T> },
+  // if we have the child "own" its transform, we are implicitly assuming it has a single coordinate
+  // space owner that is applying this transform
+  // if we instead have the parent "own" its children's transforms by pushing it into the children
+  // field, then it could be possible that the child exists in multiple places, right? well not
+  // exactly since it's still a tree structure.
+  // I think it is easiest/best for now to have the child own its transform, because recursion is
+  // much easier and bbox used to live here so the change is smaller.
+  transform: Transform<U>,
+  children: { [key: string]: BBoxTree<T, U> },
 }
 
-export const getBBoxValues = (bboxVars: BBoxTreeVV): BBoxTree<BBoxValues> => {
+export const getBBoxValues = (bboxVars: BBoxTreeVV): BBoxTreeValue => {
   return {
     bbox: {
       left: bboxVars.bbox.bboxVars.left.value(),
@@ -85,6 +112,12 @@ export const getBBoxValues = (bboxVars: BBoxTreeVV): BBoxTree<BBoxValues> => {
       centerX: bboxVars.bbox.bboxVars.centerX.value(),
       centerY: bboxVars.bbox.bboxVars.centerY.value(),
     },
+    transform: {
+      translate: {
+        x: bboxVars.transform.translate.x.value(),
+        y: bboxVars.transform.translate.y.value(),
+      }
+    },
     canvas: {
       left: bboxVars.canvas.bboxVars.left.value(),
       right: bboxVars.canvas.bboxVars.right.value(),
@@ -95,7 +128,7 @@ export const getBBoxValues = (bboxVars: BBoxTreeVV): BBoxTree<BBoxValues> => {
       centerX: bboxVars.canvas.bboxVars.centerX.value(),
       centerY: bboxVars.canvas.bboxVars.centerY.value(),
     },
-    children: Object.keys(bboxVars.children).reduce((o: { [key: string]: BBoxTree<BBoxValues> }, glyphKey: any) => ({
+    children: Object.keys(bboxVars.children).reduce((o: { [key: string]: BBoxTreeValue }, glyphKey: any) => ({
       ...o, [glyphKey]: getBBoxValues(bboxVars.children[glyphKey])
     }), {})
   }

@@ -1,5 +1,5 @@
 import { Mark } from './compile';
-import { BBoxValues } from './kiwiBBox';
+import { BBoxValues } from './kiwiBBoxTransform';
 import measure from './measure';
 
 type RectParams = {
