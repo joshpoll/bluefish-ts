@@ -1,9 +1,9 @@
 import { Constraint, Expression, Operator } from 'kiwi.js';
-import { bboxVars } from './kiwiBBoxTransform';
+import { bboxVarExprs } from './kiwiBBoxTransform';
 
-export type Gestalt = (left: bboxVars, right: bboxVars) => Constraint;
+export type Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => Constraint;
 
-export const alignTop: Gestalt = (left: bboxVars, right: bboxVars) => {
+export const alignTop: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     left.top,
     Operator.Eq,
@@ -11,7 +11,7 @@ export const alignTop: Gestalt = (left: bboxVars, right: bboxVars) => {
   )
 }
 
-export const alignBottom: Gestalt = (left: bboxVars, right: bboxVars) => {
+export const alignBottom: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     left.bottom,
     Operator.Eq,
@@ -19,7 +19,7 @@ export const alignBottom: Gestalt = (left: bboxVars, right: bboxVars) => {
   )
 }
 
-export const alignLeft: Gestalt = (left: bboxVars, right: bboxVars) => {
+export const alignLeft: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     left.left,
     Operator.Eq,
@@ -27,7 +27,7 @@ export const alignLeft: Gestalt = (left: bboxVars, right: bboxVars) => {
   )
 }
 
-export const alignRight: Gestalt = (left: bboxVars, right: bboxVars) => {
+export const alignRight: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     left.right,
     Operator.Eq,
@@ -35,7 +35,7 @@ export const alignRight: Gestalt = (left: bboxVars, right: bboxVars) => {
   )
 }
 
-export const alignCenterX: Gestalt = (left: bboxVars, right: bboxVars) => {
+export const alignCenterX: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     left.centerX,
     Operator.Eq,
@@ -43,7 +43,7 @@ export const alignCenterX: Gestalt = (left: bboxVars, right: bboxVars) => {
   )
 }
 
-export const alignCenterY: Gestalt = (left: bboxVars, right: bboxVars) => {
+export const alignCenterY: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     left.centerY,
     Operator.Eq,
@@ -51,7 +51,7 @@ export const alignCenterY: Gestalt = (left: bboxVars, right: bboxVars) => {
   )
 }
 
-export const hSpace = (spacing: number): Gestalt => (left: bboxVars, right: bboxVars) => {
+export const hSpace = (spacing: number): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     new Expression(left.right, spacing),
     Operator.Eq,
@@ -59,7 +59,7 @@ export const hSpace = (spacing: number): Gestalt => (left: bboxVars, right: bbox
   );
 }
 
-export const vSpace = (spacing: number): Gestalt => (left: bboxVars, right: bboxVars) => {
+export const vSpace = (spacing: number): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     new Expression(left.bottom, spacing),
     Operator.Eq,

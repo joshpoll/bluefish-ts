@@ -7,11 +7,16 @@ import { dataGlyph } from './examples/barchart';
 import groupedbarchart from './examples/groupedbarchart';
 import { dataGlyph as reduced } from './examples/reducebug';
 import { textspans } from './examples/textspans';
+import { pathTest } from './examples/pathTest';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <br />
+        <br />
+        <br />
+        {render(compile(pathTest))}
         <br />
         <br />
         <br />

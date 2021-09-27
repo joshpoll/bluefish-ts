@@ -1,6 +1,6 @@
-import { Constraint, Operator, Solver, Strength, Variable } from "kiwi.js";
+import { Constraint, Operator, Solver, Strength, Variable, Expression } from 'kiwi.js';
 import { Gestalt } from "./gestalt";
-import { BBoxTree, getBBoxValues, addBBoxConstraints, makeBBoxVars, bboxVars, BBoxValues, MaybeBBoxValues, BBoxTreeValue, BBoxTreeVV } from './kiwiBBoxTransform';
+import { BBoxTree, getBBoxValues, addBBoxConstraints, makeBBoxVars, bboxVars, BBoxValues, MaybeBBoxValues, BBoxTreeValue, BBoxTreeVV, bboxVarExprs, transformBBox } from './kiwiBBoxTransform';
 
 // export type BBoxTreeVV = BBoxTree<{ bboxVars: bboxVars, bboxValues?: MaybeBBoxValues }>;
 
@@ -121,6 +121,23 @@ const resolvePaths = (path: string, encoding: Glyph): GlyphWithPath => {
   }
 }
 
+const resolvePath = (bboxTree: BBoxTreeVV, path: string): bboxVarExprs => {
+  return resolvePathAux(bboxTree, path.split('.'));
+};
+
+const resolvePathAux = (bboxTree: BBoxTreeVV, path: string[]): bboxVarExprs => {
+  const [head, ...tail] = path;
+  if (tail.length === 0) {
+    if (head === "canvas") {
+      return bboxTree.canvas.bboxVars;
+    } else {
+      return bboxTree.children[head].bbox.bboxVars;
+    }
+  } else {
+    return transformBBox(resolvePathAux(bboxTree.children[head], tail), bboxTree.transform);
+  }
+};
+
 /* mutates constraints */
 const addGestaltConstraints = (bboxTree: BBoxTreeVV, encoding: GlyphWithPath, constraints: Constraint[]): void => {
   const keys = Object.keys(bboxTree.children);
@@ -128,8 +145,10 @@ const addGestaltConstraints = (bboxTree: BBoxTreeVV, encoding: GlyphWithPath, co
 
   const relations = encoding.relations === undefined ? [] : encoding.relations;
   relations.forEach(({ left, right, gestalt }: Relation) => gestalt.forEach((g: Gestalt) => {
-    const leftBBox = left === "canvas" ? bboxTree.canvas.bboxVars : bboxTree.children[left].bbox.bboxVars;
-    const rightBBox = right === "canvas" ? bboxTree.canvas.bboxVars : bboxTree.children[right].bbox.bboxVars;
+    const leftBBox = resolvePath(bboxTree, left);
+    const rightBBox = resolvePath(bboxTree, right);
+    // const leftBBox = left === "canvas" ? bboxTree.canvas.bboxVars : bboxTree.children[left].bbox.bboxVars;
+    // const rightBBox = right === "canvas" ? bboxTree.canvas.bboxVars : bboxTree.children[right].bbox.bboxVars;
     constraints.push(g(leftBBox, rightBBox));
   }))
 }

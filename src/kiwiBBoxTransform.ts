@@ -21,6 +21,28 @@ export type bboxVars = {
   centerY: Variable,
 }
 
+export type bboxVarExprs = {
+  left: Variable | Expression,
+  right: Variable | Expression,
+  top: Variable | Expression,
+  bottom: Variable | Expression,
+  width: Variable | Expression,
+  height: Variable | Expression,
+  centerX: Variable | Expression,
+  centerY: Variable | Expression,
+}
+
+export const transformBBox = (bbox: bboxVarExprs, transform: Transform<Variable>): bboxVarExprs => ({
+  left: new Expression(bbox.left, transform.translate.x),
+  right: new Expression(bbox.right, transform.translate.x),
+  top: new Expression(bbox.top, transform.translate.y),
+  bottom: new Expression(bbox.bottom, transform.translate.y),
+  width: bbox.width,
+  height: bbox.height,
+  centerX: new Expression(bbox.centerX, transform.translate.x),
+  centerY: new Expression(bbox.centerY, transform.translate.y),
+})
+
 export type BBoxValues = { [key in keyof bboxVars]: number }
 export type MaybeBBoxValues = Partial<BBoxValues> | undefined
 
