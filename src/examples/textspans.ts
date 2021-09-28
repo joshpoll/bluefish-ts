@@ -74,7 +74,6 @@ const splitTextDataArray = (textData: TextData[]): TextData[] => textData.flatMa
   return splitTD;
 });
 
-// TODO: hack using _ instead of <space> so height is correct. not sure what a better solution is
 const textData = [
   {
     char: "Intro. ",
@@ -110,6 +109,7 @@ console.log("charData", charData);
 
 const charNumber = (i: number, strong: boolean): Glyph => (text({ text: i.toString(), fontSize: "12px", fill: "rgb(127,223,255)", fontWeight: (strong ? "bold" : "") }))
 
+// TODO: hack using _ instead of <space> so height is correct. not sure what a better solution is
 const styledChar = ({ char, marks }: TextData): Glyph => text({ text: char === " " ? "_" : char, fontSize: "18px", fontWeight: (marks.strong ? "bold" : ""), fontStyle: (marks.em ? "italic" : ""), fill: char === " " ? "none" : "black" });
 
 const spanDescription = (marks: {

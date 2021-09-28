@@ -141,3 +141,25 @@ export const nil = (): Mark => (
     }
   }
 )
+
+type HTMLParams = {
+  x?: number,
+  y?: number,
+  width?: number,
+  height?: number,
+  html: JSX.Element,
+}
+
+export const html = ({ x, y, width, height, html }: HTMLParams): Mark => {
+  return {
+    bbox: { left: x, top: y, width: width, height: height },
+    renderFn: (canvas: BBoxValues, index?: number) => {
+      return <foreignObject key={index} x={canvas.left} y={canvas.top} width={canvas.width} height={canvas.height}>
+        {/* @ts-ignore - xmlns is not a recognized field here */}
+        <html xmlns={"http://www.w3.org/1999/xhtml"}>
+          {html}
+        </html>
+      </foreignObject >
+    }
+  }
+}

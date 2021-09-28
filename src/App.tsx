@@ -8,6 +8,7 @@ import groupedbarchart from './examples/groupedbarchart';
 import { dataGlyph as reduced } from './examples/reducebug';
 import { textspans } from './examples/textspans';
 import { pathTest } from './examples/pathTest';
+import { htmlTest } from './examples/htmlTest';
 
 function App() {
   return (
@@ -20,6 +21,13 @@ function App() {
         <br />
         <br />
         <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        {render(compile(htmlTest))}
         <br />
         <br />
         <br />
