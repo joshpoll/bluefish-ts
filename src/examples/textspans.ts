@@ -145,8 +145,8 @@ const charBlock = (i: number, data: TextData): Glyph => ({
   children: {
     "idx": charNumber(i, data.spanBoundary || false),
     "char": styledChar(data),
-    "tick": rect({ height: 10., width: 1, fill: data.spanBoundary ? "gray" : "none" }),
-    "spanDescription": data.spanBoundary ? spanDescription(data.marks) : nil(),
+    // "tick": rect({ height: 10., width: 1, fill: data.spanBoundary ? "gray" : "none" }),
+    // "spanDescription": data.spanBoundary ? spanDescription(data.marks) : nil(),
   },
   relations: [
     {
@@ -154,16 +154,16 @@ const charBlock = (i: number, data: TextData): Glyph => ({
       right: "char",
       gestalt: [alignLeft, vSpace(5.)],
     },
-    {
-      left: "char",
-      right: "tick",
-      gestalt: [alignLeft, vSpace(5.)],
-    },
-    {
-      left: "tick",
-      right: "spanDescription",
-      gestalt: [alignLeft, vSpace(5.)],
-    }
+    // {
+    //   left: "char",
+    //   right: "tick",
+    //   gestalt: [alignLeft, vSpace(5.)],
+    // },
+    // {
+    //   left: "tick",
+    //   right: "spanDescription",
+    //   gestalt: [alignLeft, vSpace(5.)],
+    // }
   ]
 });
 
@@ -173,29 +173,28 @@ const styledTextArray = (data: TextData[]): GlyphArray<TextData> => ({
   listGestalt: [alignTop, hSpace(5.)],
 })
 
-const span = (textBlock: Glyph, data: TextData): Glyph => ({
+const span = (data: TextData): Glyph => ({
   children: {
-    "textBlock": textBlock,
     "tick": rect({ height: 10., width: 1, fill: "gray" }),
     "axis": rect({ height: 1, fill: "gray" }),
     "spanDescription": spanDescription(data.marks),
   },
   relations: [
-    {
-      left: "textBlock",
-      right: "tick",
-      gestalt: [alignLeft, vSpace(5.)],
-    },
+    // {
+    //   left: "textBlock",
+    //   right: "tick",
+    //   gestalt: [alignLeft, vSpace(5.)],
+    // },
     {
       left: "tick",
       right: "axis",
       gestalt: [alignLeft, vSpace(0.)],
     },
-    {
-      left: "textBlock",
-      right: "axis",
-      gestalt: [alignRight],
-    },
+    // {
+    //   left: "textBlock",
+    //   right: "axis",
+    //   gestalt: [alignRight],
+    // },
     {
       left: "axis",
       right: "spanDescription",
@@ -204,17 +203,33 @@ const span = (textBlock: Glyph, data: TextData): Glyph => ({
   ]
 })
 
+const spanArray = (data: TextData[]): GlyphArray<TextData> => ({
+  data,
+  childGlyphs: (d) => span(d),
+  // TODO: this is temporary to just see the output
+  listGestalt: [],
+})
+
 export const textspans: Glyph = {
   children: {
     "text": glyphArrayToGlyph(styledTextArray(charData)),
-    // "line": line({ stroke: "gray", strokeWidth: 3 }),
-    "line": rect({ height: 1, fill: "gray" }),
+    "spans": glyphArrayToGlyph(spanArray(textData.splice(0, 1))),
   },
   relations: [
     {
-      left: "text",
-      right: "line",
-      gestalt: [alignLeft, alignRight, vSpace(-25.)],
-    }
+      left: "text.0",
+      right: "spans.0",
+      gestalt: [alignLeft, vSpace(5.)],
+    },
+    // {
+    //   left: "text.6",
+    //   right: "spans.0.axis",
+    //   gestalt: [alignRight],
+    // },
+    // {
+    //   left: "text.7",
+    //   right: "spans.1",
+    //   gestalt: [alignLeft, vSpace(5)],
+    // }
   ]
 }

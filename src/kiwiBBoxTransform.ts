@@ -33,14 +33,14 @@ export type bboxVarExprs = {
 }
 
 export const transformBBox = (bbox: bboxVarExprs, transform: Transform<Variable>): bboxVarExprs => ({
-  left: new Expression(bbox.left, transform.translate.x),
-  right: new Expression(bbox.right, transform.translate.x),
-  top: new Expression(bbox.top, transform.translate.y),
-  bottom: new Expression(bbox.bottom, transform.translate.y),
+  left: bbox.left.plus(transform.translate.x),
+  right: bbox.right.plus(transform.translate.x),
+  top: bbox.top.plus(transform.translate.y),
+  bottom: bbox.bottom.plus(transform.translate.y),
   width: bbox.width,
   height: bbox.height,
-  centerX: new Expression(bbox.centerX, transform.translate.x),
-  centerY: new Expression(bbox.centerY, transform.translate.y),
+  centerX: bbox.centerX.plus(transform.translate.x),
+  centerY: bbox.centerY.plus(transform.translate.y),
 })
 
 export type BBoxValues = { [key in keyof bboxVars]: number }
@@ -123,6 +123,7 @@ export type BBoxTree<T, U> = {
 }
 
 export const getBBoxValues = (bboxVars: BBoxTreeVV): BBoxTreeValue => {
+  console.log("canvas x y", bboxVars.canvas.bboxVars.left.value(), bboxVars.canvas.bboxVars.top.value(), "\ntranslate x y", bboxVars.transform.translate.x.value(), bboxVars.transform.translate.y.value(), "\nbbox x y", bboxVars.bbox.bboxVars.left.value(), bboxVars.bbox.bboxVars.top.value());
   return {
     bbox: {
       left: bboxVars.bbox.bboxVars.left.value(),

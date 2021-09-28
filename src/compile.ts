@@ -122,11 +122,13 @@ const resolvePaths = (path: string, encoding: Glyph): GlyphWithPath => {
 }
 
 const resolvePath = (bboxTree: BBoxTreeVV, path: string): bboxVarExprs => {
-  return resolvePathAux(bboxTree, path.split('.'));
+  return resolvePathAux(bboxTree, path.split('/'));
 };
 
+// TODO: this seems very wrong!
 const resolvePathAux = (bboxTree: BBoxTreeVV, path: string[]): bboxVarExprs => {
   const [head, ...tail] = path;
+  console.log("path", "head", head, "tail", tail);
   if (tail.length === 0) {
     if (head === "canvas") {
       return bboxTree.canvas.bboxVars;
@@ -134,7 +136,8 @@ const resolvePathAux = (bboxTree: BBoxTreeVV, path: string[]): bboxVarExprs => {
       return bboxTree.children[head].bbox.bboxVars;
     }
   } else {
-    return transformBBox(resolvePathAux(bboxTree.children[head], tail), bboxTree.transform);
+    // console.log("path", "adding transform", bboxTree.children[head].transform);
+    return transformBBox(resolvePathAux(bboxTree.children[head], tail), bboxTree.children[head].transform);
   }
 };
 
@@ -184,6 +187,7 @@ export default (encoding: Glyph): CompiledAST => {
 
   // 4. extract values
   const bboxValues = getBBoxValues(bboxTree);
+  console.log("bboxValues post compile", bboxValues);
 
   return { bboxValues, encoding: resolvedEncoding };
 }

@@ -1,12 +1,12 @@
-import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignTop, Gestalt } from '../gestalt';
-import { ellipse, rect, text } from '../mark';
-import { Glyph, Mark, Relation } from '../compile';
+import { hSpace, vSpace, alignCenterX, alignTop } from '../gestalt';
+import { rect } from '../mark';
+import { Glyph } from '../compile';
 
 const data = { color1: "firebrick", color2: "steelblue", color3: "black" };
 
 const top: Glyph = {
   children: {
-    "leftRect": rect({ width: 500 / 3, height: 200 / 3, fill: data.color1 }),
+    "leftRect": rect({ width: 200, height: 100, fill: data.color1 }),
     "rightRect": rect({ width: 500 / 3, height: 100 / 3, fill: data.color2 }),
   },
   relations: [
@@ -20,7 +20,7 @@ const top: Glyph = {
 
 const bottom: Glyph = {
   children: {
-    "rect": rect({ width: 100 / 3, height: 100 / 3, fill: data.color3 }),
+    "rect": rect({ width: 100, height: 100, fill: data.color3 }),
   },
 }
 
@@ -31,9 +31,9 @@ export const pathTest: Glyph = {
   },
   relations: [
     {
-      left: "top.rightRect",
-      right: "bottom.rect",
-      gestalt: [alignCenterX, vSpace(10.)],
+      left: "top/rightRect",
+      right: "bottom/rect",
+      gestalt: [alignCenterX, vSpace(30.)],
     }
   ]
 }
