@@ -13,7 +13,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        {/* <br />
+        <br />
         <br />
         <br />
         {render(compile(textspans))}
@@ -26,7 +26,10 @@ function App() {
         <br />
         <br />
         <br />
-        {render(compile(example))} */}
+        {render(compile(example))}
+        <br />
+        <br />
+        <br />
         <br />
         <br />
         <br />
@@ -36,7 +39,7 @@ function App() {
         <br /> */}
         {/* TODO: this _doesn't_ work properly, because text measurement happens too late */}
         {/* {render(compile(course(data)))} */}
-        {/* <br />
+        <br />
         <br />
         <br />
         {render(compile(courses))}
@@ -54,7 +57,7 @@ function App() {
         {render(compile(reduced))}
         <br />
         <br />
-        <br /> */}
+        <br />
       </header>
     </div>
   );

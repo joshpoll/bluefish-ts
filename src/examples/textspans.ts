@@ -115,38 +115,42 @@ const styledChar = ({ char, marks }: TextData): Glyph => text({ text: char === "
 const spanDescription = (marks: {
   strong?: { active: boolean },
   em?: { active: boolean },
-}): Glyph => ({
-  children: {
-    "{": text({ text: "{", fontSize: "16px", fill: "gray" }),
-    "B": marks.strong ? text({ text: "B", fontSize: "16px", fontWeight: "bold", fill: "black" }) : nil(),
-    "I": marks.em ? text({ text: "I", fontSize: "16px", fontStyle: "italic", fontFamily: "serif", fill: "black" }) : nil(),
-    "}": text({ text: "}", fontSize: "16px", fill: "gray" }),
-  },
-  relations: [
-    {
-      left: "{",
-      right: "B",
-      gestalt: [alignCenterY, hSpace(2.)],
-    },
-    {
-      left: "B",
-      right: "I",
-      gestalt: (marks.strong && marks.em) ? [alignCenterY, hSpace(5.)] : [alignCenterY, hSpace(0.)],
-    },
-    {
-      left: "I",
-      right: "}",
-      gestalt: [alignCenterY, hSpace(2.)],
-    },
-  ]
-})
+}): Glyph => {
+  if (marks.strong || marks.em) {
+    return {
+      children: {
+        "{": text({ text: "{", fontSize: "16px", fill: "gray" }),
+        "B": marks.strong ? text({ text: "B", fontSize: "16px", fontWeight: "bold", fill: "black" }) : nil(),
+        "I": marks.em ? text({ text: "I", fontSize: "16px", fontStyle: "italic", fontFamily: "serif", fill: "black" }) : nil(),
+        "}": text({ text: "}", fontSize: "16px", fill: "gray" }),
+      },
+      relations: [
+        {
+          left: "{",
+          right: "B",
+          gestalt: [alignCenterY, hSpace(2.)],
+        },
+        {
+          left: "B",
+          right: "I",
+          gestalt: (marks.strong && marks.em) ? [alignCenterY, hSpace(5.)] : [alignCenterY, hSpace(0.)],
+        },
+        {
+          left: "I",
+          right: "}",
+          gestalt: [alignCenterY, hSpace(2.)],
+        },
+      ]
+    }
+  } else {
+    return nil();
+  }
+};
 
 const charBlock = (i: number, data: TextData): Glyph => ({
   children: {
     "idx": charNumber(i, data.spanBoundary || false),
     "char": styledChar(data),
-    // "tick": rect({ height: 10., width: 1, fill: data.spanBoundary ? "gray" : "none" }),
-    // "spanDescription": data.spanBoundary ? spanDescription(data.marks) : nil(),
   },
   relations: [
     {
@@ -154,16 +158,6 @@ const charBlock = (i: number, data: TextData): Glyph => ({
       right: "char",
       gestalt: [alignLeft, vSpace(5.)],
     },
-    // {
-    //   left: "char",
-    //   right: "tick",
-    //   gestalt: [alignLeft, vSpace(5.)],
-    // },
-    // {
-    //   left: "tick",
-    //   right: "spanDescription",
-    //   gestalt: [alignLeft, vSpace(5.)],
-    // }
   ]
 });
 
@@ -180,21 +174,11 @@ const span = (data: TextData): Glyph => ({
     "spanDescription": spanDescription(data.marks),
   },
   relations: [
-    // {
-    //   left: "textBlock",
-    //   right: "tick",
-    //   gestalt: [alignLeft, vSpace(5.)],
-    // },
     {
       left: "tick",
       right: "axis",
       gestalt: [alignLeft, vSpace(0.)],
     },
-    // {
-    //   left: "textBlock",
-    //   right: "axis",
-    //   gestalt: [alignRight],
-    // },
     {
       left: "axis",
       right: "spanDescription",
@@ -206,30 +190,44 @@ const span = (data: TextData): Glyph => ({
 const spanArray = (data: TextData[]): GlyphArray<TextData> => ({
   data,
   childGlyphs: (d) => span(d),
-  // TODO: this is temporary to just see the output
-  listGestalt: [],
+  listGestalt: [hSpace(0.)],
 })
 
 export const textspans: Glyph = {
   children: {
     "text": glyphArrayToGlyph(styledTextArray(charData)),
-    "spans": glyphArrayToGlyph(spanArray(textData.splice(0, 1))),
+    "spans": glyphArrayToGlyph(spanArray(textData)),
   },
   relations: [
     {
-      left: "text.0",
-      right: "spans.0",
+      left: "text/0",
+      right: "spans/0",
       gestalt: [alignLeft, vSpace(5.)],
     },
-    // {
-    //   left: "text.6",
-    //   right: "spans.0.axis",
-    //   gestalt: [alignRight],
-    // },
-    // {
-    //   left: "text.7",
-    //   right: "spans.1",
-    //   gestalt: [alignLeft, vSpace(5)],
-    // }
+    {
+      left: "text/7",
+      right: "spans/1",
+      gestalt: [alignLeft, vSpace(5)],
+    },
+    {
+      left: "text/11",
+      right: "spans/2",
+      gestalt: [alignLeft, vSpace(5)],
+    },
+    {
+      left: "text/15",
+      right: "spans/3",
+      gestalt: [alignLeft, vSpace(5)],
+    },
+    {
+      left: "text/22",
+      right: "spans/4",
+      gestalt: [alignLeft, vSpace(5)],
+    },
+    {
+      left: "text",
+      right: "spans/4",
+      gestalt: [alignRight],
+    },
   ]
 }
