@@ -1,4 +1,4 @@
-import { Constraint, Expression, Operator } from 'kiwi.js';
+import { Constraint, Expression, Operator, Strength } from 'kiwi.js';
 import { bboxVarExprs } from './kiwiBBoxTransform';
 
 export type Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => Constraint;
@@ -66,3 +66,75 @@ export const vSpace = (spacing: number): Gestalt => (left: bboxVarExprs, right: 
     new Expression(right.top)
   );
 }
+
+export const containsLeft = (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.left,
+    Operator.Le,
+    right.left,
+  )
+}
+
+export const containsRight = (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.right,
+    Operator.Ge,
+    right.right,
+  )
+}
+
+export const containsTop = (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.top,
+    Operator.Le,
+    right.top,
+  )
+}
+
+export const containsBottom = (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.bottom,
+    Operator.Ge,
+    right.bottom,
+  )
+}
+
+export const alignTopStrong: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.top,
+    Operator.Eq,
+    right.top,
+    Strength.strong,
+  )
+}
+
+export const alignBottomStrong: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.bottom,
+    Operator.Eq,
+    right.bottom,
+    Strength.strong,
+  )
+}
+
+export const alignLeftStrong: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.left,
+    Operator.Eq,
+    right.left,
+    Strength.strong,
+  )
+}
+
+export const alignRightStrong: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.right,
+    Operator.Eq,
+    right.right,
+    Strength.strong,
+  )
+}
+
+export const contains: Gestalt[] = [containsLeft, containsRight, containsTop, containsBottom];
+
+export const containsShrinkWrap: Gestalt[] = [...contains, alignLeftStrong, alignRightStrong, alignTopStrong, alignBottomStrong];

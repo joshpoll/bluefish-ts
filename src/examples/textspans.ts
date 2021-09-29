@@ -1,4 +1,4 @@
-import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignBottom, alignRight, alignTop, Gestalt } from '../gestalt';
+import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignBottom, alignRight, alignTop, Gestalt, containsShrinkWrap, contains, alignBottomStrong, alignLeftStrong, alignTopStrong, alignRightStrong } from '../gestalt';
 import { debug, ellipse, line, nil, rect, text } from '../mark';
 import { Glyph, Relation } from '../compile';
 import _, { split } from 'lodash';
@@ -90,6 +90,14 @@ const splitTextDataArray = (textData: TextData[]): TextData[] => textData.flatMa
 // output: indices of spanBoundaries
 const computeSpanBoundaries = (textData: TextData[]): number[] => textData.flatMap((d, i) => d.spanBoundary ? [i] : []);
 
+// input: array of boundary indices
+// output: array of array of indices for each span
+const computeSpanRanges = (spanBoundaries: number[], end: number) => zipWith(
+  spanBoundaries,
+  [...spanBoundaries.slice(1), end],
+  (curr, next) => _.range(curr, next),
+);
+
 const textData: TextData[] = [
   {
     char: "Intro. ",
@@ -175,24 +183,17 @@ const newTextData: TextData[] = [
 
 const charData = splitTextDataArray(textData);
 const spanBoundaries = computeSpanBoundaries(charData);
+const spanRanges = computeSpanRanges(spanBoundaries, charData.length);
 const newCharData = splitTextDataArray(newTextData);
 const newSpanBoundaries = computeSpanBoundaries(newCharData);
+const newSpanRanges = computeSpanRanges(newSpanBoundaries, newCharData.length);
 console.log("charData", charData);
+console.log("newSpanRanges", newSpanRanges, newSpanRanges[newSpanRanges.length - 1][newSpanRanges[newSpanRanges.length - 1].length - 1]);
 
 const charNumber = (i: number, strong: boolean): Glyph => (text({ text: i.toString(), fontSize: "12px", fill: "rgb(127,223,255)", fontWeight: (strong ? "bold" : "") }))
 
 // TODO: hack using _ instead of <space> so height is correct. not sure what a better solution is
-const styledChar = ({ char, marks }: TextData): Glyph => ({
-  children: {
-    "highlight": rect({ fill: marks.comment ? "rgb(248,208,56)" : "none" }),
-    "text": text({ text: char === " " ? "_" : char, fontSize: "18px", fontWeight: (marks.strong ? "bold" : ""), fontStyle: (marks.em ? "italic" : ""), fill: char === " " ? "none" : "black" }),
-  },
-  relations: [{
-    left: "highlight",
-    right: "canvas",
-    gestalt: [alignLeft, alignRight, alignTop, alignBottom],
-  }],
-})
+const styledChar = ({ char, marks }: TextData): Glyph => text({ text: char === " " ? "_" : char, fontSize: "24px", fontWeight: (marks.strong ? "bold" : ""), fontStyle: (marks.em ? "italic" : ""), fill: char === " " ? "none" : "black" })
 
 const marksToList = (marks: Marks): string[] => {
   const strong = marks.strong ? ["strong"] : [];
@@ -255,7 +256,7 @@ const charBlock = (i: number, data: TextData): Glyph => ({
     {
       left: "idx",
       right: "char",
-      gestalt: [alignLeft, vSpace(5.)],
+      gestalt: [alignCenterX, vSpace(5.)],
     },
   ]
 });
@@ -286,30 +287,63 @@ const span = (data: TextData): Glyph => ({
   ]
 })
 
+const spanHighlight = (highlight: boolean): Glyph => rect({ fill: highlight ? "rgb(248,208,56)" : "none" });
+
 const spanArray = (data: TextData[]): GlyphArray<TextData> => ({
   data,
   childGlyphs: (d) => span(d),
   listGestalt: [hSpace(0.)],
 })
 
+const spanHighlightArray = (data: TextData[]): GlyphArray<TextData> => ({
+  data,
+  childGlyphs: (d) => spanHighlight(d.marks.comment ? true : false),
+  listGestalt: [hSpace(0.)], // closes up gaps between spans, but not sure how to deterministically pick a direction
+})
+
 export const textspans: Glyph = {
   children: {
     // "text": glyphArrayToGlyph(styledTextArray(charData)),
     // "spans": glyphArrayToGlyph(spanArray(textData)),
+    "spanHighlights": glyphArrayToGlyph(spanHighlightArray(newTextData)),
     "text": glyphArrayToGlyph(styledTextArray(newCharData)),
-    "spans": glyphArrayToGlyph(spanArray(newTextData)),
+    "spans": glyphArrayToGlyph(spanArray(textData)),
+    "newSpans": glyphArrayToGlyph(spanArray(newTextData)),
   },
   relations:
     [
       {
         left: "text",
-        right: `spans/${newSpanBoundaries.length - 1}`,
+        right: `spans/${spanBoundaries.length - 1}`,
+        gestalt: [alignRight],
+      },
+      ...spanBoundaries.map((d, i) => ({
+        left: `text/${d}`,
+        right: `spans/${i}`,
+        gestalt: [alignLeft, vSpace(5.)],
+      })),
+      {
+        left: "text",
+        right: `newSpans/${newSpanBoundaries.length - 1}`,
         gestalt: [alignRight],
       },
       ...newSpanBoundaries.map((d, i) => ({
         left: `text/${d}`,
-        right: `spans/${i}`,
-        gestalt: [alignLeft, vSpace(5.)],
-      }))
+        right: `newSpans/${i}`,
+        gestalt: [alignLeft, vSpace(85.)],
+      })),
+      ...newSpanRanges.flatMap((spanRange, i) => spanRange.map((span) => {
+        console.log("spanRanges", i, span);
+        return {
+          left: `spanHighlights/${i}`,
+          right: `text/${span}/char`,
+          gestalt: [...contains, alignLeftStrong, alignTopStrong, alignBottomStrong],
+        }
+      })),
+      {
+        left: `spanHighlights/${newSpanRanges.length - 1}`,
+        right: `text/${newSpanRanges[newSpanRanges.length - 1][newSpanRanges[newSpanRanges.length - 1].length - 1]}/char`,
+        gestalt: [alignRightStrong],
+      }
     ],
 }
