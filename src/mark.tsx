@@ -163,3 +163,6 @@ export const html = ({ x, y, width, height, html }: HTMLParams): Mark => {
     }
   }
 }
+
+export const debug = (canvas: BBoxValues): JSX.Element =>
+  (<rect x={canvas.left} y={canvas.top} width={canvas.width} height={canvas.height} fill="none" stroke="magenta" />);
