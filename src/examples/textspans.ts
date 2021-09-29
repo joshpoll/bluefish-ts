@@ -1,9 +1,10 @@
 import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignBottom, alignRight, alignTop, Gestalt } from '../gestalt';
-import { ellipse, line, nil, rect, text } from '../mark';
+import { debug, ellipse, line, nil, rect, text } from '../mark';
 import { Glyph, Relation } from '../compile';
 import _, { split } from 'lodash';
 import { zipWith } from 'lodash';
 import { MaybeBBoxValues, BBoxValues } from '../kiwiBBoxTransform';
+import { emitKeypressEvents } from 'readline';
 
 // export type GlyphData<T> = {
 //   data: T,
@@ -22,21 +23,29 @@ export type GlyphArray<T> = {
   relations?: Relation[]
 }
 
-const glyphArrayToGlyph = <T>(glyphArray: GlyphArray<T>): Glyph => ({
-  bbox: glyphArray.bbox,
-  renderFn: glyphArray.renderFn,
-  children: glyphArray.data
-    .reduce((o: { [key: string]: Glyph }, data: T, i) => ({ ...o, [i]: glyphArray.childGlyphs(data, i) }),
-      {}),
-  relations: [
-    ...zipWith(
-      _.range(glyphArray.data.length - 1),
-      _.range(1, glyphArray.data.length),
-      (curr, next) => ({ left: curr.toString(), right: next.toString(), gestalt: glyphArray.listGestalt })
-    ),
-    ...glyphArray.relations ?? [],
-  ]
-})
+// TODO: is there a nicer way to handle 0-length lists?
+const glyphArrayToGlyph = <T>(glyphArray: GlyphArray<T>): Glyph => {
+  if (glyphArray.data.length === 0) {
+    return nil();
+  } else {
+    return {
+      bbox: glyphArray.bbox,
+      renderFn: glyphArray.renderFn,
+      children: glyphArray.data
+        .reduce((o: { [key: string]: Glyph }, data: T, i) => ({ ...o, [i]: glyphArray.childGlyphs(data, i) }),
+          {}),
+      relations: [
+        ...zipWith(
+          _.range(glyphArray.data.length - 1),
+          _.range(1, glyphArray.data.length),
+          (curr, next) => ({ left: curr.toString(), right: next.toString(), gestalt: glyphArray.listGestalt })
+        ),
+        ...glyphArray.relations ?? [],
+      ]
+    }
+  }
+}
+
 
 // const glyphDataToGlyph = <T>(glyphData: GlyphData<T>): Glyph => {
 //   const glyphDataChildren = glyphData.children ?? {};
@@ -52,12 +61,15 @@ const glyphArrayToGlyph = <T>(glyphArray: GlyphArray<T>): Glyph => ({
 //   };
 // }
 
+type Marks = {
+  strong?: { active: boolean },
+  em?: { active: boolean },
+  comment?: { active: boolean },
+};
+
 type TextData = {
   char: string,
-  marks: {
-    strong?: { active: boolean },
-    em?: { active: boolean },
-  },
+  marks: Marks,
   spanBoundary?: boolean,
 };
 
@@ -74,7 +86,11 @@ const splitTextDataArray = (textData: TextData[]): TextData[] => textData.flatMa
   return splitTD;
 });
 
-const textData = [
+// input: split array of chars
+// output: indices of spanBoundaries
+const computeSpanBoundaries = (textData: TextData[]): number[] => textData.flatMap((d, i) => d.spanBoundary ? [i] : []);
+
+const textData: TextData[] = [
   {
     char: "Intro. ",
     marks: {
@@ -104,39 +120,122 @@ const textData = [
   },
 ];
 
+const update = {
+  // inclusive, exclusive
+  span: [9, 19],
+  marks: {
+    comment: { active: true },
+  }
+};
+
+const newTextData: TextData[] = [
+  {
+    char: "Intro. ",
+    marks: {
+      em: { active: true },
+    },
+  },
+  {
+    char: "Th",
+    marks: {},
+  },
+  {
+    char: "e ",
+    marks: {
+      comment: { active: true },
+    },
+  },
+  {
+    char: "RMS ",
+    marks: {
+      strong: { active: true },
+      comment: { active: true },
+    },
+  },
+  {
+    char: "Tita",
+    marks: {
+      strong: { active: true },
+      em: { active: true },
+      comment: { active: true },
+    },
+  },
+  {
+    char: "nic",
+    marks: {
+      strong: { active: true },
+      em: { active: true },
+    },
+  },
+  {
+    char: " was",
+    marks: {},
+  },
+]
+
 const charData = splitTextDataArray(textData);
+const spanBoundaries = computeSpanBoundaries(charData);
+const newCharData = splitTextDataArray(newTextData);
+const newSpanBoundaries = computeSpanBoundaries(newCharData);
 console.log("charData", charData);
 
 const charNumber = (i: number, strong: boolean): Glyph => (text({ text: i.toString(), fontSize: "12px", fill: "rgb(127,223,255)", fontWeight: (strong ? "bold" : "") }))
 
 // TODO: hack using _ instead of <space> so height is correct. not sure what a better solution is
-const styledChar = ({ char, marks }: TextData): Glyph => text({ text: char === " " ? "_" : char, fontSize: "18px", fontWeight: (marks.strong ? "bold" : ""), fontStyle: (marks.em ? "italic" : ""), fill: char === " " ? "none" : "black" });
+const styledChar = ({ char, marks }: TextData): Glyph => ({
+  children: {
+    "highlight": rect({ fill: marks.comment ? "rgb(248,208,56)" : "none" }),
+    "text": text({ text: char === " " ? "_" : char, fontSize: "18px", fontWeight: (marks.strong ? "bold" : ""), fontStyle: (marks.em ? "italic" : ""), fill: char === " " ? "none" : "black" }),
+  },
+  relations: [{
+    left: "highlight",
+    right: "canvas",
+    gestalt: [alignLeft, alignRight, alignTop, alignBottom],
+  }],
+})
 
-const spanDescription = (marks: {
-  strong?: { active: boolean },
-  em?: { active: boolean },
-}): Glyph => {
-  if (marks.strong || marks.em) {
+const marksToList = (marks: Marks): string[] => {
+  const strong = marks.strong ? ["strong"] : [];
+  const em = marks.em ? ["em"] : [];
+  const comment = marks.comment ? ["comment"] : [];
+
+  return [...strong, ...em, ...comment];
+}
+
+const spanDescriptionList = (marks: Marks): GlyphArray<string> => ({
+  data: marksToList(marks),
+  childGlyphs: (d) => {
+    switch (d) {
+      case "strong":
+        return text({ text: "B", fontSize: "16px", fontWeight: "bold", fill: "black" });
+      case "em":
+        return text({ text: "I", fontSize: "16px", fontStyle: "italic", fontFamily: "serif", fill: "black" });
+      case "comment":
+        return text({ text: "C", fontSize: "16px", fontWeight: "bold", fill: "rgb(248,208,56)" });
+      default:
+        throw "unreachable"
+    }
+  },
+  listGestalt: [alignCenterY, hSpace(5.)],
+});
+
+const spanDescription = (marks: Marks): Glyph => {
+  if (Object.keys(marks).length !== 0) {
     return {
+      renderFn: debug,
       children: {
         "{": text({ text: "{", fontSize: "16px", fill: "gray" }),
-        "B": marks.strong ? text({ text: "B", fontSize: "16px", fontWeight: "bold", fill: "black" }) : nil(),
-        "I": marks.em ? text({ text: "I", fontSize: "16px", fontStyle: "italic", fontFamily: "serif", fill: "black" }) : nil(),
+        "spanDescriptionList": glyphArrayToGlyph(spanDescriptionList(marks)),
         "}": text({ text: "}", fontSize: "16px", fill: "gray" }),
       },
       relations: [
         {
           left: "{",
-          right: "B",
+          right: "spanDescriptionList",
           gestalt: [alignCenterY, hSpace(2.)],
         },
         {
-          left: "B",
-          right: "I",
-          gestalt: (marks.strong && marks.em) ? [alignCenterY, hSpace(5.)] : [alignCenterY, hSpace(0.)],
-        },
-        {
-          left: "I",
+          left: "spanDescriptionList",
           right: "}",
           gestalt: [alignCenterY, hSpace(2.)],
         },
@@ -195,39 +294,22 @@ const spanArray = (data: TextData[]): GlyphArray<TextData> => ({
 
 export const textspans: Glyph = {
   children: {
-    "text": glyphArrayToGlyph(styledTextArray(charData)),
-    "spans": glyphArrayToGlyph(spanArray(textData)),
+    // "text": glyphArrayToGlyph(styledTextArray(charData)),
+    // "spans": glyphArrayToGlyph(spanArray(textData)),
+    "text": glyphArrayToGlyph(styledTextArray(newCharData)),
+    "spans": glyphArrayToGlyph(spanArray(newTextData)),
   },
-  relations: [
-    {
-      left: "text/0",
-      right: "spans/0",
-      gestalt: [alignLeft, vSpace(5.)],
-    },
-    {
-      left: "text/7",
-      right: "spans/1",
-      gestalt: [alignLeft, vSpace(5)],
-    },
-    {
-      left: "text/11",
-      right: "spans/2",
-      gestalt: [alignLeft, vSpace(5)],
-    },
-    {
-      left: "text/15",
-      right: "spans/3",
-      gestalt: [alignLeft, vSpace(5)],
-    },
-    {
-      left: "text/22",
-      right: "spans/4",
-      gestalt: [alignLeft, vSpace(5)],
-    },
-    {
-      left: "text",
-      right: "spans/4",
-      gestalt: [alignRight],
-    },
-  ]
+  relations:
+    [
+      {
+        left: "text",
+        right: `spans/${newSpanBoundaries.length - 1}`,
+        gestalt: [alignRight],
+      },
+      ...newSpanBoundaries.map((d, i) => ({
+        left: `text/${d}`,
+        right: `spans/${i}`,
+        gestalt: [alignLeft, vSpace(5.)],
+      }))
+    ],
 }
