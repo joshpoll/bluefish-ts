@@ -1,7 +1,7 @@
 import './App.css';
 import compile from './compile';
 import { course, courses, data } from './examples/courses';
-import { example } from './examples/example';
+import { example } from './examples/talkexample';
 import render from './render';
 import { dataGlyph } from './examples/barchart';
 import groupedbarchart from './examples/groupedbarchart';
@@ -9,11 +9,16 @@ import { dataGlyph as reduced } from './examples/reducebug';
 import { textspans } from './examples/textspans';
 import { pathTest } from './examples/pathTest';
 import { htmlTest } from './examples/htmlTest';
+import { exampleRelationInterface } from './examples/exampleRelationInterface';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <br />
+        <br />
+        <br />
+        {render(compile(exampleRelationInterface))}
         <br />
         <br />
         <br />

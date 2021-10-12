@@ -1,6 +1,7 @@
 import { Mark } from './compile';
 import { BBoxValues } from './kiwiBBoxTransform';
 import measure from './measure';
+import { measureText } from './measureText';
 
 type RectParams = {
   x?: number,
@@ -55,17 +56,20 @@ type TextParams = {
 // TODO: maybe use https://airbnb.io/visx/docs/text?
 // TODO: maybe use alignmentBaseline="baseline" to measure the baseline as well?? need to add it as
 // a guide
+// TODO: very close to good alignment, but not quite there. Can I use more of the canvas
+// measurements somehow?
 export const text = ({ x, y, text, fontFamily, fontSize, fontStyle, fontWeight, fill }: TextParams): Mark => {
+  const canvasMeasurements = measureText(text, `${fontWeight} ${fontStyle} ${fontSize} ${fontFamily}`);
   const measurements = measure("$measuring", <text fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fontWeight={fontWeight} fill={fill}>
     {text}
   </text>)
   console.log("measurements", measurements);
   return {
     // return the positioning parameters the user gave us
-    bbox: { left: x, bottom: y, width: measurements.width, height: measurements.height },
+    bbox: { left: x, top: y, width: measurements.width, height: measurements.height },
     // and the rendering function itself
     renderFn: (canvas: BBoxValues, index?: number) => {
-      return <text key={index} x={canvas.left} y={canvas.bottom} fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fontWeight={fontWeight} fill={fill}>
+      return <text key={index} x={canvas.left} y={canvas.bottom - canvasMeasurements.fontDescent} fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fontWeight={fontWeight} fill={fill}>
         {text}
       </text>
     }

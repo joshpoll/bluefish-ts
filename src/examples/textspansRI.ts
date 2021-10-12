@@ -1,10 +1,75 @@
-import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignBottom, alignRight, alignTop, Gestalt, containsShrinkWrap, contains, alignBottomStrong, alignLeftStrong, alignTopStrong, alignRightStrong } from '../gestalt';
-import { debug, ellipse, line, nil, rect, text } from '../mark';
+import { hSpace, vSpace, alignCenterY, alignCenterX, alignLeft, alignRight, alignTop, Gestalt, contains, alignBottomStrong, alignLeftStrong, alignTopStrong, alignRightStrong } from '../gestalt';
+import { ellipse, nil, rect, text } from '../mark';
 import { Glyph, Relation } from '../compile';
-import _, { split } from 'lodash';
+import _ from 'lodash';
 import { zipWith } from 'lodash';
 import { MaybeBBoxValues, BBoxValues } from '../kiwiBBoxTransform';
-import { emitKeypressEvents } from 'readline';
+
+type RelationE2<T> = T[]
+
+// unwraps a Relation into a RelationInstance, and keeps RelationInstances unchanged
+type RelationInstanceE2<T> = T extends Array<infer _> ? T[number] : T
+
+// https://stackoverflow.com/a/50900933
+type AllowedFieldsWithType<Obj, Type> = {
+  [K in keyof Obj]: Obj[K] extends Type ? K : never
+};
+
+// https://stackoverflow.com/a/50900933
+type ExtractFieldsOfType<Obj, Type> = AllowedFieldsWithType<Obj, Type>[keyof Obj]
+
+type OmitRef<T> = Omit<T, ExtractFieldsOfType<T, Ref<any, any>>>
+
+type MarkE2 = {
+  bbox: MaybeBBoxValues,
+  renderFn: (canvas: BBoxValues, index?: number) => JSX.Element,
+}
+
+// https://stackoverflow.com/a/49683575. merges record intersection types
+type Id<T> = T extends infer U ? { [K in keyof U]: U[K] } : never
+
+type GlyphE2<T> =
+  ((d: T) => MarkE2) |
+  Id<
+    // optional mark on a complex glyph
+    Partial<MarkE2> &
+    // complex glyph spec
+    {
+      glyphs: { [key in keyof OmitRef<T>]: GlyphE2<RelationInstanceE2<T[key]>> },
+      gestalt?: { left: keyof T | "canvas", right: keyof T | "canvas", rels: Gestalt[] }[]
+    }
+  >
+
+// maybe have a special data field? and then relations always reference that?
+// that wouldn't work with labels I don't think, since they need to refer to one existing set and also have a
+// label set
+
+// ObjPath based on: https://twitter.com/SferaDev/status/1413761483213783045
+type StringKeys<O> = Extract<keyof O, string>;
+type NumberKeys<O> = Extract<keyof O, number>;
+
+type Values<O> = O[keyof O]
+
+type ObjPath<O> = O extends Array<unknown>
+  ? Values<{ [K in NumberKeys<O>]: `[${K}]` | `[${K}]${ObjPath<O[K]>}` }>
+  : O extends Record<string, unknown>
+  ? Values<{
+    [K in StringKeys<O>]: ObjPath<O[K]> extends "" ? `.${K}` : `.${K}${ObjPath<O[K]>}`
+  }>
+  : ""
+
+// https://stackoverflow.com/a/68487744
+type addPrefix<TKey, TPrefix extends string> = TKey extends string
+  ? `${TPrefix}${TKey}`
+  : never;
+
+// type Ref<Prefix extends string, T> = { $ref: true, path: addPrefix<ObjPath<T>, Prefix> }
+
+type Ref<T, Field extends string & keyof T> = { $ref: true, path: addPrefix<ObjPath<T[Field]>, Field> }
+
+// TypeScript doesn't seem to be able to infer the type properlyi.
+const ref = <T, Field extends string & keyof T>(field: Field, path: ObjPath<T[Field]>): Ref<T, Field> => ({ $ref: true, path: (field + path) as addPrefix<ObjPath<T[Field]>, Field> });
+
 
 // export type GlyphData<T> = {
 //   data: T,
@@ -110,7 +175,7 @@ const textData: TextData[] = [
     marks: {},
   },
   {
-    char: "RMS ",
+    char: "RS ",
     marks: {
       strong: { active: true },
     },
@@ -154,7 +219,7 @@ const newTextData: TextData[] = [
     },
   },
   {
-    char: "RMS ",
+    char: "RS ",
     marks: {
       strong: { active: true },
       comment: { active: true },
@@ -165,7 +230,7 @@ const newTextData: TextData[] = [
     marks: {
       strong: { active: true },
       em: { active: true },
-      // comment: { active: true },
+      comment: { active: true },
     },
   },
   {
@@ -301,6 +366,103 @@ const spanHighlightArray = (data: TextData[]): GlyphArray<TextData> => ({
   listGestalt: [hSpace(0.)], // closes up gaps between spans, but not sure how to deterministically pick a direction
 })
 
+type BFList<T> = {
+  elements: RelationE2<T>,
+  // TODO: can refine Ref type even more to say what it refers to
+  neighbors: RelationE2<{
+    curr: Ref<BFList<T>, "elements">, next: Ref<BFList<T>, "elements">
+  }>
+}
+
+declare function bfList<T>(set: RelationE2<T>): BFList<T>
+
+type BFSet<T> = RelationE2<T>;
+
+type Char = { char: string, marks: Marks };
+type Chars = BFList<Char>;
+
+// TODO: these brackets really seem like they should belong to the enclosing object, because they
+// are "containing" the elements in the same way that the record contains its elements
+// and if you want to change the representation you would probably use a different sort of
+// containment. so the container is a collection of glyphs that are related to the children
+// this seems like some form of escape hatch, and it seems like strictly more expressive like a
+// virus that takes over the expressiveness of the language
+// so you have (d: Data) => Mark, which gets generalized to (d: Data) => EscapeHatchGlyph, where
+// EscapeHatchGlyph acts like the more expressive version where the glyphs aren't tied to data
+// ok but what about this compromise: allow an expressive Glyph that _isn't_ driven by any data!
+// thus its purpose is to visualize a container and nothing else basically
+// idkkkkk
+type Span<Data, CharSource extends string & keyof Data> = { text: RelationE2<Ref<Data, CharSource>>, spanBoundary: true, markDescription: { leftBrack: true, marks: Marks, rightBrack: true } };
+type Spans<Data, CharSource extends string & keyof Data> = RelationE2<Span<Data, CharSource>>;
+
+type Data = {
+  /* TODO: add reelation between spanIdxs and chars? */
+  spanIdxs: RelationE2<{ idx: number, spanStart: boolean }>,
+  chars: Chars,
+  spans: Spans<Data, "chars">,
+  newSpans: Spans<Data, "chars">,
+  spanHighlights: RelationE2<{ span: Ref<Data, "newSpans">, highlightColor: string }>,
+  comments: RelationE2<{ span: Ref<Data, "newSpans">, commentColor: string }>,
+}
+
+const myData: Data = {
+  spanIdxs: [{ idx: 0, spanStart: true }, { idx: 1, spanStart: false }, { idx: 2, spanStart: false }, /* ... */],
+  chars: bfList([{ char: "I", marks: { em: { active: true } } }, /* ... */]),
+  spans: [
+    { text: [ref("chars", ".elements[0]"), ref("chars", ".elements[1]"), /* ... */], markDescription: { leftBrack: true, marks: { em: { active: true } }, rightBrack: true }, spanBoundary: true }, /* ... */],
+  newSpans: [{ text: [ref("chars", ".elements[0]"), ref("chars", ".elements[1]"), /* ... */], markDescription: { leftBrack: true, marks: { em: { active: true } }, rightBrack: true }, spanBoundary: true }, /* ... */],
+  spanHighlights: [{ span: ref("newSpans", "[0]"), highlightColor: "green" }],
+  comments: [{ span: ref("newSpans", "[2]"), commentColor: "yellow" }],
+}
+
+// const myDataGlyph: GlyphE2<Data> = {
+//   glyphs: {
+//     "spanIdxs": ({ idx, spanStart }) => text({ text: idx.toString(), fontSize: "12px", fill: "rgb(127,223,255)", "fontWeight": (spanStart ? "bold" : "") }),
+//     "chars": {
+//       glyphs: {
+//         "elements": ({ char, marks }) => text({ text: char === " " ? "_" : char, fontSize: "24px", fontWeight: (marks.strong ? "bold" : ""), fontStyle: (marks.em ? "italic" : ""), fill: char === " " ? "none" : "black" }),
+//         "neighbors": {
+//           glyphs: {},
+//           gestalt: [{
+//             left: "curr",
+//             right: "next",
+//             rels: [alignTop, hSpace(5.)],
+//           }]
+//         },
+//       }
+//     },
+//     "spans": {
+//       glyphs: {
+//         text: (_) => nil(),
+//         /* TODO */
+//         marks: (_) => nil(),
+//       }
+//     },
+//     "newSpans": {
+//       glyphs: {
+//         text: (_) => nil(),
+//         /* TODO */
+//         marks: (_) => nil(),
+//       }
+//     },
+//     "spanHighlights": {
+//       glyphs: {
+//         /* TODO */
+//         highlightColor: (_) => nil(),
+//       },
+//       gestalt: [/* TODO */]
+//     },
+//     "comments": {
+//       glyphs: {
+//         /* TODO */
+//         commentColor: (_) => nil(),
+//       },
+//       gestalt: [/* TODO */]
+//     },
+//   },
+//   gestalt: [/* TODO */],
+// }
+
 export const textspans: Glyph = {
   children: {
     // "text": glyphArrayToGlyph(styledTextArray(charData)),
@@ -346,4 +508,51 @@ export const textspans: Glyph = {
         gestalt: [alignRightStrong],
       }
     ],
+}
+
+type BFTable<T> = {
+  elements: RelationE2<T>,
+  rows: BFList<RelationE2<{ curr: Ref<BFTable<T>, "elements">, next: Ref<BFTable<T>, "elements"> }>>,
+  cols: BFList<RelationE2<{ curr: Ref<BFTable<T>, "elements">, next: Ref<BFTable<T>, "elements"> }>>,
+}
+
+/* 
+type BFList<T> = {
+  elements: RelationE2<T>,
+  // TODO: can refine Ref type even more to say what it refers to
+  neighbors: RelationE2<{
+    curr: Ref<BFList<T>, "elements">, next: Ref<BFList<T>, "elements">
+  }>
+}
+*/
+
+type BFTableInline<T> = {
+  elements: RelationE2<T>,
+  rows: RelationE2<RelationE2<Ref<BFTableInline<T>, "elements">>>,
+  cols: RelationE2<RelationE2<Ref<BFTableInline<T>, "elements">>>,
+  rowNeighbors: RelationE2<{
+    curr: Ref<BFTableInline<T>, "rows">, next: Ref<BFTableInline<T>, "rows">
+  }>
+  colNeighbors: RelationE2<{
+    curr: Ref<BFTableInline<T>, "cols">, next: Ref<BFTableInline<T>, "cols">
+  }>
+  // rowsInline: {
+  //   elements: RelationE2<{
+  //     elements: RelationE2<Ref<BFTableInline<T>, "elements">>, neighbors: RelationE2<{
+  //       curr: Ref<BFList<Ref<BFTableInline<T>, "elements">>, "elements">, next: Ref<BFList<Ref<BFTableInline<T>, "elements">>, "elements">,
+  //     }>
+  //   }>, neighbors: RelationE2<{
+  //     curr: Ref<BFList<{
+  //       elements: RelationE2<Ref<BFTableInline<T>, "elements">>, neighbors: RelationE2<{
+  //         curr: Ref<BFList<Ref<BFTableInline<T>, "elements">>, "elements">, next: Ref<BFList<{
+  //           elements: RelationE2<Ref<BFTableInline<T>, "elements">>, neighbors: RelationE2<{
+  //             curr: Ref<BFList<Ref<BFTableInline<T>, "elements">>, "elements">, next: Ref<BFList<Ref<BFTableInline<T>, "elements">>, "elements">,
+  //           }>
+  //         }>, "elements">,
+  //       }>
+  //     }>, "elements">, next: Ref<BFList<Ref<BFTableInline<T>, "elements">>, "elements">,
+  //   }>
+  // }
+  // rows: BFList<RelationE2<{ curr: Ref<BFTable<T>, "elements">, next: Ref<BFTable<T>, "elements"> }>>,
+  // cols: BFList<RelationE2<{ curr: Ref<BFTable<T>, "elements">, next: Ref<BFTable<T>, "elements"> }>>,
 }

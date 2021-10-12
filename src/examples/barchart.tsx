@@ -31,7 +31,7 @@ export const bars = (data: Data[]): Glyph => ({
   relations: zipWith(
     _.range(data.length - 1),
     _.range(1, data.length),
-    (curr, next) => ({ left: curr.toString(), right: next.toString(), gestalt: [alignBottom, hSpace(5.)] })
+    (curr, next) => ({ left: curr.toString(), right: next.toString(), gestalt: [alignBottom, hSpace(20.)] })
   ),
 })
 
@@ -89,7 +89,7 @@ export const dataGlyph: Glyph = {
     {
       left: "bars",
       right: "xAxis",
-      gestalt: [vSpace(0.), alignLeft, alignRight],
+      gestalt: [vSpace(5.), alignLeft, alignRight],
     },
     {
       left: "yAxis",

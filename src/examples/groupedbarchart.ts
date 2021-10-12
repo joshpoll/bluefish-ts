@@ -156,7 +156,7 @@ export const chart: Glyph = {
     {
       left: "title",
       right: "chart",
-      gestalt: [vSpace(15.), alignCenterX]
+      gestalt: [vSpace(15.), alignLeft]
     }
   ]
 }

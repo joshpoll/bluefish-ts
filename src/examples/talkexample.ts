@@ -6,26 +6,40 @@ import { Glyph, Mark, Relation } from '../compile';
 type Data = { color1: string, color2: string, color3: string };
 const data = { color1: "firebrick", color2: "steelblue", color3: "black" };
 
-export const example: Glyph = {
-  /* bbox: {
-    width: 800,
-    height: 700,
-  }, */
+export const exampleGlyph: (data: Data) => Glyph = (data) => ({
   children: {
-    /* TODO: maybe make RHS a _list_ of glyphs? */
-    "topRect": rect({ width: 500 / 3, height: 200 / 3, fill: data.color1 }),
+    "topRect": rect({
+      x: 10, width: 500 / 3, height: 200 / 3, fill: data.color1
+    }),
     "bottomEllipse": ellipse({ rx: 300 / 6, ry: 200 / 6, fill: data.color2 }),
-    "rightEllipse": ellipse({ rx: 50, ry: 50, fill: data.color3 }),
-    "some text": text({ text: "hello world!", fontSize: "calc(10px + 2vmin)" }),
   },
   relations: [
-    // e.g. "topRect" refers to the bbox of the "topRect" glyph defined above
-    { left: "topRect", right: "bottomEllipse", gestalt: [vSpace(50.)] },
-    { left: "topRect", right: "rightEllipse", gestalt: [hSpace(50.), alignCenterY] },
-    { left: "rightEllipse", right: "some text", gestalt: [vSpace(50.), alignCenterX] },
-    { left: "canvas", right: "topRect", gestalt: [alignLeft] },
+    { left: "topRect", right: "bottomEllipse", gestalt: [vSpace(0.), alignCenterX] }
   ]
-}
+});
+
+export const example = exampleGlyph(data);
+
+// export const example: Glyph = {
+//   /* bbox: {
+//     width: 800,
+//     height: 700,
+//   }, */
+//   children: {
+//     /* TODO: maybe make RHS a _list_ of glyphs? */
+//     "topRect": rect({ width: 500 / 3, height: 200 / 3, fill: data.color1 }),
+//     "bottomEllipse": ellipse({ rx: 300 / 6, ry: 200 / 6, fill: data.color2 }),
+//     "rightEllipse": ellipse({ rx: 50, ry: 50, fill: data.color3 }),
+//     "some text": text({ text: "hello world!", fontSize: "calc(10px + 2vmin)" }),
+//   },
+//   relations: [
+//     // e.g. "topRect" refers to the bbox of the "topRect" glyph defined above
+//     { left: "topRect", right: "bottomEllipse", gestalt: [vSpace(50.)] },
+//     { left: "topRect", right: "rightEllipse", gestalt: [hSpace(50.), alignCenterY] },
+//     { left: "rightEllipse", right: "some text", gestalt: [vSpace(50.), alignCenterX] },
+//     { left: "canvas", right: "topRect", gestalt: [alignLeft] },
+//   ]
+// }
 
 /* experimental interface (NYI) below */
 
