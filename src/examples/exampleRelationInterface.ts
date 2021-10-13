@@ -4,6 +4,7 @@ import { Glyph, Mark, Relation } from '../compile';
 import { BBoxValues, MaybeBBoxValues } from '../kiwiBBoxTransform';
 import { zipWith } from 'lodash';
 import _ from 'lodash';
+import { objectMap } from '../objectMap';
 
 const data = { color1: "firebrick", color2: "steelblue", color3: "black" };
 
@@ -173,31 +174,152 @@ type Id<T> = T extends infer U ? { [K in keyof U]: U[K] } : never
 
 type GlyphE2<T> =
   ((d: T) => MarkE2) |
-  Id<
-    // optional mark on a complex glyph
-    Partial<MarkE2> &
-    // complex glyph spec
-    {
-      glyphs: { [key in keyof OmitRef<T>]: GlyphE2<RelationInstanceE2<T[key]>> },
-      gestalt?: { left: keyof T | "canvas", right: keyof T | "canvas", rels: Gestalt[] }[]
-    }
-  >
+  // complex glyph spec
+  // {
+  //   // TODO: idk why wrapping this type in Id works so well, but it seems to help TypeScript out
+  //   glyphs?: Id<{ [key: string]: Glyph } & { [key in keyof T]?: never }>
+  //   dataGlyphs: { [key in keyof OmitRef<T>]: GlyphE2<RelationInstanceE2<T[key]>> },
+  //   relations?: { fields: [keyof T | "canvas", keyof T | "canvas"], constraints: Gestalt[] }[]
+  // }
+  SimpleTypeComplexGlyph<T>
+// ComplexGlyph<T>
+// ComplexGlyph_<T, Id<unknown & string>>
+// ComplexGlyphRecord<T, Id<unknown & { [key: string]: Glyph }>>
 
-export const exampleRelationInterface2: GlyphE2<myData> = ({
+type ComplexGlyphRecord<T, G extends { [key: string]: Glyph }> = {
+  // TODO: idk why wrapping this type in Id works so well, but it seems to help TypeScript out
+  glyphs?: Id<G & { [key in keyof T]?: never }>
+  dataGlyphs: { [key in keyof OmitRef<T>]: GlyphE2<RelationInstanceE2<T[key]>> },
+  relations?: { fields: [keyof G | keyof T | "canvas", keyof G | keyof T | "canvas"], constraints: Gestalt[] }[]
+}
+
+/* TODO: typing is lost for relation fields!!! */
+type SimpleTypeComplexGlyph<T> = {
+  // TODO: idk why wrapping this type in Id works so well, but it seems to help TypeScript out
+  glyphs?: Id<{ [key: string]: Glyph } & { [key in keyof T]?: never }>
+  dataGlyphs: { [key in keyof OmitRef<T>]: GlyphE2<RelationInstanceE2<T[key]>> },
+  relations?: { fields: [string | keyof T | "canvas", string | keyof T | "canvas"], constraints: Gestalt[] }[]
+};
+
+// https://unsafe-perform.io/posts/2020-02-21-existential-quantification-in-typescript
+type ComplexGlyph_<T, K extends string> = {
+  // TODO: idk why wrapping this type in Id works so well, but it seems to help TypeScript out
+  glyphs?: Id<{ [key in K]: Glyph } & { [key in keyof T]?: never }>,
+  dataGlyphs: { [key in keyof OmitRef<T>]: GlyphE2<RelationInstanceE2<T[key]>> },
+  relations?: { fields: [K | keyof T | "canvas", K | keyof T | "canvas"], constraints: Gestalt[] }[]
+}
+
+type ComplexGlyph<T> = <R>(cont: <K extends string>(_: ComplexGlyph_<T, K>) => R) => R;
+
+const mkComplexGlyph = <T, K extends string>(complexGlyph_: ComplexGlyph_<T, K>): ComplexGlyph<T> => (cont) => cont(complexGlyph_);
+
+type myDataE2 = { color1: string, color2: string, color3: string };
+const dataE2: myDataE2 = { color1: "firebrick", color2: "steelblue", color3: "black", /* "text": "hello world!" */ };
+
+export const exampleRelationInterface2: GlyphE2<myDataE2> = ({
   glyphs: {
+    "text": text({ text: "hello world!", fontSize: "calc(10px + 2vmin)" }),
+  },
+  dataGlyphs: {
     "color1": (color1) => rect({ width: 500 / 3, height: 200 / 3, fill: color1 }),
     "color2": (color2) => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: color2 }),
     "color3": (color3) => ellipse({ rx: 50, ry: 50, fill: color3 }),
-    "text": (textData) => text({ text: textData, fontSize: "calc(10px + 2vmin)" }),
+    // "text": (textData) => text({ text: textData, fontSize: "calc(10px + 2vmin)" }),
   },
-  gestalt: [
+  relations: [
     // e.g. "color1" refers to the bbox of the "color1" glyph defined above
-    { left: "color1", right: "color2", rels: [vSpace(50.)] },
-    { left: "color1", right: "color3", rels: [hSpace(50.), alignCenterY] },
-    { left: "color3", right: "text", rels: [vSpace(50.), alignCenterX] },
-    { left: "canvas", right: "color1", rels: [alignLeft] },
+    { fields: ["color1", "color2"], constraints: [vSpace(50.)] },
+    { fields: ["color1", "color3"], constraints: [hSpace(50.), alignCenterY] },
+    { fields: ["color3", "text"], constraints: [vSpace(50.), alignCenterX] },
+    { fields: ["canvas", "color1"], constraints: [alignLeft] },
   ]
 })
+
+// TODO: pass the data in
+// TODO: for each field, convert its collection of instances into a glyph (or if it's a singleton,
+// keep it top-level)
+export const exampleRelationInterface2Lowered = (data: myData): Glyph => ({
+  children: {
+    "color1": rect({ width: 500 / 3, height: 200 / 3, fill: data.color1 }),
+    "color2": ellipse({ rx: 300 / 6, ry: 200 / 6, fill: data.color2 }),
+    "color3": ellipse({ rx: 50, ry: 50, fill: data.color3 }),
+    "text": text({ text: data.text, fontSize: "calc(10px + 2vmin)" }),
+  },
+  relations: [
+    // e.g. "color1" refers to the bbox of the "color1" glyph defined above
+    { left: "color1", right: "color2", gestalt: [vSpace(50.)] },
+    { left: "color1", right: "color3", gestalt: [hSpace(50.), alignCenterY] },
+    { left: "color3", right: "text", gestalt: [vSpace(50.), alignCenterX] },
+    { left: "canvas", right: "color1", gestalt: [alignLeft] },
+  ]
+})
+
+// loses a bit of type safety b/c we _should_ be able to tell whether the return type is U or U[]
+// based on the input, but this type doesn't tell us
+// luckily this is only used internally. right???
+const mapRelation = <T, U>(r: T, f: (d: RelationInstanceE2<T>) => U): U | RelationE2<U> => {
+  if (r instanceof Array) {
+    return r.map(f)
+  } else {
+    // TODO: this cast seems sus, but it might not be b/c we check for array in the first branch
+    return f(r as RelationInstanceE2<T>)
+  }
+}
+
+export const lowerGlyphE2 = <T, K extends string>(g: GlyphE2<T>): ((data: T) => Glyph) => {
+  if (typeof g === "function") {
+    // mark case
+    return g;
+  } else {
+    return (data: T): Glyph => ({
+      children: {
+        ...g.glyphs,
+        ...objectMap(g.dataGlyphs, (k, v) => {
+          // apply the appropriate data function (mark or glyph)
+          // then if the input is an array, group its elements
+          // TODO: is there a simpler way to do this?
+          if (typeof v === "function") {
+            // mark case. just apply the mark function to the data
+            const relationMarks = mapRelation(data[k], v);
+            if (relationMarks instanceof Array) {
+              return {
+                children: relationMarks.reduce((o, m, i) => ({
+                  ...o, [i]: m
+                }), {})
+              }
+            } else {
+              return relationMarks;
+            }
+          } else {
+            // glyphe2 case. lower the glyphe2 to a glyph function, then apply it to the data
+            const relationGlyphs = mapRelation(data[k], lowerGlyphE2(v));
+            if (relationGlyphs instanceof Array) {
+              return {
+                children: relationGlyphs.reduce((o, g, i) => ({
+                  ...o, [i]: g
+                }), {})
+              }
+            } else {
+              return relationGlyphs;
+            }
+          }
+        }),
+      },
+      /* {
+        // map over g's dataGlyphs fields and apply the corresponding functions to data[field] (unwrapping
+        // array as necessary)
+        // if it's an array, make a new glyph with "0", "1", "2", ... as fields
+      }, */
+      relations: g.relations?.map((r) => ({
+        left: r.fields[0].toString(),
+        right: r.fields[1].toString(),
+        gestalt: r.constraints,
+      }))
+    })
+  }
+}
+
+export const loweredGlyphTest = lowerGlyphE2(exampleRelationInterface2)(dataE2);
 
 // let ref: any = {};
 
@@ -248,16 +370,15 @@ type myList<T> = {
 }
 
 export const MyListGlyphE2: GlyphE2<myList<number>> = ({
-  glyphs: {
+  dataGlyphs: {
     "elements": (element) => rect({ width: element, height: 200 / 3, fill: "black" }),
     "neighbors": ({
       /* TODO: not sure if/how refs should be rendered */
       /* for now we will say it shouldn't be rendered */
-      glyphs: {},
-      gestalt: [{
-        left: "curr",
-        right: "next",
-        rels: [vSpace(10.)]
+      dataGlyphs: {},
+      relations: [{
+        fields: ["curr", "next"],
+        constraints: [vSpace(10.)]
       }]
     }),
   }

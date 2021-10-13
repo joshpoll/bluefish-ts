@@ -20,7 +20,7 @@ export const example: Glyph = {
   },
   relations: [
     // e.g. "topRect" refers to the bbox of the "topRect" glyph defined above
-    { left: "topRect", right: "bottomEllipse", gestalt: [vSpace(50.)] },
+    { left: "topRect", right: "bottomEllipse", gestalt: [vSpace(50.), alignCenterX] },
     { left: "topRect", right: "rightEllipse", gestalt: [hSpace(50.), alignCenterY] },
     { left: "rightEllipse", right: "some text", gestalt: [vSpace(50.), alignCenterX] },
     { left: "canvas", right: "topRect", gestalt: [alignLeft] },
