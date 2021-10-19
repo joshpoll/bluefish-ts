@@ -210,24 +210,59 @@ const myListExample: myList<number> = {
 
 
 /* BEGIN STARTER CODE */
-type myDataE2 = { obj1: RelationE2<string>, obj2: string, obj3: string };
-const dataE2: myDataE2 = { obj1: ["firebrick"], obj2: "steelblue", obj3: "black", };
+type Stream = {
+  // obj1: RelationE2<string>, obj2: string, obj3: string, text: string
+  streamElements: RelationE2<Element>,
+};
+type Element = {
+  item: {
+    label: string,
+    index: number,
+  }
+};
+const dataE2: Stream = {
+  // obj1: ["firebrick"], obj2: "steelblue", obj3: "black", text: "hello world!" 
+  streamElements: [
+    { item: { label: '1', index: 0 } },
+    { item: { label: '2', index: 1 } },
+    { item: { label: '3', index: 2 } },
+  ],
+};
 
-export const exampleRelationInterface2: GlyphE2<myDataE2> = ({
+const elementNode: GlyphE2<Element> = ({
   glyphs: {
-    "text": text({ contents: "hello world!", fontSize: "calc(10px + 2vmin)" }),
+    "circle": ellipse({ rx: 20, ry: 20, fill: "coral" }),
   },
   dataGlyphs: {
-    "obj1": (obj1) => rect({ width: 500 / 3, height: 200 / 3, fill: obj1 }),
-    "obj2": (obj2) => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: obj2 }),
-    "obj3": (obj3) => ellipse({ rx: 50, ry: 50, fill: obj3 }),
+    'item': (item) => text({ contents: item.label, fontSize: "12pt", x: item.index * 50 }),
   },
   relations: [
+    { fields: ['circle', 'item'], constraints: [alignCenterX, alignCenterY] },
+  ],
+});
+
+export const exampleRelationInterface2: GlyphE2<Stream> = ({
+  glyphs: {
+    "axis": rect({ width: 500, height: 2, fill: "black" }),
+    // "text1": rect({ width: 500 / 3, height: 200 / 3, fill: "yellow" }),
+  },
+  dataGlyphs: {
+    "streamElements": elementNode,
+    // "circle": ellipse({ rx: 20, ry: 20, fill: "coral" }),
+    // "label": text({ text: "1", fontSize: "12pt" }),
+    // "obj1": (obj1) => rect({ width: 500 / 3, height: 200 / 3, fill: obj1 }),
+    // "obj2": (obj2) => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: obj2 }),
+    // "obj3": (obj3) => ellipse({ rx: 50, ry: 50, fill: obj3 }),
+    // "text": (txt) => text({ text: txt, fontSize: "calc(10px + 2vmin)" }),
+  },
+  relations: [
+    { fields: ['streamElements', 'axis'], constraints: [alignCenterY] },
     // e.g. "color1" refers to the bbox of the "color1" glyph defined above
-    { fields: ["obj1", "obj2"], constraints: [vSpace(50.)] },
-    { fields: ["obj1", "obj3"], constraints: [hSpace(50.), alignCenterY] },
-    { fields: ["obj3", "text"], constraints: [vSpace(50.), alignCenterX] },
-    { fields: ["canvas", "obj1"], constraints: [alignLeft] },
+    // { fields: ["obj1", "obj2"], constraints: [vSpace(50.)] },
+    // { fields: ["obj1", "obj3"], constraints: [hSpace(50.), alignCenterY] },
+    // { fields: ["obj3", "text"], constraints: [vSpace(50.), alignCenterX] },
+    // { fields: ["canvas", "obj1"], constraints: [alignLeft] },
+    // { fields: ["obj3", "text"], constraints: [] },
   ]
 })
 

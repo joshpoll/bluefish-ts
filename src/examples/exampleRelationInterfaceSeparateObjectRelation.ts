@@ -59,7 +59,7 @@ export const exampleRelationInterface2: Glyph<myData> = ({
     "color1": (color1) => rect({ width: 500 / 3, height: 200 / 3, fill: color1 }),
     "color2": (color2) => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: color2 }),
     "color3": (color3) => ellipse({ rx: 50, ry: 50, fill: color3 }),
-    "text": (textData) => text({ text: textData, fontSize: "calc(10px + 2vmin)" }),
+    "text": (textData) => text({ contents: textData, fontSize: "calc(10px + 2vmin)" }),
   },
   gestalt: [
     // e.g. "color1" refers to the bbox of the "color1" glyph defined above
@@ -117,7 +117,7 @@ type Label<Ctxt> = { object: Ref<Ctxt>, text: string };
 
 export const label: Glyph<Label<unknown>> = ({
   glyphs: {
-    "text": (textData) => text({ text: textData, fontSize: "calc(10px + 2vmin)" }),
+    "text": (textData) => text({ contents: textData, fontSize: "calc(10px + 2vmin)" }),
   },
   gestalt: [{
     left: "object",

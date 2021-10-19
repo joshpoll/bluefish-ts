@@ -18,7 +18,7 @@ const example: Glyph = {
     "topRect": rect({ width: 500 / 3, height: 200 / 3, fill: data.color1 }),
     "bottomEllipse": ellipse({ rx: 300 / 6, ry: 200 / 6, fill: data.color2 }),
     "rightEllipse": ellipse({ rx: 50, ry: 50, fill: data.color3 }),
-    "some text": text({ text: "hello world!", fontSize: "calc(10px + 2vmin)" }),
+    "some text": text({ contents: "hello world!", fontSize: "calc(10px + 2vmin)" }),
   },
   relations: [
     // e.g. "topRect" refers to the bbox of the "topRect" glyph defined above
@@ -136,7 +136,7 @@ export const exampleRelationInterface: Glyph = glyphArrayToGlyph(glyphRelationET
         "color1": rect({ width: 500 / 3, height: 200 / 3, fill: ri.color1 }),
         "color2": ellipse({ rx: 300 / 6, ry: 200 / 6, fill: ri.color2 }),
         "color3": ellipse({ rx: 50, ry: 50, fill: ri.color3 }),
-        "text": text({ text: ri.text, fontSize: "calc(10px + 2vmin)" }),
+        "text": text({ contents: ri.text, fontSize: "calc(10px + 2vmin)" }),
       },
       gestalt: [
         // e.g. "color1" refers to the bbox of the "color1" glyph defined above
@@ -201,6 +201,16 @@ type SimpleTypeComplexGlyph<T> = {
   relations?: { fields: [string | keyof T | "canvas", string | keyof T | "canvas"], constraints: Gestalt[] }[]
 };
 
+// Can't do this because type is recursive!!
+type ComplexGlyphTypeConstraints<T, G extends Id<{ [key: string]: Glyph } & { [key in keyof T]?: never }>> = {
+  // TODO: idk why wrapping this type in Id works so well, but it seems to help TypeScript out
+  glyphs?: G,
+  dataGlyphs: { [key in keyof OmitRef<T>]: GlyphE2<RelationInstanceE2<T[key]>> },
+  relations?: { fields: [string | keyof T | "canvas", string | keyof T | "canvas"], constraints: Gestalt[] }[]
+};
+
+// const asComplexGlyph = <T, G extends Id<{ [key: string]: Glyph } & { [key in keyof T]?: never }>>(cg: ComplexGlyphTypeConstraints<T, G>) => cg;
+
 // https://unsafe-perform.io/posts/2020-02-21-existential-quantification-in-typescript
 type ComplexGlyph_<T, K extends string> = {
   // TODO: idk why wrapping this type in Id works so well, but it seems to help TypeScript out
@@ -218,7 +228,7 @@ const dataE2: myDataE2 = { color1: "firebrick", color2: "steelblue", color3: "bl
 
 export const exampleRelationInterface2: GlyphE2<myDataE2> = ({
   glyphs: {
-    "text": text({ text: "hello world!", fontSize: "calc(10px + 2vmin)" }),
+    "text": text({ contents: "hello world!", fontSize: "24px" }),
   },
   dataGlyphs: {
     "color1": (color1) => rect({ width: 500 / 3, height: 200 / 3, fill: color1 }),
@@ -243,7 +253,7 @@ export const exampleRelationInterface2Lowered = (data: myData): Glyph => ({
     "color1": rect({ width: 500 / 3, height: 200 / 3, fill: data.color1 }),
     "color2": ellipse({ rx: 300 / 6, ry: 200 / 6, fill: data.color2 }),
     "color3": ellipse({ rx: 50, ry: 50, fill: data.color3 }),
-    "text": text({ text: data.text, fontSize: "calc(10px + 2vmin)" }),
+    "text": text({ contents: data.text, fontSize: "calc(10px + 2vmin)" }),
   },
   relations: [
     // e.g. "color1" refers to the bbox of the "color1" glyph defined above
@@ -392,6 +402,15 @@ const myListExample: myList<number> = {
     { curr: ref("elements", "[2]"), next: ref("elements", "[3]") },
   ],
 }
+
+// const myListExample2 = {
+//   elements: [ref("foo", "[0]"), ref("foo", "[1]"), ref("foo", "[2]"),],
+//   neighbors: [
+//     { curr: elements[0], next: ref("elements", "[1]") },
+//     { curr: ref("elements", "[1]"), next: ref("elements", "[2]") },
+//     { curr: ref("elements", "[2]"), next: ref("elements", "[3]") },
+//   ],
+// }
 
 // declare function render<T>(data: T, glyph: GlyphE2<T>): JSX.Element
 

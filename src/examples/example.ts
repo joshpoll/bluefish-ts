@@ -16,7 +16,7 @@ export const example: Glyph = {
     "topRect": rect({ width: 500 / 3, height: 200 / 3, fill: data.color1 }),
     "bottomEllipse": ellipse({ rx: 300 / 6, ry: 200 / 6, fill: data.color2 }),
     "rightEllipse": ellipse({ rx: 50, ry: 50, fill: data.color3 }),
-    "some text": text({ text: "hello world!", fontSize: "calc(10px + 2vmin)" }),
+    "some text": text({ contents: "hello world!", fontSize: "calc(10px + 2vmin)" }),
   },
   relations: [
     // e.g. "topRect" refers to the bbox of the "topRect" glyph defined above
@@ -59,7 +59,7 @@ export const example2: MyEncoding2<ExampleData2> = ({
     "color1": (data) => rect({ width: 500 / 3, height: 200 / 3, fill: data }),
     "color2": (data) => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: data }),
     "color3": (data) => ellipse({ rx: 50, ry: 50, fill: data }),
-    "textData": (data) => text({ text: data.text, fontSize: data.fontSize }),
+    "textData": (data) => text({ contents: data.text, fontSize: data.fontSize }),
   },
   relations: [
     { left: "color1", right: "color2", gestalt: [vSpace(50.)] },

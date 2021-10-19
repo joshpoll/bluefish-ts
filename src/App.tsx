@@ -9,14 +9,26 @@ import { dataGlyph as reduced } from './examples/reducebug';
 import { textspans } from './examples/textspans';
 import { pathTest } from './examples/pathTest';
 import { htmlTest } from './examples/htmlTest';
-import { exampleRelationInterface } from './examples/exampleRelationInterface';
-import { loweredGlyphTest } from './examples/starterCode';
+// import { exampleRelationInterface } from './examples/exampleRelationInterface';
+import { GlyphFnLowerTest } from './examples/glyphExistentialAPI';
+// import { loweredGlyphTest, loweredGlyphMarbles } from './examples/exampleRelationInterfaceExistential';
 
 function App() {
-  console.log("loweredGlyphTest", loweredGlyphTest);
+  // console.log("loweredGlyphTest", loweredGlyphTest);
   return (
     <div className="App">
       <header className="App-header">
+        <br />
+        <br />
+        <br />
+        {render(compile(GlyphFnLowerTest.testLoweredGlyphExample))}
+        <br />
+        <br />
+        <br />
+        {render(compile(GlyphFnLowerTest.testLoweredGlyphMarbles))}
+        <br />
+        <br />
+        <br />
         {/* <br />
         <br />
         <br />
@@ -24,8 +36,8 @@ function App() {
         <br />
         <br />
         <br /> */}
-        {/* {render(compile(textspans))} */}
-        {render(compile(loweredGlyphTest))}
+        {render(compile(textspans))}
+        {/* {render(compile(loweredGlyphMarbles))} */}
         {/* <br />
         <br />
         <br />
@@ -74,6 +86,18 @@ function App() {
         <br />
         <br />
         <br /> */}
+        {render(compile(courses))}
+        <br />
+        <br />
+        <br />
+        {render(compile(dataGlyph))}
+        <br />
+        <br />
+        <br />
+        {render(compile(groupedbarchart))}
+        <br />
+        <br />
+        <br />
       </header>
     </div>
   );

@@ -255,10 +255,10 @@ const newSpanRanges = computeSpanRanges(newSpanBoundaries, newCharData.length);
 console.log("charData", charData);
 console.log("newSpanRanges", newSpanRanges, newSpanRanges[newSpanRanges.length - 1][newSpanRanges[newSpanRanges.length - 1].length - 1]);
 
-const charNumber = (i: number, strong: boolean): Glyph => (text({ text: i.toString(), fontSize: "12px", fill: "rgb(127,223,255)", fontWeight: (strong ? "bold" : "") }))
+const charNumber = (i: number, strong: boolean): Glyph => (text({ contents: i.toString(), fontSize: "12px", fill: "rgb(127,223,255)", fontWeight: (strong ? "bold" : "") }))
 
 // TODO: hack using _ instead of <space> so height is correct. not sure what a better solution is
-const styledChar = ({ char, marks }: TextData): Glyph => text({ text: char === " " ? "_" : char, fontSize: "24px", fontWeight: (marks.strong ? "bold" : ""), fontStyle: (marks.em ? "italic" : ""), fill: char === " " ? "none" : "black" })
+const styledChar = ({ char, marks }: TextData): Glyph => text({ contents: char === " " ? "_" : char, fontSize: "24px", fontWeight: (marks.strong ? "bold" : ""), fontStyle: (marks.em ? "italic" : ""), fill: char === " " ? "none" : "black" })
 
 const marksToList = (marks: Marks): string[] => {
   const strong = marks.strong ? ["strong"] : [];
@@ -273,11 +273,11 @@ const spanDescriptionList = (marks: Marks): GlyphArray<string> => ({
   childGlyphs: (d) => {
     switch (d) {
       case "strong":
-        return text({ text: "B", fontSize: "16px", fontWeight: "bold", fill: "black" });
+        return text({ contents: "B", fontSize: "16px", fontWeight: "bold", fill: "black" });
       case "em":
-        return text({ text: "I", fontSize: "16px", fontStyle: "italic", fontFamily: "serif", fill: "black" });
+        return text({ contents: "I", fontSize: "16px", fontStyle: "italic", fontFamily: "serif", fill: "black" });
       case "comment":
-        return text({ text: "C", fontSize: "16px", fontWeight: "bold", fill: "rgb(248,208,56)" });
+        return text({ contents: "C", fontSize: "16px", fontWeight: "bold", fill: "rgb(248,208,56)" });
       default:
         throw "unreachable"
     }
@@ -290,9 +290,9 @@ const spanDescription = (marks: Marks): Glyph => {
     return {
       // renderFn: debug,
       children: {
-        "{": text({ text: "{", fontSize: "16px", fill: "gray" }),
+        "{": text({ contents: "{", fontSize: "16px", fill: "gray" }),
         "spanDescriptionList": glyphArrayToGlyph(spanDescriptionList(marks)),
-        "}": text({ text: "}", fontSize: "16px", fill: "gray" }),
+        "}": text({ contents: "}", fontSize: "16px", fill: "gray" }),
       },
       relations: [
         {

@@ -45,7 +45,7 @@ export const ellipse = ({ cx, cy, rx, ry, fill }: EllipseParams): Mark => (
 type TextParams = {
   x?: number,
   y?: number,
-  text: string,
+  contents: string,
   fontFamily?: string,
   fontSize?: string,
   fontStyle?: string,
@@ -58,10 +58,10 @@ type TextParams = {
 // a guide
 // TODO: very close to good alignment, but not quite there. Can I use more of the canvas
 // measurements somehow?
-export const text = ({ x, y, text, fontFamily, fontSize, fontStyle, fontWeight, fill }: TextParams): Mark => {
-  const canvasMeasurements = measureText(text, `${fontWeight} ${fontStyle} ${fontSize} ${fontFamily}`);
+export const text = ({ x, y, contents, fontFamily, fontSize, fontStyle, fontWeight, fill }: TextParams): Mark => {
+  const canvasMeasurements = measureText(contents, `${fontWeight} ${fontStyle} ${fontSize} ${fontFamily}`);
   const measurements = measure("$measuring", <text fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fontWeight={fontWeight} fill={fill}>
-    {text}
+    {contents}
   </text>)
   console.log("measurements", measurements);
   return {
@@ -70,7 +70,7 @@ export const text = ({ x, y, text, fontFamily, fontSize, fontStyle, fontWeight, 
     // and the rendering function itself
     renderFn: (canvas: BBoxValues, index?: number) => {
       return <text key={index} x={canvas.left} y={canvas.bottom - canvasMeasurements.fontDescent} fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fontWeight={fontWeight} fill={fill}>
-        {text}
+        {contents}
       </text>
     }
   }

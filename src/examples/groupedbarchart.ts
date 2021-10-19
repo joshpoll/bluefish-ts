@@ -96,6 +96,27 @@ export const setSugared = (gestalt: Gestalt[]): any => ({
     }],
 })
 
+/* 
+
+input: 
+{
+  nodes,
+  links,
+}
+
+output:
+{
+  list(list(nodes)),
+  edges
+}
+
+encoding
+{
+
+}
+
+*/
+
 /* TODO:
    - replace rect with line?
    - add tick marks
@@ -150,13 +171,13 @@ export const dataGlyph: Glyph = {
 export const chart: Glyph = {
   children: {
     "chart": dataGlyph,
-    "title": text({ text: "This is a grouped bar chart", fontSize: "calc(10px + 2vmin)" }),
+    "title": text({ contents: "This is a grouped bar chart", fontSize: "calc(10px + 2vmin)" }),
   },
   relations: [
     {
       left: "title",
       right: "chart",
-      gestalt: [vSpace(15.), alignLeft]
+      gestalt: [vSpace(15.), alignRight]
     }
   ]
 }

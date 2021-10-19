@@ -31,9 +31,9 @@ const datadata: Courses = [{
 
 export const course = (data: Course): Glyph => ({
   children: {
-    "instructors": text({ text: data.instructors, fontSize: "16x", fontStyle: "italic" }),
-    "name": text({ text: data.name, fontSize: "18x", fontWeight: "bold" }),
-    "num": text({ text: data.num, fontSize: "18x" }),
+    "instructors": text({ contents: data.instructors, fontSize: "16x", fontStyle: "italic" }),
+    "name": text({ contents: data.name, fontSize: "18x", fontWeight: "bold" }),
+    "num": text({ contents: data.num, fontSize: "18x" }),
   },
   relations: [
     {
