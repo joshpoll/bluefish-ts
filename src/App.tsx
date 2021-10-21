@@ -1,5 +1,6 @@
 import './App.css';
 import compile from './compile';
+import compileWithRef from './compileWithRef';
 import { course, courses, data } from './examples/courses';
 import { example } from './examples/example';
 import render from './render';
@@ -10,7 +11,7 @@ import { textspans } from './examples/textspans';
 import { pathTest } from './examples/pathTest';
 import { htmlTest } from './examples/htmlTest';
 // import { exampleRelationInterface } from './examples/exampleRelationInterface';
-import { GlyphFnLowerTest } from './examples/glyphExistentialAPI';
+import { GlyphFnCompileTest, loweredListGlyphTest } from './examples/glyphExistentialAPI';
 // import { loweredGlyphTest, loweredGlyphMarbles } from './examples/exampleRelationInterfaceExistential';
 
 function App() {
@@ -21,11 +22,19 @@ function App() {
         <br />
         <br />
         <br />
-        {render(compile(GlyphFnLowerTest.testLoweredGlyphExample))}
+        {render(compileWithRef(GlyphFnCompileTest.testMarblesList))}
         <br />
         <br />
         <br />
-        {render(compile(GlyphFnLowerTest.testLoweredGlyphMarbles))}
+        {render(compileWithRef(GlyphFnCompileTest.testCompiledGlyphFnExample))}
+        <br />
+        <br />
+        <br />
+        {render(compileWithRef(GlyphFnCompileTest.testCompiledGlyphFnMarbles))}
+        {/* <br />
+        <br />
+        <br />
+        {render(compile(loweredListGlyphTest))} */}
         <br />
         <br />
         <br />

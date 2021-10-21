@@ -7,3 +7,8 @@ export function objectMap<O, T>(o: O, f: (key: keyof O, val: O[keyof O]) => T): 
     ...o, [key]: f(key as keyof O, val)
   }), {} as { [key in keyof O]: T });
 }
+
+// TODO: this type is really weak
+export function objectFilter<O>(o: O, f: (key: string, val: O[keyof O]) => boolean): object {
+  return Object.entries(o).reduce((o: object, [key, val]) => f(key, val) ? ({ ...o, [key]: val }) : o, {});
+}

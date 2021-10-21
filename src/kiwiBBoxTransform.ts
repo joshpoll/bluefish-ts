@@ -1,4 +1,5 @@
 import { Constraint, Expression, Operator, Solver, Variable } from 'kiwi.js';
+import { BBoxTreeVVE } from './compileWithRef';
 
 export type BBoxTreeVV = BBoxTree<{ bboxVars: bboxVars, bboxValues?: MaybeBBoxValues }, Variable>;
 
@@ -32,7 +33,7 @@ export type bboxVarExprs = {
   centerY: Variable | Expression,
 }
 
-export const transformBBox = (bbox: bboxVarExprs, transform: Transform<Variable>): bboxVarExprs => ({
+export const transformBBox = (bbox: bboxVarExprs, transform: Transform<Variable | Expression>): bboxVarExprs => ({
   left: bbox.left.plus(transform.translate.x),
   right: bbox.right.plus(transform.translate.x),
   top: bbox.top.plus(transform.translate.y),
@@ -122,7 +123,7 @@ export type BBoxTree<T, U> = {
   children: { [key: string]: BBoxTree<T, U> },
 }
 
-export const getBBoxValues = (bboxVars: BBoxTreeVV): BBoxTreeValue => {
+export const getBBoxValues = (bboxVars: BBoxTreeVV | BBoxTreeVVE): BBoxTreeValue => {
   console.log("canvas x y", bboxVars.canvas.bboxVars.left.value(), bboxVars.canvas.bboxVars.top.value(), "\ntranslate x y", bboxVars.transform.translate.x.value(), bboxVars.transform.translate.y.value(), "\nbbox x y", bboxVars.bbox.bboxVars.left.value(), bboxVars.bbox.bboxVars.top.value());
   return {
     bbox: {
