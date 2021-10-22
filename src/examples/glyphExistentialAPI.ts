@@ -25,8 +25,8 @@ type AllowedFieldsWithType<Obj, Type> = {
 // https://stackoverflow.com/a/50900933
 type ExtractFieldsOfType<Obj, Type> = AllowedFieldsWithType<Obj, Type>[keyof Obj]
 
-type OmitRef<T> = Omit<T, ExtractFieldsOfType<T, Ref<any, any>>>
-type ExtractRefKeys<T> = keyof T[ExtractFieldsOfType<T, Ref<any, any>>]
+type OmitRef<T> = Omit<T, ExtractFieldsOfType<T, MyRef>>
+type ExtractRefKeys<T> = keyof T[ExtractFieldsOfType<T, MyRef>]
 
 /// relation semantics stuff ///
 type Relation<T> = T[]
@@ -505,7 +505,8 @@ const makePathsAbsolute = (data: BluefishData, pathFromRoot: Key[] = []): Bluefi
     const ref = data as unknown as Ref<any, any>;
     console.log("making this ref absolute", ref, pathFromRoot);
     const pathList = parsePath(ref.path);
-    const absolutePath = resolvePath(pathList, pathFromRoot);
+    // automatically bump one level up when resolving paths
+    const absolutePath = resolvePath(pathList, pathFromRoot.slice(1));
     console.log("absolute path", absolutePath);
     return { $ref: true, path: absolutePath };
   } else {
@@ -601,9 +602,9 @@ export namespace GlyphFnCompileTest {
   const marblesList: MarblesList = {
     elements: [1, 2, 3, 4],
     neighbors: [
-      { curr: mkMyRef("../../../elements/0"), next: mkMyRef("../../../elements/1") },
-      { curr: mkMyRef("../../../elements/1"), next: mkMyRef("../../../elements/2") },
-      { curr: mkMyRef("../../../elements/2"), next: mkMyRef("../../../elements/3") },
+      { curr: mkMyRef("../../elements/0"), next: mkMyRef("../../elements/1") },
+      { curr: mkMyRef("../../elements/1"), next: mkMyRef("../../elements/2") },
+      { curr: mkMyRef("../../elements/2"), next: mkMyRef("../../elements/3") },
     ]
   };
 
@@ -614,11 +615,74 @@ export namespace GlyphFnCompileTest {
     fieldGlyphs: {
       elements: element,
       neighbors: GF.mk({
-        relations: [{ fields: ["curr", "next"], constraints: [alignCenterY] }]
+        relations: [{ fields: ["curr", "next"], constraints: [hSpace(5), alignCenterY] }]
       })
     },
   })
 
   export const testMarblesList = compileGlyphFn(marblesListGlyphFn)(marblesList);
 
+  type MarblesListReduced = {
+    marble1: number,
+    marble2: number,
+    marble1Ref: MyRef,
+  };
+
+  const marblesListReduced: MarblesListReduced = {
+    marble1: 1,
+    marble2: 2,
+    marble1Ref: mkMyRef("marble1"),
+  };
+
+  export const marblesListReducedGlyphFn: GlyphFn<MarblesListReduced> = GlyphFn.mk({
+    fieldGlyphs: {
+      marble1: Glyph.mk(ellipse({ rx: 300 / 6, ry: 200 / 6, fill: "coral" })),
+      marble2: Glyph.mk(ellipse({ rx: 300 / 6, ry: 200 / 6, fill: "coral" })),
+    },
+    relations: [{
+      fields: ["marble1Ref", "marble2"],
+      constraints: [hSpace(5), alignCenterY]
+    }]
+  })
+
+  export const testMarblesListReduced = compileGlyphFn(marblesListReducedGlyphFn)(marblesListReduced);
+
+  type MarblesListMoreComplex = {
+    marbles: Relation<number>,
+    // marble1: number,
+    // marble2: number,
+    neighbor: Relation<{
+      curr: MyRef,
+      next: MyRef,
+    }>,
+  };
+
+  const marblesListMoreComplex: MarblesListMoreComplex = {
+    marbles: [1, 2, 3],
+    neighbor: [
+      {
+        curr: mkMyRef("../../marbles/0"),
+        next: mkMyRef("../../marbles/1"),
+      },
+      {
+        curr: mkMyRef("../../marbles/1"),
+        next: mkMyRef("../../marbles/2"),
+      }
+    ]
+  };
+
+  export const marblesListMoreComplexGlyphFn: GlyphFn<MarblesListMoreComplex> = GlyphFn.mk({
+    fieldGlyphs: {
+      // marbles: Glyph.mk(ellipse({ rx: 300 / 6, ry: 200 / 6, fill: "coral" })),
+      marbles: element,
+      neighbor: Glyph.mk({
+        relations: [{
+          fields: ["curr", "next"],
+          constraints: [hSpace(5), alignCenterY]
+        }]
+      })
+    },
+  })
+
+  export const testMarblesListMoreComplex = compileGlyphFn(marblesListMoreComplexGlyphFn)(marblesListMoreComplex);
 }

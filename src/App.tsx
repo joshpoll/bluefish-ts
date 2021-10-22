@@ -22,6 +22,11 @@ function App() {
         <br />
         <br />
         <br />
+        {render(compileWithRef(GlyphFnCompileTest.testMarblesListMoreComplex))}
+        <br />
+        <br />
+        <br />
+        {render(compileWithRef(GlyphFnCompileTest.testMarblesListReduced))}
         {render(compileWithRef(GlyphFnCompileTest.testMarblesList))}
         <br />
         <br />
@@ -35,9 +40,9 @@ function App() {
         <br />
         <br />
         {render(compile(loweredListGlyphTest))} */}
+        {/* <br />
         <br />
-        <br />
-        <br />
+        <br /> */}
         {/* <br />
         <br />
         <br />

@@ -128,7 +128,7 @@ const resolvePath = (bboxTree: BBoxTreeVV, path: string): bboxVarExprs => {
 // TODO: this seems very wrong!
 const resolvePathAux = (bboxTree: BBoxTreeVV, path: string[]): bboxVarExprs => {
   const [head, ...tail] = path;
-  console.log("path", "head", head, "tail", tail);
+  // console.log("path", "head", head, "tail", tail);
   if (tail.length === 0) {
     if (head === "canvas") {
       return bboxTree.canvas.bboxVars;

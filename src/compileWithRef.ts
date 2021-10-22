@@ -78,10 +78,6 @@ const addChildrenConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[]
   const keys = Object.keys(bboxTree.children);
   keys.forEach((key) => addChildrenConstraints(bboxTree.children[key], constraints));
 
-  // connect bbox and canvas width and height
-  constraints.push(new Constraint(bboxTree.bbox.bboxVars.width, Operator.Eq, bboxTree.canvas.bboxVars.width));
-  constraints.push(new Constraint(bboxTree.bbox.bboxVars.height, Operator.Eq, bboxTree.canvas.bboxVars.height));
-
   // lightly suggest the origin of the canvas
   constraints.push(new Constraint(bboxTree.canvas.bboxVars.left, Operator.Eq, 0, Strength.weak));
   constraints.push(new Constraint(bboxTree.canvas.bboxVars.top, Operator.Eq, 0, Strength.weak));
@@ -101,6 +97,8 @@ const addChildrenConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[]
       constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.top, Operator.Eq, bboxTree.canvas.bboxVars.top, Strength.strong));
       constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.bottom, Operator.Eq, bboxTree.canvas.bboxVars.bottom, Strength.strong));
     }
+
+    // console.log("constraining", bboxKey, bboxTree.children[bboxKey].bbox.bboxVars);
 
     // add containment constraints always
     constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.left, Operator.Ge, bboxTree.canvas.bboxVars.left));
@@ -221,7 +219,7 @@ const resolvePaths = (path: string, pathList: string[], encoding: Glyph): GlyphW
 // TODO: this seems very wrong!
 const resolveGestaltPathAux = (bboxTree: BBoxTreeVV, path: string[]): bboxVarExprs => {
   const [head, ...tail] = path;
-  console.log("path", "head", head, "tail", tail);
+  // console.log("path", "head", head, "tail", tail);
   if (tail.length === 0) {
     if (head === "$canvas") {
       return bboxTree.canvas.bboxVars;
@@ -252,8 +250,10 @@ const addGestaltConstraints = (bboxTree: BBoxTreeVVE, encoding: GlyphWithPath, c
 
     const relations = encoding.relations === undefined ? [] : encoding.relations;
     relations.forEach(({ left, right, gestalt }: Relation) => gestalt.forEach((g: Gestalt) => {
+      // console.log("adding gestalt constraint", left, right, gestalt);
       const leftBBox = resolveGestaltPath(bboxTree, left);
       const rightBBox = resolveGestaltPath(bboxTree, right);
+      // console.log("left and right bboxes", bboxTree, leftBBox, rightBBox);
       // const leftBBox = left === "canvas" ? bboxTree.canvas.bboxVars : bboxTree.children[left].bbox.bboxVars;
       // const rightBBox = right === "canvas" ? bboxTree.canvas.bboxVars : bboxTree.children[right].bbox.bboxVars;
       constraints.push(g(leftBBox, rightBBox));
@@ -264,14 +264,19 @@ const addGestaltConstraints = (bboxTree: BBoxTreeVVE, encoding: GlyphWithPath, c
 const lookupPath = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTreeVVE => {
   const hd = path[path.length - 1];
   const tl = path.slice(0, -1);
-  console.log("current path", hd, tl, bboxTreeWithRef);
+  // console.log("current path", hd, tl, bboxTreeWithRef);
   if (tl.length === 0) {
     if ("$ref" in bboxTreeWithRef) {
       throw "error: reference to a reference is not yet implemented"
     } else {
-      return {
-        ...bboxTreeWithRef,
-        children: {}, // avoids complexities like circular dependencies
+      const child = bboxTreeWithRef.children[hd];
+      if ("$ref" in child) {
+        throw "error: unexpected ref along path"
+      } else {
+        return {
+          ...child,
+          children: {}, // avoids complexities like circular dependencies
+        }
       }
     }
   } else {
@@ -287,34 +292,14 @@ const lookupPath = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTr
         return {
           ...bboxTreeVVE,
           bbox: {
-            bboxVars: transformBBox(bboxTreeVVE.bbox.bboxVars, child.transform),
+            // we use the inverse transform here b/c we are "moving" the bbox up to the $root
+            bboxVars: transformBBox(bboxTreeVVE.bbox.bboxVars, inverseTransformVE(child.transform)),
           }
         }
       }
     }
   }
 }
-
-// const resolveRefs = (bboxTreeWithRef: BBoxTreeVVWithRef, encoding: GlyphWithPath): ResolvedGlyph => {
-//   if ("$ref" in encoding) {
-//     const path = lookupPath(bboxTreeWithRef, encoding.path);
-//     // lookup path, compute inverse transform from us to root, compute transform from root to them
-//     throw "TODO"
-//   } else {
-//     const children = encoding.children === undefined ? {} : encoding.children;
-//     const compiledChildren: { [key: string]: ResolvedGlyph } = Object.keys(children).reduce((o: { [key: string]: Glyph }, glyphKey: any) => (
-//       {
-//         ...o, [glyphKey]: resolveRefs(bboxTreeWithRef, children[glyphKey])
-//       }
-//     ), {});
-
-//     return {
-//       ...encoding,
-//       children: compiledChildren,
-//     }
-//   }
-// }
-
 const composeTransformVE = (t1: Transform<Variable | Expression>, t2: Transform<Variable | Expression>): Transform<Variable | Expression> => ({
   translate: {
     x: new Expression(t1.translate.x, t2.translate.x),
@@ -330,15 +315,30 @@ const inverseTransformVE = (t: Transform<Variable | Expression>): Transform<Vari
 })
 
 const resolveRefs = (rootBboxTreeWithRef: BBoxTreeVVEWithRef, bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[], transform: Transform<Variable | Expression>): BBoxTreeVVE => {
+  // console.log("visiting", bboxTreeWithRef, transform);
   if ("$ref" in bboxTreeWithRef) {
-    const refPath = lookupPath(rootBboxTreeWithRef, bboxTreeWithRef.path);
-    // lookup path, compute inverse transform from us to root, compute transform from root to them
-    const bboxVars = transformBBox(refPath.bbox.bboxVars, transform);
+    const bboxTree = lookupPath(rootBboxTreeWithRef, bboxTreeWithRef.path);
+    // console.log("bboxTree here", bboxTree, transform);
+    // we are using the transform here because we are "moving" the bbox from the $root down to us
+    const bboxVars = transformBBox(bboxTree.bbox.bboxVars, transform);
+
+    // we need a fresh transform since the relationship between the canvas and the bbox is different
+    // now.
+    const bboxTransform = {
+      translate: {
+        // TODO: not sure if path is the right thing to use here. At the very least might need to
+        // join it
+        x: new Variable(path + ".transform" + ".translate" + ".x"),
+        y: new Variable(path + ".transform" + ".translate" + ".y"),
+      },
+    };
+
     return {
-      ...refPath,
+      ...bboxTree,
       bbox: {
         bboxVars,
       },
+      transform: bboxTransform,
     }
   } else {
     const newTransform = composeTransformVE(transform, bboxTreeWithRef.transform);
@@ -403,12 +403,24 @@ export const addBBoxConstraintsWithRef = (bboxTree: BBoxTreeVVEWithRef, constrai
     constraints.push(new Constraint(bboxTree.canvas.bboxVars.centerX, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.left, bboxTree.canvas.bboxVars.right).divide(2)));
     constraints.push(new Constraint(bboxTree.canvas.bboxVars.centerY, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.top, bboxTree.canvas.bboxVars.bottom).divide(2)));
 
-    // bbox = transform(canvas)
-    constraints.push(new Constraint(bboxTree.bbox.bboxVars.width, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.width)));
-    constraints.push(new Constraint(bboxTree.bbox.bboxVars.height, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.height)));
-    constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerX, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerX, bboxTree.transform.translate.x)));
-    constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerY, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerY, bboxTree.transform.translate.y)));
+    // // bbox = transform(canvas)
+    // constraints.push(new Constraint(bboxTree.bbox.bboxVars.width, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.width)));
+    // constraints.push(new Constraint(bboxTree.bbox.bboxVars.height, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.height)));
+    // constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerX, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerX, bboxTree.transform.translate.x)));
+    // constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerY, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerY, bboxTree.transform.translate.y)));
   }
+}
+
+/* mutates constraints */
+export const addTransformConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[]): void => {
+  const keys = Object.keys(bboxTree.children);
+  keys.forEach((key) => addTransformConstraints(bboxTree.children[key], constraints));
+
+  // bbox = transform(canvas)
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.width, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.width)));
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.height, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.height)));
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerX, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerX, bboxTree.transform.translate.x)));
+  constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerY, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerY, bboxTree.transform.translate.y)));
 }
 
 const removeRefs = (encoding: GlyphWithPath): GlyphWithPathNoRef | null => {
@@ -435,33 +447,38 @@ export default (encoding: Glyph): CompiledAST => {
   const bboxTreeVVRef = makeBBoxTreeWithRef(encodingWithPaths);
   const bboxTreeRef = addBBoxValueConstraints(bboxTreeVVRef, constraints);
 
-  // 1. add bbox constraints
+  // :bbox tree has refs and only vars
+
+  // 1. add bbox and canvas constraints
   addBBoxConstraintsWithRef(bboxTreeRef, constraints);
   console.log("addBBoxConstraintsWithRef complete");
 
-  // :bbox tree has refs and only vars
-
   const bboxTree = resolveRefs(bboxTreeRef, bboxTreeRef, ["$root"], { translate: { x: new Expression(0), y: new Expression(0) } });
 
-  // 2. add canvas and children constraints
+  // 2. add transform constraints
+  addTransformConstraints(bboxTree, constraints);
+
+  // 3. add $root bbox origin constraints
   // arbitrarily place origin since the top-level box isn't placed by a parent
   constraints.push(new Constraint(bboxTree.bbox.bboxVars.left, Operator.Eq, 0));
   constraints.push(new Constraint(bboxTree.bbox.bboxVars.top, Operator.Eq, 0));
+
+  // 4. children constraints
   addChildrenConstraints(bboxTree, constraints);
   console.log("addChildrenConstraints complete");
 
-  // 3. add gestalt constraints
+  // 5. add gestalt constraints
   addGestaltConstraints(bboxTree, encodingWithPaths, constraints);
   console.log("addGestaltConstraints complete")
 
   console.log("bboxTree", bboxTree);
 
-  // 4. solve variables
+  // 6. solve variables
   const solver = new Solver();
   constraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
   solver.updateVariables();
 
-  // 5. extract values
+  // 7. extract values
   const bboxValues = getBBoxValues(bboxTree);
   console.log("bboxValues post compile", bboxValues);
 
