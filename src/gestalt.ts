@@ -1,4 +1,4 @@
-import { Constraint, Expression, Operator, Strength } from 'kiwi.js';
+import { Constraint, Expression, Operator, Strength, Variable } from 'kiwi.js';
 import { bboxVarExprs } from './kiwiBBoxTransform';
 
 export type Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => Constraint;
@@ -51,7 +51,7 @@ export const alignCenterY: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) =
   )
 }
 
-export const hSpace = (spacing: number): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+export const hSpace = (spacing: number | Variable = new Variable()): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     new Expression(left.right, spacing),
     Operator.Eq,
@@ -59,7 +59,7 @@ export const hSpace = (spacing: number): Gestalt => (left: bboxVarExprs, right: 
   );
 }
 
-export const vSpace = (spacing: number): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+export const vSpace = (spacing: number | Variable = new Variable()): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     new Expression(left.bottom, spacing),
     Operator.Eq,
