@@ -110,7 +110,7 @@ const textData: TextData[] = [
     marks: {},
   },
   {
-    char: "RMS ",
+    char: "R ",
     marks: {
       strong: { active: true },
     },
@@ -154,7 +154,7 @@ const newTextData: TextData[] = [
     },
   },
   {
-    char: "RMS ",
+    char: "R ",
     marks: {
       strong: { active: true },
       comment: { active: true },

@@ -1,4 +1,4 @@
-import { Gestalt as Constraint, hSpace, alignCenterY, alignLeft, alignCenterX, vSpace } from '../gestalt';
+import { Gestalt as Constraint, hSpace, alignCenterY, alignLeft, alignCenterX, vSpace, vAlignCenter } from '../gestalt';
 import { BBoxValues, MaybeBBoxValues } from "../kiwiBBoxTransform";
 import { text, nil, rect, ellipse } from '../mark';
 import * as Compile from '../compileWithRef';
@@ -9,7 +9,7 @@ import _ from "lodash";
 // https://stackoverflow.com/a/49683575. merges record intersection types
 type Id<T> = T extends infer U ? { [K in keyof U]: U[K] } : never
 
-type GlyphRelation<K extends Key> = { fields: [K, K], constraints: Constraint[] };
+type GlyphRelation<K extends Key> = { fields: K[], constraints: Constraint[] };
 
 type Key = string | number | symbol;
 
@@ -67,14 +67,21 @@ export type Glyph_<
     relations?: GlyphRelation<Reserved | keyof K>[],
   }
 
-type Glyph = {
+export type Glyph = {
   [KONT]: <R>(kont: <K extends object & Extract<keyof K, ReservedKeywords> extends never ? object : never, >(_: Glyph_<K, ReservedKeywords>) => R) => R,
 }
 
-namespace Glyph {
+export namespace Glyph {
   export const mk = <K extends object & Extract<keyof K, ReservedKeywords> extends never ? object : never,>(exRecord_: Glyph_<K, ReservedKeywords>): Glyph => ({
     [KONT]: (kont) => kont(exRecord_)
   });
+
+  export const fromCompileGlyph = (g: Compile.GlyphNoRef): Glyph => mk({
+    bbox: g.bbox,
+    renderFn: g.renderFn,
+    glyphs: objectMap(g.children, (k, v) => fromCompileGlyph(v)),
+    relations: g.relations?.map(({ left, right, gestalt }) => ({ fields: [left, right], constraints: gestalt }))
+  })
 }
 
 type HostGlyphFn<T> = (d: T) => Glyph;
@@ -117,11 +124,11 @@ export type GlyphFn_<
     Id<Glyph_<K, ReservedKeywords> & { objectGlyph: GlyphFn<T> }>
   )
 
-type GlyphFn<T> = {
+export type GlyphFn<T> = {
   [KONT]: <R>(kont: <K extends KConstraint<T, K>>(_: GlyphFn_<T, K>) => R) => R,
 }
 
-namespace GlyphFn {
+export namespace GlyphFn {
   export const mk = <T, K extends KConstraint<T, K>>(exRecord_: GlyphFn_<T, K>): GlyphFn<T> => ({
     [KONT]: (kont) => kont(exRecord_)
   });
@@ -234,6 +241,46 @@ const mapDataRelation = <T, U>(r: T, f: (d: RelationInstance<T>) => U): U | Rela
 // relation visualizations
 // TODO: implementing refs properly will take a bit of thought!!!
 
+// TODO: this function is kind of unsafe b/c it doesn't maintain the relations fields invariant and
+// it introduces a $object glyph
+export const glyphFnToHostGlyphFn = <T>(gf: GlyphFn<T>): HostGlyphFn<T> => {
+  const kont = gf[KONT];
+  return kont((gf: GlyphFn_<T, any>): HostGlyphFn<T> => {
+    if (typeof gf === "function") {
+      return gf;
+    } else {
+      return (data: T): Glyph => Glyph.mk({
+        bbox: gf.bbox,
+        renderFn: gf.renderFn,
+        glyphs: {
+          // fieldGlyphs
+          // TODO: is it possible to get rid of this `any`?
+          ...("fieldGlyphs" in gf ? objectMap(gf.fieldGlyphs, (k, v: GlyphFn<RelationInstance<T[any]>>) => {
+            const loweredGlyphs = mapDataRelation(data[k], glyphFnToHostGlyphFn(v));
+            if (loweredGlyphs instanceof Array) {
+              return Glyph.mk({
+                glyphs: loweredGlyphs.reduce((o, g, i) => ({
+                  ...o, [i]: g
+                }), {})
+              });
+            } else {
+              return loweredGlyphs;
+            }
+          }) : {}),
+          /* TODO: this is wrong, but removing it is wrong, too */
+          // refs
+          ...(typeof data === "object" ? objectFilter(data, (k, v) => (typeof v === "object") && ("$ref" in v)) : {}),
+          // glyphs
+          ...gf.glyphs,
+          // objectGlyph
+          ...("objectGlyph" in gf ? { "$object": glyphFnToHostGlyphFn(gf.objectGlyph)(data) } as any : {}),
+        },
+        relations: gf.relations as any,
+      });
+    }
+  })
+}
+
 // TODO: maybe want to use RelationInstances here, but it seems like it's subtle to do that well so
 // we will defer it
 export const lowerGlyphFn = <T>(gf: GlyphFn<T>): ((data: T) => Compile.Glyph) => {
@@ -341,12 +388,12 @@ export namespace GlyphFnLowerTest {
   export const testLoweredGlyphMarbles = lowerGlyphFn(marbles)(marblesData);
 }
 
-type MyList<T> = {
+export type MyListOld<T> = {
   elements: Relation<T>,
   // TODO: can refine Ref type even more to say what it refers to
   neighbors: Relation<{
-    curr: Ref<MyList<T>, "elements">,
-    next: Ref<MyList<T>, "elements">,
+    curr: Ref<MyListOld<T>, "elements">,
+    next: Ref<MyListOld<T>, "elements">,
   }>
 }
 
@@ -356,8 +403,8 @@ type Ref3<T> = any;
 type MyListRef2<T> = {
   elements: Relation<Ref2<T, "">>,
   neighbors: Relation<{
-    curr: Ref2<MyList<T>, "elements">,
-    next: Ref2<MyList<T>, "elements">,
+    curr: Ref2<MyListOld<T>, "elements">,
+    next: Ref2<MyListOld<T>, "elements">,
   }>
 }
 
@@ -386,12 +433,12 @@ let ref = <T, Field extends string & keyof T>(field: Field, path: ObjPath<T[Fiel
   path: `${field}${path}` as addPrefix<ObjPath<T[Field]>, Field>,
 });
 
-type MyRef = {
+export type MyRef = {
   $ref: true,
   path: string,
 }
 
-const mkMyRef = (path: string): MyRef => ({
+export const mkMyRef = (path: string): MyRef => ({
   $ref: true,
   path,
 })
@@ -400,7 +447,7 @@ const mkMyRef = (path: string): MyRef => ({
 //     { curr: ref("elms[1]"), next: ref("elms[2]") },
 //     { curr: ref("elms[2]"), next: ref("elms[3]") },
 
-const myListExample: MyList<number> = {
+const myListExample: MyListOld<number> = {
   elements: [10, 20, 30, 40],
   neighbors: [
     { curr: ref("elements", "[0]"), next: ref("elements", "[1]") },
@@ -412,7 +459,7 @@ const myListExample: MyList<number> = {
 const G = Glyph;
 const GF = GlyphFn;
 
-const myListGlyphFn: GlyphFn<MyList<number>> = GF.mk({
+const myListGlyphFn: GlyphFn<MyListOld<number>> = GF.mk({
   fieldGlyphs: {
     "elements": GF.mk((element) => G.mk(rect({ width: element, height: 200 / 3, fill: "black" }))),
     "neighbors": GF.mk({
@@ -494,12 +541,12 @@ const resolvePath = (pathList: (number | string)[], pathFromRoot: Key[]): string
 }
 
 const makePathsAbsolute = (data: BluefishData, pathFromRoot: Key[] = []): BluefishData => {
+  console.log("current path from root", pathFromRoot);
   if (data === null) {
     return data
   } else if (Array.isArray(data)) { // array/relation
     return data.map((d, i) => makePathsAbsolute(d, [i, ...pathFromRoot]));
   } else if (typeof data === "object" && !("$ref" in data)) { // object/record/instance
-    // TODO: not sure why cast is necessary above
     return objectMap(data, (k, v) => makePathsAbsolute(v, [k, ...pathFromRoot]))
   } else if (typeof data === "object") { // ref (where the actual work is done!)
     const ref = data as unknown as Ref<any, any>;
@@ -522,6 +569,15 @@ const makePathsAbsolute = (data: BluefishData, pathFromRoot: Key[] = []): Bluefi
 // like lowerGlyphFn, but makes paths absolute
 export const compileGlyphFn = <T>(gf: GlyphFn<T>) =>
   (data: T): Compile.Glyph => lowerGlyphFn(gf)(makePathsAbsolute(data as unknown as BluefishData) as unknown as T)
+
+export type MyList<T> = {
+  elements: Relation<T>,
+  // TODO: can refine Ref type even more to say what it refers to
+  neighbors: Relation<{
+    curr: MyRef,
+    next: MyRef,
+  }>
+}
 
 export namespace GlyphFnCompileTest {
   type myDataE2 = { color1: string, color2: string, color3: string };
@@ -587,15 +643,6 @@ export namespace GlyphFnCompileTest {
 
   export const testCompiledGlyphFnExample = compileGlyphFn(exampleRelationInterface2)(dataE2);
   export const testCompiledGlyphFnMarbles = compileGlyphFn(marbles)(marblesData);
-
-  type MyList<T> = {
-    elements: Relation<T>,
-    // TODO: can refine Ref type even more to say what it refers to
-    neighbors: Relation<{
-      curr: MyRef,
-      next: MyRef,
-    }>
-  }
 
   type MarblesList = MyList<number>;
 
@@ -673,16 +720,65 @@ export namespace GlyphFnCompileTest {
 
   export const marblesListMoreComplexGlyphFn: GlyphFn<MarblesListMoreComplex> = GlyphFn.mk({
     fieldGlyphs: {
-      // marbles: Glyph.mk(ellipse({ rx: 300 / 6, ry: 200 / 6, fill: "coral" })),
       marbles: element,
       neighbor: Glyph.mk({
         relations: [{
           fields: ["curr", "next"],
-          constraints: [hSpace(5), alignCenterY]
+          constraints: [hSpace(5.) /* TODO: not sure how to remove the specific value here and instead control the size of the entire thing */, alignCenterY]
         }]
       })
     },
   })
 
   export const testMarblesListMoreComplex = compileGlyphFn(marblesListMoreComplexGlyphFn)(marblesListMoreComplex);
+
+  export const twoSetsOfMarbles: GlyphFn<{
+    one: MarblesListMoreComplex,
+    two: MarblesListMoreComplex
+  }> = GlyphFn.mk({
+    fieldGlyphs: {
+      one: marblesListMoreComplexGlyphFn,
+      two: marblesListMoreComplexGlyphFn,
+    },
+    relations: [
+      {
+        fields: ["one", "two"],
+        constraints: [vAlignCenter, vSpace(20)],
+      }
+    ]
+  })
+
+  const twoSetsOfMarblesData: {
+    one: MarblesListMoreComplex,
+    two: MarblesListMoreComplex
+  } = {
+    one: {
+      marbles: [1, 2, 3],
+      neighbor: [
+        {
+          curr: mkMyRef("../../marbles/0"),
+          next: mkMyRef("../../marbles/1"),
+        },
+        {
+          curr: mkMyRef("../../marbles/1"),
+          next: mkMyRef("../../marbles/2"),
+        }
+      ]
+    },
+    two: {
+      marbles: [10, 20, 30],
+      neighbor: [
+        {
+          curr: mkMyRef("../../marbles/0"),
+          next: mkMyRef("../../marbles/1"),
+        },
+        {
+          curr: mkMyRef("../../marbles/1"),
+          next: mkMyRef("../../marbles/2"),
+        }
+      ]
+    },
+  };
+
+  export const testTwoMarbleSets = compileGlyphFn(twoSetsOfMarbles)(twoSetsOfMarblesData);
 }

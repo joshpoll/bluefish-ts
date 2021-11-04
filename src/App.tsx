@@ -12,7 +12,11 @@ import { pathTest } from './examples/pathTest';
 import { htmlTest } from './examples/htmlTest';
 // import { exampleRelationInterface } from './examples/exampleRelationInterface';
 import { GlyphFnCompileTest, loweredListGlyphTest } from './examples/glyphExistentialAPI';
+import { textspansLoweredApplied } from './examples/textspansExistential';
+import { barChart } from './examples/barchartExistential';
 // import { loweredGlyphTest, loweredGlyphMarbles } from './examples/exampleRelationInterfaceExistential';
+import { boundingBox } from './examples/boundingboxexample';
+import { constraintExample } from './examples/constraintexample';
 
 function App() {
   // console.log("loweredGlyphTest", loweredGlyphTest);
@@ -20,6 +24,28 @@ function App() {
     <div className="App">
       <header className="App-header">
         <br />
+        <br />
+        <br />
+        {render(compileWithRef(GlyphFnCompileTest.testTwoMarbleSets))}
+        {/* {render(compile(htmlTest))} */}
+        <br />
+        <br />
+        <br />
+        {/* {render(compileWithRef(textspansLoweredApplied))} */}
+        {render(compileWithRef(boundingBox))}
+        <br />
+        <br />
+        <br />
+        {render(compileWithRef(constraintExample))}
+        <br />
+        <br />
+        <br />
+        {/* {render(compileWithRef(textspansLoweredApplied))} */}
+        {render(compileWithRef(barChart))}
+        <br />
+        <br />
+        <br />
+        {/* <br />
         <br />
         <br />
         {render(compileWithRef(GlyphFnCompileTest.testMarblesListMoreComplex))}
@@ -35,7 +61,7 @@ function App() {
         <br />
         <br />
         <br />
-        {render(compileWithRef(GlyphFnCompileTest.testCompiledGlyphFnMarbles))}
+        {render(compileWithRef(GlyphFnCompileTest.testCompiledGlyphFnMarbles))} */}
         {/* <br />
         <br />
         <br />
@@ -100,7 +126,7 @@ function App() {
         <br />
         <br />
         <br /> */}
-        {render(compile(courses))}
+        {/* {render(compile(courses))}
         <br />
         <br />
         <br />
@@ -111,7 +137,11 @@ function App() {
         {render(compile(groupedbarchart))}
         <br />
         <br />
+        <br /> */}
         <br />
+        <br />
+        <br />
+        {render(compile(groupedbarchart))}
       </header>
     </div>
   );

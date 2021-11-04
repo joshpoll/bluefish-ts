@@ -26,6 +26,13 @@ export type Glyph = {
   relations?: Relation[]
 } | Ref
 
+export type GlyphNoRef = {
+  bbox?: MaybeBBoxValues,
+  renderFn?: (canvas: BBoxValues, index?: number) => JSX.Element,
+  children?: { [key: string]: GlyphNoRef },
+  relations?: Relation[]
+}
+
 export type GlyphWithPath = {
   pathList: string[],
   path: string,
@@ -217,7 +224,8 @@ const resolvePaths = (path: string, pathList: string[], encoding: Glyph): GlyphW
 }
 
 // TODO: this seems very wrong!
-const resolveGestaltPathAux = (bboxTree: BBoxTreeVV, path: string[]): bboxVarExprs => {
+const resolveGestaltPathAux = (bboxTree: BBoxTreeVVE, path: string[]): bboxVarExprs => {
+  console.log("gestalt path", path, bboxTree);
   const [head, ...tail] = path;
   // console.log("path", "head", head, "tail", tail);
   if (tail.length === 0) {
@@ -232,13 +240,17 @@ const resolveGestaltPathAux = (bboxTree: BBoxTreeVV, path: string[]): bboxVarExp
   }
 };
 
-const resolveGestaltPath = (bboxTree: BBoxTreeVVE, name: string): bboxVarExprs => {
-  if (name === "$canvas") {
-    return bboxTree.canvas.bboxVars;
-  } else {
-    return bboxTree.children[name].bbox.bboxVars;
-  }
-}
+const resolveGestaltPath = (bboxTree: BBoxTreeVVE, path: string): bboxVarExprs => {
+  return resolveGestaltPathAux(bboxTree, path.split('/'));
+};
+
+// const resolveGestaltPath = (bboxTree: BBoxTreeVVE, name: string): bboxVarExprs => {
+//   if (name === "$canvas") {
+//     return bboxTree.canvas.bboxVars;
+//   } else {
+//     return bboxTree.children[name].bbox.bboxVars;
+//   }
+// }
 
 /* mutates constraints */
 const addGestaltConstraints = (bboxTree: BBoxTreeVVE, encoding: GlyphWithPath, constraints: Constraint[]): void => {
@@ -269,14 +281,17 @@ const lookupPath = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTr
     if ("$ref" in bboxTreeWithRef) {
       throw "error: reference to a reference is not yet implemented"
     } else {
-      const child = bboxTreeWithRef.children[hd];
+      // TODO: this is brittle
+      const child = bboxTreeWithRef.children[hd] ?? (bboxTreeWithRef.children["$object"] as any).children[hd];
       if ("$ref" in child) {
         throw "error: unexpected ref along path"
       } else {
-        return {
-          ...child,
-          children: {}, // avoids complexities like circular dependencies
-        }
+        // return {
+        //   ...child,
+        //   children: {}, // avoids complexities like circular dependencies
+        // }
+        // TODO: this cast is unsafe if the child contains refs of its own
+        return child as BBoxTreeVVE;
       }
     }
   } else {
@@ -284,11 +299,12 @@ const lookupPath = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTr
       throw "error: found reference along path to glyph"
     } else {
       // TODO: I feel like I'm checking for refs too many times here!
-      const child = bboxTreeWithRef.children[hd];
+      // TODO: this is brittle
+      const child = bboxTreeWithRef.children[hd] ?? (bboxTreeWithRef.children["$object"] as any).children[hd];
       if ("$ref" in child) {
         throw "error: unexpected ref along path"
       } else {
-        const bboxTreeVVE = lookupPath(bboxTreeWithRef.children[hd], tl);
+        const bboxTreeVVE = lookupPath(child, tl);
         return {
           ...bboxTreeVVE,
           bbox: {
@@ -317,6 +333,7 @@ const inverseTransformVE = (t: Transform<Variable | Expression>): Transform<Vari
 const resolveRefs = (rootBboxTreeWithRef: BBoxTreeVVEWithRef, bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[], transform: Transform<Variable | Expression>): BBoxTreeVVE => {
   // console.log("visiting", bboxTreeWithRef, transform);
   if ("$ref" in bboxTreeWithRef) {
+    console.log("hit ref at", path, "with path", bboxTreeWithRef.path);
     const bboxTree = lookupPath(rootBboxTreeWithRef, bboxTreeWithRef.path);
     // console.log("bboxTree here", bboxTree, transform);
     // we are using the transform here because we are "moving" the bbox from the $root down to us
@@ -446,6 +463,7 @@ export default (encoding: Glyph): CompiledAST => {
 
   const bboxTreeVVRef = makeBBoxTreeWithRef(encodingWithPaths);
   const bboxTreeRef = addBBoxValueConstraints(bboxTreeVVRef, constraints);
+  console.log("bboxTreeRef", bboxTreeRef);
 
   // :bbox tree has refs and only vars
 

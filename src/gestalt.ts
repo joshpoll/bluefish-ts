@@ -11,6 +11,38 @@ export const alignTop: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
   )
 }
 
+export const alignTopSpace = (spacing: number | Variable = new Variable()): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    new Expression(left.top),
+    Operator.Eq,
+    new Expression(right.top, spacing)
+  );
+}
+
+export const alignRightSpace = (spacing: number | Variable = new Variable()): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    new Expression(left.right),
+    Operator.Eq,
+    new Expression(right.right, spacing)
+  );
+}
+
+export const alignBottomSpace = (spacing: number | Variable = new Variable()): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    new Expression(left.bottom, spacing),
+    Operator.Eq,
+    new Expression(right.bottom)
+  );
+}
+
+export const alignLeftSpace = (spacing: number | Variable = new Variable()): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    new Expression(left.left, spacing),
+    Operator.Eq,
+    new Expression(right.left),
+  );
+}
+
 export const alignBottom: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     left.bottom,
@@ -50,6 +82,9 @@ export const alignCenterY: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) =
     right.centerY
   )
 }
+
+export const hAlignCenter = alignCenterY;
+export const vAlignCenter = alignCenterX;
 
 export const hSpace = (spacing: number | Variable = new Variable()): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
@@ -132,6 +167,22 @@ export const alignRightStrong: Gestalt = (left: bboxVarExprs, right: bboxVarExpr
     Operator.Eq,
     right.right,
     Strength.strong,
+  )
+}
+
+export const sameWidth: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.width,
+    Operator.Eq,
+    right.width
+  )
+}
+
+export const sameHeight: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.height,
+    Operator.Eq,
+    right.height
   )
 }
 

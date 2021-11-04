@@ -6,7 +6,7 @@ export const htmlTest: Glyph = {
     "html": html({
       width: 100,
       height: 300,
-      html: <div>The quick brown fox jumps over the lazy dog.Pack my box with five dozen liquor jugs</div>
+      html: <div>The quick brown fox <u>jumps</u> over the lazy dog.<br />Pack my box with <a href="google.com">five</a> dozen liquor jugs</div>
     })
   },
 }
