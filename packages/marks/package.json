@@ -1,0 +1,10 @@
+{
+  "name": "@bluefish/marks",
+  "version": "0.1.0",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "license": "MIT",
+  "dependencies": {
+    "@bluefish/core": "0.1.0"
+  }
+}
