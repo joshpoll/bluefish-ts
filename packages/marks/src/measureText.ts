@@ -12,9 +12,7 @@ export function measureText(text: string, font: string): TextMeasurement {
   measureText.context.font = font;
   const measurements = measureText.context.measureText(text);
   return {
-    // width: Math.abs(measurements.actualBoundingBoxLeft) +
-    // Math.abs(measurements.actualBoundingBoxRight),
-    width: measurements.width,
+    width: Math.abs(measurements.actualBoundingBoxLeft) + Math.abs(measurements.actualBoundingBoxRight),
     fontHeight: Math.abs(measurements.fontBoundingBoxAscent) + Math.abs(measurements.fontBoundingBoxDescent),
     baseline: Math.abs(measurements.fontBoundingBoxAscent),
     fontDescent: Math.abs(measurements.fontBoundingBoxDescent),
@@ -24,5 +22,9 @@ export function measureText(text: string, font: string): TextMeasurement {
 // static variable
 export namespace measureText {
   export const element = document.createElement('canvas');
+  // puts canvas on screen. useful for debugging measurements
+  /* element.width = 1000;
+  element.height = 1000;
+  document.body.appendChild(element); */
   export const context = element.getContext("2d")!;
 }

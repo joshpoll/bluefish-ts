@@ -59,14 +59,14 @@ type TextParams = {
 // a guide
 // TODO: very close to good alignment, but not quite there. Can I use more of the canvas
 // measurements somehow?
-export const text = ({ x, y, contents, fontFamily, fontSize, fontStyle, fontWeight, fill }: TextParams): Glyph => {
-  const canvasMeasurements = measureText(contents, `${fontWeight} ${fontStyle} ${fontSize} ${fontFamily}`);
+export const text = ({ x, y, contents, fontFamily = "sans-serif", fontSize = "12px", fontStyle, fontWeight = "normal", fill }: TextParams): Glyph => {
+  const measurements = measureText(contents, `${fontStyle ?? ""} ${fontWeight ?? ""} ${fontSize ?? ""} ${fontFamily ?? ""}`);
   return Glyph.mk({
     // return the positioning parameters the user gave us
-    bbox: { left: x, top: y, width: canvasMeasurements.width, height: canvasMeasurements.fontHeight },
+    bbox: { left: x, top: y, width: measurements.width, height: measurements.fontHeight },
     // and the rendering function itself
     renderFn: (canvas: BBoxValues, index?: number) => {
-      return <text key={index} x={canvas.left} y={canvas.bottom - canvasMeasurements.fontDescent} fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fontWeight={fontWeight} fill={fill}>
+      return <text key={index} x={canvas.left} y={canvas.bottom - measurements.fontDescent} fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fontWeight={fontWeight} fill={fill}>
         {contents}
       </text>
     }

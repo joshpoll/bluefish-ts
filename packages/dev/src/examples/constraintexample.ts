@@ -305,7 +305,7 @@ export const chartWithThings: GlyphFn<unknown> = GlyphFn.mk({
     },
     {
       fields: ["hSpaceAnnotation", "hSpaceGuide/middle" as any],
-      constraints: [vAlignCenter, vSpace(-3)],
+      constraints: [vAlignCenter, vSpace(3)],
     },
     {
       fields: ["alignBottomGuide", "leftRect"],
