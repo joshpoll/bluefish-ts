@@ -17,7 +17,7 @@
     "web-vitals": "^1.0.1",
     "@bluefish/core": "0.1.0",
     "@bluefish/marks": "0.1.0",
-    "@bluefish/gestalt": "0.1.0"
+    "@bluefish/constraints": "0.1.0"
   },
   "scripts": {
     "start:rebuild": "tsc --build && react-scripts start",

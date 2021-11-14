@@ -26,7 +26,7 @@ import {
   contains,
   containsShrinkWrap,
   Gestalt
-} from './gestalt';
+} from './constraints';
 
 export {
   alignTop,

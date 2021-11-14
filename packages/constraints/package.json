@@ -1,5 +1,5 @@
 {
-  "name": "@bluefish/gestalt",
+  "name": "@bluefish/constraints",
   "version": "0.1.0",
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
