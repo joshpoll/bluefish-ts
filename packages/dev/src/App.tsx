@@ -1,9 +1,10 @@
 import './App.css';
-import { compileWithRef, render, GlyphFnCompileTest } from '@bluefish/core';
+import { compileWithRef, render } from '@bluefish/core';
 import { barChart } from './examples/barchartExistential';
 // import { loweredGlyphTest, loweredGlyphMarbles } from './examples/exampleRelationInterfaceExistential';
 import { boundingBox } from './examples/boundingboxexample';
 import { constraintExample } from './examples/constraintexample';
+import { testTwoMarbleSets } from './examples/glyphFnCompile';
 
 function App() {
   // console.log("loweredGlyphTest", loweredGlyphTest);
@@ -13,7 +14,7 @@ function App() {
         <br />
         <br />
         <br />
-        {render(compileWithRef(GlyphFnCompileTest.testTwoMarbleSets))}
+        {render(compileWithRef(testTwoMarbleSets))}
         {/* {render(compile(htmlTest))} */}
         <br />
         <br />
