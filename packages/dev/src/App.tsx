@@ -1,5 +1,4 @@
 import './App.css';
-import { compileWithRef, render } from '@bluefish/core';
 import { barChart } from './examples/barchartExistential';
 // import { loweredGlyphTest, loweredGlyphMarbles } from './examples/exampleRelationInterfaceExistential';
 import { boundingBox } from './examples/boundingboxexample';
@@ -14,22 +13,19 @@ function App() {
         <br />
         <br />
         <br />
-        {render(compileWithRef(testTwoMarbleSets))}
-        {/* {render(compile(htmlTest))} */}
+        {testTwoMarbleSets}
         <br />
         <br />
         <br />
-        {/* {render(compileWithRef(textspansLoweredApplied))} */}
-        {render(compileWithRef(boundingBox))}
+        {boundingBox}
         <br />
         <br />
         <br />
-        {render(compileWithRef(constraintExample))}
+        {constraintExample}
         <br />
         <br />
         <br />
-        {/* {render(compileWithRef(textspansLoweredApplied))} */}
-        {render(compileWithRef(barChart))}
+        {barChart}
       </header>
     </div>
   );

@@ -1,20 +1,22 @@
 import { BBoxValues, bboxVarExprs } from './kiwiBBoxTransform';
-import { Glyph, GlyphFn, compileGlyphFn, MyList, mkMyRef, lowerGlyphFn, glyphFnToHostGlyphFn, Relation, MyRef } from './glyphExistentialAPI';
+// import { Glyph, GlyphFn, compileGlyphFn, MyList, mkMyRef, lowerGlyphFn, glyphFnToHostGlyphFn,
+// Relation, MyRef } from './glyphExistentialAPI';
+import { render, createShape, createShapeFn, compileShapeFn, mkMyRef, lowerShapeFn, MyList, Relation, MyRef, Shape, ShapeFn, HostShapeFn, lowerShape, makePathsAbsolute } from './shapeAPI';
 import compileWithRef from './compileWithRef';
-import render from './render';
+import * as constraints from './constraints';
 
 export {
-  Glyph,
-  GlyphFn,
-  compileGlyphFn,
+  createShape,
+  createShapeFn,
   mkMyRef,
-  lowerGlyphFn,
-  glyphFnToHostGlyphFn,
-  compileWithRef,
   render,
+  constraints,
 }
 
 export type {
+  Shape,
+  ShapeFn,
+  HostShapeFn,
   BBoxValues,
   bboxVarExprs,
   MyList,

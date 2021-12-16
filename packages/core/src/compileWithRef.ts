@@ -267,7 +267,10 @@ const addGestaltConstraints = (bboxTree: BBoxTreeVVE, encoding: GlyphWithPath, c
       const rightBBox = resolveGestaltPath(bboxTree, right);
       // console.log("left and right bboxes", bboxTree, leftBBox, rightBBox);
       // const leftBBox = left === "canvas" ? bboxTree.canvas.bboxVars : bboxTree.children[left].bbox.bboxVars;
-      // const rightBBox = right === "canvas" ? bboxTree.canvas.bboxVars : bboxTree.children[right].bbox.bboxVars;
+      // const rightBBox = right === "canvas" ? bboxTree.canvas.bboxVars :
+      // bboxTree.children[right].bbox.bboxVars;
+      console.log("LOOK HERE", "g", g, "leftBBox", leftBBox, "rightBBox", rightBBox);
+      console.log("LOOK HERE", "constraint", g(leftBBox, rightBBox));
       constraints.push(g(leftBBox, rightBBox));
     }))
   }
@@ -282,7 +285,18 @@ const lookupPath = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTr
       throw "error: reference to a reference is not yet implemented"
     } else {
       // TODO: this is brittle
-      const child = bboxTreeWithRef.children[hd] ?? (bboxTreeWithRef.children["$object"] as any).children[hd];
+      let child;
+      if (hd in bboxTreeWithRef.children) {
+        child = bboxTreeWithRef.children[hd];
+      } else if ("$object" in bboxTreeWithRef.children) {
+        if ("children" in bboxTreeWithRef.children["$object"] && hd in bboxTreeWithRef.children["$object"].children) {
+          child = bboxTreeWithRef.children["$object"].children[hd]
+        } else {
+          throw `error: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
+        }
+      } else {
+        throw `error: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
+      }
       if ("$ref" in child) {
         throw "error: unexpected ref along path"
       } else {
@@ -300,7 +314,18 @@ const lookupPath = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTr
     } else {
       // TODO: I feel like I'm checking for refs too many times here!
       // TODO: this is brittle
-      const child = bboxTreeWithRef.children[hd] ?? (bboxTreeWithRef.children["$object"] as any).children[hd];
+      let child;
+      if (hd in bboxTreeWithRef.children) {
+        child = bboxTreeWithRef.children[hd];
+      } else if ("$object" in bboxTreeWithRef.children) {
+        if ("children" in bboxTreeWithRef.children["$object"] && hd in bboxTreeWithRef.children["$object"].children) {
+          child = bboxTreeWithRef.children["$object"].children[hd]
+        } else {
+          throw `error: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
+        }
+      } else {
+        throw `error: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
+      }
       if ("$ref" in child) {
         throw "error: unexpected ref along path"
       } else {

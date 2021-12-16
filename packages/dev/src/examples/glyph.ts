@@ -1,28 +1,26 @@
-import { GlyphFn } from "@bluefish/core";
-import { nil, text } from "@bluefish/marks";
+import { createShapeFn, HostShapeFn } from "@bfjs/core";
+import { nil, text } from "@bfjs/marks";
 
-const glyphV3Example: GlyphFn<{}> = GlyphFn.mk(
+const glyphV3Example: HostShapeFn<{}> = createShapeFn(
   {
-    glyphs: {
+    shapes: {
       "text": text({ contents: "hello world!", fontSize: "24px" }),
     },
-    relations: [{
-      fields: ["$canvas", "$canvas"],
-      constraints: [],
-    }]
+    rels: {
+      "$canvas->$canvas": [],
+    }
   }
 );
 
-const objectGlyphExample: GlyphFn<number> = GlyphFn.mk(
+const objectGlyphExample: HostShapeFn<number> = createShapeFn(
   {
-    glyphs: {
+    shapes: {
       "text": text({ contents: "hello world!", fontSize: "24px" }),
     },
-    objectGlyph: GlyphFn.mk((d: number) => text({ contents: "hello world!", fontSize: "24px" })),
-    relations: [{
-      fields: ["$canvas", "text"],
-      constraints: [],
-    }]
+    object: createShapeFn((d: number) => text({ contents: "hello world!", fontSize: "24px" })),
+    rels: {
+      "$canvas->text": [],
+    }
   }
 );
 
@@ -48,23 +46,17 @@ const objectGlyphExample: GlyphFn<number> = GlyphFn.mk(
 //   })
 // }
 
-const fieldsGlyphExample: GlyphFn<{ item: number }> = GlyphFn.mk({
-  glyphs: {
+const fieldsGlyphExample: HostShapeFn<{ item: number }> = createShapeFn({
+  shapes: {
     foo: nil(),
   },
-  fieldGlyphs: {
-    item: GlyphFn.mk((d: number) => nil()),
+  fields: {
+    item: createShapeFn((d: number) => nil()),
   },
-  relations: [
-    {
-      fields: ["$canvas", "$canvas"],
-      constraints: []
-    },
-    {
-      fields: ["foo", "item"],
-      constraints: []
-    },
-  ]
+  rels: {
+    "$canvas->$canvas": [],
+    "foo->item": [],
+  }
 });
 
 export { }

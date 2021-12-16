@@ -1,5 +1,5 @@
 import { Constraint, Expression, Operator, Strength, Variable } from 'kiwi.js';
-import { bboxVarExprs } from '@bfjs/core';
+import { bboxVarExprs } from './kiwiBBoxTransform';
 
 export type Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => Constraint;
 

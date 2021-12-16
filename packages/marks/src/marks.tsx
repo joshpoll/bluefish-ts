@@ -1,4 +1,4 @@
-import { Glyph, BBoxValues } from '@bluefish/core';
+import { Shape, BBoxValues, createShape } from '@bfjs/core';
 import { measureText } from './measureText';
 
 type RectParams = {
@@ -12,7 +12,7 @@ type RectParams = {
 }
 
 // TODO: incorporate stroke and strokeWidth into bounding box computations
-export const rect = ({ x, y, width, height, fill, stroke, strokeWidth }: RectParams): Glyph => Glyph.mk(
+export const rect = ({ x, y, width, height, fill, stroke, strokeWidth }: RectParams): Shape => createShape(
   {
     // return the positioning parameters the user gave us
     bbox: { left: x, top: y, width, height },
@@ -32,7 +32,7 @@ type EllipseParams = {
   fill?: string,
 }
 
-export const ellipse = ({ cx, cy, rx, ry, fill }: EllipseParams): Glyph => Glyph.mk(
+export const ellipse = ({ cx, cy, rx, ry, fill }: EllipseParams): Shape => createShape(
   {
     // return the positioning parameters the user gave us
     bbox: { centerX: cx, centerY: cy, width: rx ? 2 * rx : undefined, height: ry ? 2 * ry : undefined },
@@ -59,9 +59,9 @@ type TextParams = {
 // a guide
 // TODO: very close to good alignment, but not quite there. Can I use more of the canvas
 // measurements somehow?
-export const text = ({ x, y, contents, fontFamily = "sans-serif", fontSize = "12px", fontStyle, fontWeight = "normal", fill }: TextParams): Glyph => {
+export const text = ({ x, y, contents, fontFamily = "sans-serif", fontSize = "12px", fontStyle, fontWeight = "normal", fill }: TextParams): Shape => {
   const measurements = measureText(contents, `${fontStyle ?? ""} ${fontWeight ?? ""} ${fontSize ?? ""} ${fontFamily ?? ""}`);
-  return Glyph.mk({
+  return createShape({
     // return the positioning parameters the user gave us
     bbox: { left: x, top: y, width: measurements.width, height: measurements.fontHeight },
     // and the rendering function itself
@@ -101,7 +101,7 @@ const dir = ops.vnormalize(ops.vsub(s.end.contents, s.start.contents));
       break;
 */
 
-export const line = ({ x1, y1, x2, y2, stroke, strokeWidth = 1 }: LineParams): Glyph => {
+export const line = ({ x1, y1, x2, y2, stroke, strokeWidth = 1 }: LineParams): Shape => {
   let segmentWidth, thicknessWidth, width;
   let segmentHeight, thicknessHeight, height;
   if (x1 !== undefined && x2 !== undefined && y1 !== undefined && y2 !== undefined) {
@@ -121,7 +121,7 @@ export const line = ({ x1, y1, x2, y2, stroke, strokeWidth = 1 }: LineParams): G
   const centerX = (x1 !== undefined && x2 !== undefined) ? (x1 + x2) / 2 : undefined;
   const centerY = (y1 !== undefined && y2 !== undefined) ? (y1 + y2) / 2 : undefined;
 
-  return Glyph.mk({
+  return createShape({
     // return the positioning parameters the user gave us
     bbox: { centerX, centerY, width, height },
     // and the rendering function itself
@@ -133,7 +133,7 @@ export const line = ({ x1, y1, x2, y2, stroke, strokeWidth = 1 }: LineParams): G
   });
 }
 
-export const nil = (): Glyph => Glyph.mk(
+export const nil = (): Shape => createShape(
   {
     bbox: { width: 0., height: 0, },
     // and the rendering function itself
@@ -151,8 +151,8 @@ type HTMLParams = {
   html: JSX.Element,
 }
 
-export const html = ({ x, y, width, height, html }: HTMLParams): Glyph => {
-  return Glyph.mk({
+export const html = ({ x, y, width, height, html }: HTMLParams): Shape => {
+  return createShape({
     bbox: { left: x, top: y, width: width, height: height },
     renderFn: (canvas: BBoxValues, index?: number) => {
       return <foreignObject key={index} x={canvas.left} y={canvas.top} width={canvas.width} height={canvas.height}>

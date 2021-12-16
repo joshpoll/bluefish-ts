@@ -1,6 +1,6 @@
-import { hSpace, vSpace, alignLeft, alignBottom, alignRight, alignTop, Gestalt, containsShrinkWrap, contains, alignBottomStrong, alignLeftStrong, alignTopStrong, alignRightStrong, vAlignCenter, hAlignCenter } from '@bluefish/constraints';
-import { debug, ellipse, line, nil, rect, text } from '@bluefish/marks';
-import { Glyph, GlyphFn, compileGlyphFn, MyList, mkMyRef, lowerGlyphFn, glyphFnToHostGlyphFn } from '@bluefish/core';
+import { hSpace, vSpace, alignLeft, alignBottom, alignRight, alignTop, Gestalt, containsShrinkWrap, contains, alignBottomStrong, alignLeftStrong, alignTopStrong, alignRightStrong, vAlignCenter, hAlignCenter } from '@bfjs/constraints';
+import { debug, ellipse, line, nil, rect, text } from '@bfjs/marks';
+import { render, createShape, createShapeFn, HostShapeFn, MyList, mkMyRef } from '@bfjs/core';
 import * as _ from "lodash";
 import { zipWith } from 'lodash';
 import * as scale from "d3-scale";
@@ -25,31 +25,27 @@ const mkList = <T>(elements: T[]): MyList<T> => ({
     ),
 });
 
-const bar: GlyphFn<Data> = GlyphFn.mk({
-  glyphs: {
+const bar: HostShapeFn<Data> = createShapeFn({
+  shapes: {
     "tick": rect({ width: 1., height: 8., fill: "gray" })
   },
-  fieldGlyphs: {
-    "category": GlyphFn.mk((contents) => text({ contents, fontSize: "12px" })),
-    "value": GlyphFn.mk((height) => rect({ width: 20, height, fill: "steelblue" })),
+  fields: {
+    "category": createShapeFn((contents) => text({ contents, fontSize: "12px" })),
+    "value": createShapeFn((height) => rect({ width: 20, height, fill: "steelblue" })),
   },
-  relations: [
-    {
-      fields: ["value", "tick"],
-      constraints: [vSpace(5), vAlignCenter],
-    },
-    {
-      fields: ["tick", "category"],
-      constraints: [vSpace(1), vAlignCenter],
-    },
-  ]
+  rels: {
+    "value->tick": [vSpace(5), vAlignCenter],
+    "tick->category": [vSpace(1), vAlignCenter],
+  }
 })
 
-export const bars: GlyphFn<MyList<Data>> = GlyphFn.mk({
-  fieldGlyphs: {
+export const bars: HostShapeFn<MyList<Data>> = createShapeFn({
+  fields: {
     elements: bar,
-    neighbors: GlyphFn.mk({
-      relations: [{ fields: ["curr/value", "next/value"], constraints: [alignBottom, hSpace(0)] }]
+    neighbors: createShapeFn({
+      rels: {
+        "curr/value->next/value": [alignBottom, hSpace(0)],
+      }
     })
   }
 });
@@ -72,66 +68,60 @@ type Input = {
   yTicks: MyList<number>,
 }
 
-const yTicks: GlyphFn<MyList<number>> = GlyphFn.mk({
+const yTicks: HostShapeFn<MyList<number>> = createShapeFn({
   // renderFn: debug,
-  fieldGlyphs: {
-    elements: GlyphFn.mk((pos) => Glyph.mk({
+  fields: {
+    elements: createShapeFn((pos) => createShape({
       /* This bbox use might be a little surprising. Why should it go on tick? It's because of local coordinate systems */
       bbox: {
         // TODO: is there a way to get rid of this negation "hack"? It not very nice
         centerY: extent.max! - pos,
       },
-      glyphs: {
+      shapes: {
         tick: rect({ width: 5, height: 1, fill: "gray" }),
         label: text({ contents: pos.toString(), fontSize: "10px" }),
       },
-      relations: [{ fields: ["label", "tick"], constraints: [hSpace(2.), hAlignCenter] }]
+      rels: {
+        "label->tick": [hSpace(2.), hAlignCenter],
+      }
     })),
-    neighbors: GlyphFn.mk({
-      relations: [{ fields: ["curr", "next"], constraints: [alignRight] }]
+    neighbors: createShapeFn({
+      rels: {
+        "curr->next": [alignRight],
+      }
     })
   }
 });
 
-export const barChartGlyphFn: GlyphFn<Input> = GlyphFn.mk({
+export const barChartGlyphFn: HostShapeFn<Input> = createShapeFn({
   renderFn: debug,
-  glyphs: {
+  shapes: {
     "yAxis": rect({ width: 1., fill: "gray" }),
   },
-  fieldGlyphs: {
+  fields: {
     data: bars,
     // TODO: the ticks don't actually show up in the right spot b/c of relative coordinates
     // maybe add a way to inherit parent's coordinate system?
     yTicks,
   },
-  relations: [
-    {
-      fields: ["yAxis", "data"],
-      constraints: [alignTop, hSpace(5)],
-    },
-    {
-      fields: ["yAxis", "data/elements/0/value" as any],
-      constraints: [alignBottom],
-    },
-    {
-      fields: ["yTicks", "yAxis"],
-      constraints: [hSpace(0)],
-    }
-  ]
+  rels: {
+    "yAxis->data": [alignTop, hSpace(5)],
+    "yAxis->data/elements/0/value": [alignBottom],
+    "yTicks->yAxis": [hSpace(0)],
+  }
 })
 
-export const chartWithThings: GlyphFn<Input> = GlyphFn.mk({
-  glyphs: {
+export const chartWithThings: HostShapeFn<Input> = createShapeFn({
+  shapes: {
     "title": text({ contents: "Bar chart!", fontSize: "12px" })
   },
-  objectGlyph: barChartGlyphFn,
-  relations: [{
-    fields: ["title", "$object"],
-    constraints: [vSpace(25), vAlignCenter],
-  }]
+  object: barChartGlyphFn,
+  rels: {
+    "title->$object": [vSpace(25), vAlignCenter],
+  }
 })
 
-export const barChart = compileGlyphFn(chartWithThings)({
+export const barChart = render({
   data: mkList(data),
   yTicks: mkList(ticks),
-});
+}, chartWithThings);
