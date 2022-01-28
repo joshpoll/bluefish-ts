@@ -86,6 +86,9 @@ export const alignCenterY: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) =
 export const hAlignCenter = alignCenterY;
 export const vAlignCenter = alignCenterX;
 
+export const alignCenter = alignCenterX;
+export const alignMiddle = alignCenterY;
+
 export const hSpace = (spacing: number | Variable = new Variable()): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     new Expression(left.right, spacing),
@@ -189,3 +192,12 @@ export const sameHeight: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => 
 export const contains: Gestalt[] = [containsLeft, containsRight, containsTop, containsBottom];
 
 export const containsShrinkWrap: Gestalt[] = [...contains, alignLeftStrong, alignRightStrong, alignTopStrong, alignBottomStrong];
+
+// used for circles
+export const eqWidthHeight = (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.width,
+    Operator.Eq,
+    right.height,
+  )
+}

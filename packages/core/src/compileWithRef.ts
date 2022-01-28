@@ -2,8 +2,24 @@ import { Constraint, Operator, Solver, Strength, Variable, Expression } from 'ki
 import { Gestalt } from "./gestalt";
 import { BBoxTree, getBBoxValues, makeBBoxVars, bboxVars, BBoxValues, MaybeBBoxValues, BBoxTreeValue, BBoxTreeVV, bboxVarExprs, transformBBox, Transform } from './kiwiBBoxTransform';
 import { objectFilter, objectMap } from './objectMap';
+import { ppConstraint } from './ppKiwi';
 
-export type BBoxTreeVVE = BBoxTree<{ bboxVars: bboxVarExprs, bboxValues?: MaybeBBoxValues }, Variable>;
+export type BBoxTreeInherit<T, U> = {
+  inheritFrame: boolean,
+  bbox: T, // equals transform(canvas)
+  canvas: T,
+  // if we have the child "own" its transform, we are implicitly assuming it has a single coordinate
+  // space owner that is applying this transform
+  // if we instead have the parent "own" its children's transforms by pushing it into the children
+  // field, then it could be possible that the child exists in multiple places, right? well not
+  // exactly since it's still a tree structure.
+  // I think it is easiest/best for now to have the child own its transform, because recursion is
+  // much easier and bbox used to live here so the change is smaller.
+  transform: Transform<U>,
+  children: { [key: string]: BBoxTreeInherit<T, U> },
+}
+
+export type BBoxTreeVVE = BBoxTreeInherit<{ bboxVars: bboxVarExprs, bboxValues?: MaybeBBoxValues }, Variable>
 
 export type CompiledAST = {
   // bboxValues: BBoxTree<BBoxValues>
@@ -20,6 +36,7 @@ export type Relation = {
 export type Ref = { $ref: true, path: string[] }
 
 export type Glyph = {
+  inheritFrame: boolean,
   bbox?: MaybeBBoxValues,
   renderFn?: (canvas: BBoxValues, index?: number) => JSX.Element,
   children?: { [key: string]: Glyph },
@@ -27,6 +44,7 @@ export type Glyph = {
 } | Ref
 
 export type GlyphNoRef = {
+  inheritFrame: boolean,
   bbox?: MaybeBBoxValues,
   renderFn?: (canvas: BBoxValues, index?: number) => JSX.Element,
   children?: { [key: string]: GlyphNoRef },
@@ -34,6 +52,7 @@ export type GlyphNoRef = {
 }
 
 export type GlyphWithPath = {
+  inheritFrame: boolean,
   pathList: string[],
   path: string,
   bbox?: MaybeBBoxValues,
@@ -43,6 +62,7 @@ export type GlyphWithPath = {
 } | Ref
 
 export type GlyphWithPathNoRef = {
+  inheritFrame: boolean,
   pathList: string[],
   path: string,
   bbox?: MaybeBBoxValues,
@@ -115,7 +135,8 @@ const addChildrenConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[]
   }
 }
 
-type BBoxTreeWithRef<T, U> = {
+type BBoxTreeInheritWithRef<T, U> = {
+  inheritFrame: boolean,
   bbox: T, // equals transform(canvas)
   canvas: T,
   // if we have the child "own" its transform, we are implicitly assuming it has a single coordinate
@@ -126,10 +147,10 @@ type BBoxTreeWithRef<T, U> = {
   // I think it is easiest/best for now to have the child own its transform, because recursion is
   // much easier and bbox used to live here so the change is smaller.
   transform: Transform<U>,
-  children: { [key: string]: BBoxTreeWithRef<T, U> },
+  children: { [key: string]: BBoxTreeInheritWithRef<T, U> },
 } | Ref
 
-export type BBoxTreeVVEWithRef = BBoxTreeWithRef<{ bboxVars: bboxVarExprs, bboxValues?: MaybeBBoxValues }, Variable>;
+export type BBoxTreeVVEWithRef = BBoxTreeInheritWithRef<{ bboxVars: bboxVarExprs, bboxValues?: MaybeBBoxValues }, Variable>;
 // export type BBoxTreeVarsWithRef = BBoxTreeWithRef<bboxVars, Variable>;
 // export type BBoxTreeVars = BBoxTree<bboxVars, Variable>;
 
@@ -162,6 +183,7 @@ const makeBBoxTreeWithRef = (encoding: GlyphWithPath): BBoxTreeVVEWithRef => {
     };
 
     return {
+      inheritFrame: encoding.inheritFrame,
       bbox,
       transform,
       canvas,
@@ -232,11 +254,12 @@ const resolveGestaltPathAux = (bboxTree: BBoxTreeVVE, path: string[]): bboxVarEx
     if (head === "$canvas") {
       return bboxTree.canvas.bboxVars;
     } else {
+      console.log("LOOK HERE", `bbox after ref before local path\n${bboxTree.children[head].bbox.bboxVars.centerX.toString()}`);
       return bboxTree.children[head].bbox.bboxVars;
     }
   } else {
     // console.log("path", "adding transform", bboxTree.children[head].transform);
-    return transformBBox(resolveGestaltPathAux(bboxTree.children[head], tail), bboxTree.children[head].transform);
+    return transformBBox(resolveGestaltPathAux(bboxTree.children[head], tail), inverseTransformVE(bboxTree.children[head].transform));
   }
 };
 
@@ -269,8 +292,16 @@ const addGestaltConstraints = (bboxTree: BBoxTreeVVE, encoding: GlyphWithPath, c
       // const leftBBox = left === "canvas" ? bboxTree.canvas.bboxVars : bboxTree.children[left].bbox.bboxVars;
       // const rightBBox = right === "canvas" ? bboxTree.canvas.bboxVars :
       // bboxTree.children[right].bbox.bboxVars;
-      console.log("LOOK HERE", "g", g, "leftBBox", leftBBox, "rightBBox", rightBBox);
-      console.log("LOOK HERE", "constraint", g(leftBBox, rightBBox));
+      // console.log("LOOK HERE", "g", g, "leftBBox", leftBBox, "rightBBox", rightBBox);
+      const debugInfos = {
+        g,
+        leftBBox,
+        rightBBox,
+        leftBBoxLeft: leftBBox.left.toString(),
+        rightBBoxLeft: rightBBox.left.toString(),
+      };
+      console.log("LOOK HERE", `constraint\n${g(leftBBox, rightBBox).toString()}\n`, debugInfos);
+      // console.log(`adding gestalt constraint:\n\n${constr.map(c => c.toString()).join("\n\n")}`);
       constraints.push(g(leftBBox, rightBBox));
     }))
   }
@@ -383,7 +414,9 @@ const resolveRefs = (rootBboxTreeWithRef: BBoxTreeVVEWithRef, bboxTreeWithRef: B
       transform: bboxTransform,
     }
   } else {
-    const newTransform = composeTransformVE(transform, bboxTreeWithRef.transform);
+    console.log("LOOK HERE (compose)", `${bboxTreeWithRef.transform.translate.x}`);
+    const newTransform = path.length <= 1 ? transform : composeTransformVE(transform, bboxTreeWithRef.transform);
+    // const newTransform = composeTransformVE(transform, bboxTreeWithRef.transform);
     const compiledChildren: { [key: string]: BBoxTreeVVE } = Object.keys(bboxTreeWithRef.children).reduce((o: { [key: string]: Glyph }, glyphKey: any) => (
       {
         ...o, [glyphKey]: resolveRefs(rootBboxTreeWithRef, bboxTreeWithRef.children[glyphKey], [glyphKey, ...path], newTransform)
@@ -418,6 +451,7 @@ export const addBBoxValueConstraints = (bboxTree: BBoxTreeVVEWithRef, constraint
     }
 
     return {
+      inheritFrame: bboxTree.inheritFrame,
       bbox: bboxTree.bbox,
       // TODO: I don't think canvas has any pre-defined values so nothing is lost here by deleting them?
       canvas: bboxTree.canvas,
@@ -454,15 +488,29 @@ export const addBBoxConstraintsWithRef = (bboxTree: BBoxTreeVVEWithRef, constrai
 }
 
 /* mutates constraints */
-export const addTransformConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[]): void => {
+export const addTransformConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[], name = "$root"): void => {
   const keys = Object.keys(bboxTree.children);
-  keys.forEach((key) => addTransformConstraints(bboxTree.children[key], constraints));
+  keys.forEach((key) => addTransformConstraints(bboxTree.children[key], constraints, name + "/" + key));
 
   // bbox = transform(canvas)
-  constraints.push(new Constraint(bboxTree.bbox.bboxVars.width, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.width)));
-  constraints.push(new Constraint(bboxTree.bbox.bboxVars.height, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.height)));
-  constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerX, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerX, bboxTree.transform.translate.x)));
-  constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerY, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerY, bboxTree.transform.translate.y)));
+  const constr = [];
+  constr.push(new Constraint(bboxTree.bbox.bboxVars.width, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.width)));
+  constr.push(new Constraint(bboxTree.bbox.bboxVars.height, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.height)));
+  constr.push(new Constraint(bboxTree.bbox.bboxVars.centerX, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerX, bboxTree.transform.translate.x)));
+  constr.push(new Constraint(bboxTree.bbox.bboxVars.centerY, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerY, bboxTree.transform.translate.y)));
+  // console.log("pretty printed constraints", constraints.map((c) => c.toString()).join("\n"));
+  // console.log(`adding transform constraints to "${name}":\n\n${constr.map(c => c.toString()).join("\n\n")}`);
+  constraints.push(...constr);
+  // constraints.push(new Constraint(bboxTree.bbox.bboxVars.width, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.width)));
+  // constraints.push(new Constraint(bboxTree.bbox.bboxVars.height, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.height)));
+  // constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerX, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerX, bboxTree.transform.translate.x)));
+  // constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerY, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerY, bboxTree.transform.translate.y)));
+
+  if (bboxTree.inheritFrame) {
+    // bbox and canvas should be the same (no transformation applied!)
+    constraints.push(new Constraint(bboxTree.transform.translate.x, Operator.Eq, 0));
+    constraints.push(new Constraint(bboxTree.transform.translate.y, Operator.Eq, 0));
+  }
 }
 
 const removeRefs = (encoding: GlyphWithPath): GlyphWithPathNoRef | null => {
@@ -515,10 +563,15 @@ export default (encoding: Glyph): CompiledAST => {
   console.log("addGestaltConstraints complete")
 
   console.log("bboxTree", bboxTree);
+  // console.log("bboxTree and constraints pre compile", bboxTree, constraints);
 
   // 6. solve variables
   const solver = new Solver();
   constraints.forEach((constraint: Constraint) => solver.addConstraint(constraint));
+  // console.log("constraints[0]", constraints[0]);
+  // console.log("pretty printed constraints[0]", ppConstraint(constraints[0]));
+  // console.log("pretty printed constraints[0]", constraints[0].toString());
+  // console.log("pretty printed constraints", constraints.map((c) => c.toString()).join("\n"));
   solver.updateVariables();
 
   // 7. extract values

@@ -63,6 +63,10 @@ export type Shape_<
   K extends object & Extract<keyof K, Reserved> extends never ? object : never,
   Reserved extends Key,
   > = {
+    // inherit parent's coordinate frame. default is false
+    // currently used only to make sets' encapsulation more transparent
+    // this allows for smoother ramp from single element to set of elements
+    inheritFrame?: boolean,
     bbox?: MaybeBBoxValues,
     renderFn?: (canvas: BBoxValues, index?: number) => JSX.Element,
     shapes?: Record<keyof K, Shape>
@@ -150,6 +154,7 @@ export namespace ShapeFn {
         return (data: T): Shape => Shape.create({
           bbox: gf.bbox,
           renderFn: gf.renderFn,
+          inheritFrame: gf.inheritFrame,
           shapes: {
             // fields
             // TODO: is it possible to get rid of this `any`?
@@ -157,6 +162,7 @@ export namespace ShapeFn {
               const loweredShapes = mapDataRelation(data[k], v);
               if (loweredShapes instanceof Array) {
                 return Shape.create({
+                  inheritFrame: true,
                   shapes: loweredShapes.reduce((o, g, i) => ({
                     ...o, [i]: g
                   }), {})
@@ -222,6 +228,7 @@ export const lowerShape = <T>(g: Shape | MyRef): Compile.Glyph => {
     const kont = g[KONT];
     const glyph_ = kont((x: Shape_<any, ReservedKeywords>) => x);
     return {
+      inheritFrame: glyph_.inheritFrame ?? false,
       bbox: glyph_.bbox,
       renderFn: glyph_.renderFn,
       children: glyph_.shapes ? objectMap(glyph_.shapes, (k, v) => lowerShape(v)) : {},

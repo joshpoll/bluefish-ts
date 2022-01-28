@@ -1,0 +1,187 @@
+/* circle dimension constraint */
+// LOOK HERE constraint
+// 1*null[$root.elements.0.circle.canvas.width:0] + -1*null[$root.elements.0.circle.canvas.height:0]0 = 0 (1001001000)
+//  {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+/* circle dimension constraint */
+// compileWithRef.ts:300 LOOK HERE constraint
+// 1*null[$root.elements.1.circle.canvas.width:0] + -1*null[$root.elements.1.circle.canvas.height:0]0 = 0 (1001001000)
+//  {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+/* myArrow start circle constraint */
+// compileWithRef.ts:300 LOOK HERE constraint
+// 1*null[$root.neighbors.0.arrow.start.circle.canvas.width:0] + -1*null[$root.neighbors.0.arrow.start.circle.canvas.height:0]0 = 0 (1001001000)
+//  {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+/* myArrow end circle constraint */
+// compileWithRef.ts:300 LOOK HERE constraint
+// 1*null[$root.neighbors.0.arrow.end.circle.canvas.width:0] + -1*null[$root.neighbors.0.arrow.end.circle.canvas.height:0]0 = 0 (1001001000)
+//  {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+/* align arrow start left with line left */
+// compileWithRef.ts:300 LOOK HERE constraint
+// 1*null[$root.neighbors.0.arrow.start.left:0] + -1*null[$root.neighbors.0.arrow.line.left:0]0 = 0 (1001001000)
+//  {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+/* align arrow start top with line top */
+// compileWithRef.ts:300 LOOK HERE constraint
+// 1*null[$root.neighbors.0.arrow.start.top:0] + -1*null[$root.neighbors.0.arrow.line.top:0]0 = 0 (1001001000)
+//  {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+/* align line right with arrow end right */
+// compileWithRef.ts:300 LOOK HERE constraint
+// 1*null[$root.neighbors.0.arrow.line.right:0] + -1*null[$root.neighbors.0.arrow.end.right:0]0 = 0 (1001001000)
+//  {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+/* align line bottom with arrow end bottom */
+// compileWithRef.ts:300 LOOK HERE constraint
+// 1*null[$root.neighbors.0.arrow.line.bottom:0] + -1*null[$root.neighbors.0.arrow.end.bottom:0]0 = 0 (1001001000)
+//  {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+
+
+/* the possible culprits! (ofc they have (spurious) transformations) */
+
+/* 
+"curr->arrow/start": [C.alignCenter, C.alignMiddle],
+"arrow/end->next": [C.alignCenter, C.alignMiddle],
+ */
+
+
+elements.0.centerX - elements.x + $root.x + neighbors.x + neighbors.0.x - neighbors.0.arrow.start.centerX - neighbors.0.arrow.x = 0
+
+elements.0.centerX - elements.x  /* don't want/need root here! */ + $root.x = neighbors.0.arrow.x + neighbors.0.arrow.start.centerX - neighbors.0.x - neighbors.x
+
+elements.0.centerX // good
+  // MISSING? elements.0.x
+  - elements.x     // good
+  /* bad: + $root.x */
+=
+neighbors.0.arrow.start.centerX // good
+  // MISSING? neighbors.0.arrow.start.x
+  - neighbors.0.arrow.x // positive??
+  - neighbors.0.x // good
+  - neighbors.x // good
+
+/* This is what it should actually be!!! */
+/* start just outside the canvas and end _before_ the shared frame (in this case root) */
+elements.0.centerX
+  - elements.x
+=
+neighbors.0.arrow.start.centerX
+  - neighbors.0.arrow.x
+  - neighbors.0.x
+  - neighbors.x
+
+/* leftBBox */
+elements.0.centerX - elements.x + $root.x /* $root term shouldn't be here */ + neighbors.x + neighbors.0.x
+
+/* rightBBox */
+neighbors.0.arrow.start.centerX + /* should be - */ neighbors.0.arrow.x
+
+/* TODO: track down which parts are coming from refs and which parts are coming from local paths */
+
+/* 
+1*null[$root.elements.0.centerX:0] + -1*null[$root.elements.transform.translate.x:0] + 1*null[$root.transform.translate.x:0] + 1*null[$root.neighbors.transform.translate.x:0] + 1*null[$root.neighbors.0.transform.translate.x:0]0
+ */
+/* 
+1*null[$root.elements.0.centerX:0] + -1*null[$root.elements.transform.translate.x:0] + 1*null[$root.neighbors.transform.translate.x:0] + 1*null[$root.neighbors.0.transform.translate.x:0]0
+ */
+elements.0.centerX
+  - elements.x
+  + neigbhors.x
+  + neighbors.0.x
+
+/* 
+null[$root.neighbors.0.arrow.start.centerX:0]
+ */
+ neighbors.0.arrow.start.centerX
+
+/* 
+1*null[$root.elements.0.centerX:0] + -1*null[$root.elements.transform.translate.x:0] + 1*null[$root.neighbors.transform.translate.x:0] + 1*null[$root.neighbors.0.transform.translate.x:0] + -1*null[$root.neighbors.0.arrow.start.centerX:0] + -1*null[$root.neighbors.0.arrow.transform.translate.x:0]0 = 0 (1001001000)
+ */
+/* 
+1*null[$root.neighbors.transform.translate.x:0] + 1*null[$root.neighbors.0.transform.translate.x:0] + -1*null[$root.neighbors.0.arrow.start.centerX:0] + -1*null[$root.neighbors.0.arrow.transform.translate.x:0]0 = 0 (1001001000)
+ */
+- elements.x
++ elements.0.centerX
+=
+  - neigbhors.x
+  - neighbors.0.x
+  + neighbors.0.arrow.x // should be negative!!!
+  + neighbors.0.arrow.start.x
+
+/* 
+1*null[$root.elements.0.centerX:0] + -1*null[$root.elements.transform.translate.x:0] + 1*null[$root.neighbors.transform.translate.x:0] + 1*null[$root.neighbors.0.transform.translate.x:0] + -1*null[$root.neighbors.0.arrow.start.centerX:0] + 1*null[$root.neighbors.0.arrow.transform.translate.x:0]0 = 0 (1001001000)
+ */
++ elements.0.centerX
+- elements.x
++ neighbors.x
++ neighbors.0.x
+- neighbors.0.arrow.start.x
++ neighbors.0.arrow.x
+= 0
+
+
+
+- elements.x // 0
++ elements.0.centerX // 55
+=
+- neighbors.x // 0
+- neighbors.0.x // 0
+- neighbors.0.arrow.x // -26
++ neighbors.0.arrow.start.x // 29
+
+/* EQUAL!!!! */
+
+/* 
+1*null[$root.elements.0.centerY:0] + -1*null[$root.elements.transform.translate.y:0] + 1*null[$root.neighbors.transform.translate.y:0] + 1*null[$root.neighbors.0.transform.translate.y:0] + -1*null[$root.neighbors.0.arrow.start.centerY:0] + 1*null[$root.neighbors.0.arrow.transform.translate.y:0]0 = 0 (1001001000)
+ */
+
+- elements.y
++ elements.0.centerY
+=
+- neighbors.y
+- neighbors.0.y
+- neighbors.0.arrow.y
++ neighbors.0.arrow.start.y
+
+/* 
+1*null[$root.neighbors.0.arrow.end.centerX:0] + -1*null[$root.neighbors.0.arrow.transform.translate.x:0] + -1*null[$root.elements.1.centerX:0] + 1*null[$root.elements.transform.translate.x:0] + -1*null[$root.neighbors.transform.translate.x:0] + -1*null[$root.neighbors.0.transform.translate.x:0]0 = 0 (1001001000)
+ */
+
+- neigbhors.x
+- neighbors.0.x
+- neighbors.0.arrow.x
++ neighbors.0.arrow.end.centerX
+=
+- elements.x
++ elements.1.centerX
+
+compileWithRef.ts:300 LOOK HERE constraint
+1*null[$root.elements.0.centerX:0] + -1*null[$root.elements.transform.translate.x:0] + 1*null[$root.transform.translate.x:0] + 1*null[$root.neighbors.transform.translate.x:0] + 1*null[$root.neighbors.0.transform.translate.x:0] + -1*null[$root.neighbors.0.arrow.start.centerX:0] + -1*null[$root.neighbors.0.arrow.transform.translate.x:0]0 = 0 (1001001000)
+ {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+compileWithRef.ts:300 LOOK HERE constraint
+1*null[$root.elements.0.centerY:0] + -1*null[$root.elements.transform.translate.y:0] + 1*null[$root.transform.translate.y:0] + 1*null[$root.neighbors.transform.translate.y:0] + 1*null[$root.neighbors.0.transform.translate.y:0] + -1*null[$root.neighbors.0.arrow.start.centerY:0] + -1*null[$root.neighbors.0.arrow.transform.translate.y:0]0 = 0 (1001001000)
+ {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+compileWithRef.ts:300 LOOK HERE constraint
+1*null[$root.neighbors.0.arrow.end.centerX:0] + 1*null[$root.neighbors.0.arrow.transform.translate.x:0] + -1*null[$root.elements.1.centerX:0] + 1*null[$root.elements.transform.translate.x:0] + -1*null[$root.transform.translate.x:0] + -1*null[$root.neighbors.transform.translate.x:0] + -1*null[$root.neighbors.0.transform.translate.x:0]0 = 0 (1001001000)
+ {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+compileWithRef.ts:300 LOOK HERE constraint
+1*null[$root.neighbors.0.arrow.end.centerY:0] + 1*null[$root.neighbors.0.arrow.transform.translate.y:0] + -1*null[$root.elements.1.centerY:0] + 1*null[$root.elements.transform.translate.y:0] + -1*null[$root.transform.translate.y:0] + -1*null[$root.neighbors.transform.translate.y:0] + -1*null[$root.neighbors.0.transform.translate.y:0]0 = 0 (1001001000)
+ {leftBBox: {…}, rightBBox: {…}, g: ƒ}
+
+// -----------------------------------
+
+1*null[$root.neighbors.1.arrow.end.centerY:0] + -1*null[$root.neighbors.1.arrow.transform.translate.y:0] + -1*null[$root.elements.2.centerY:0] + 1*null[$root.elements.transform.translate.y:0] + -1*null[$root.neighbors.transform.translate.y:0] + -1*null[$root.neighbors.1.transform.translate.y:0]0 = 0 (1001001000)
+
+- neigbhors.y
+- neighbors.1.y
+- neighbors.1.arrow.y
++ neigbhors.1.arrow.end.centerY
+=
+- elements.y
++ elements.2.centerY

@@ -1,5 +1,7 @@
-import { Shape, BBoxValues, createShape, constraints as C } from '@bfjs/core';
+import * as C from './constraints';
+import { BBoxValues } from './kiwiBBoxTransform';
 import { measureText } from './measureText';
+import { createShape, Shape } from './shapeAPI';
 
 type RectParams = {
   x?: number,
@@ -7,19 +9,20 @@ type RectParams = {
   width?: number,
   height?: number,
   fill?: string,
+  fillOpacity?: number,
   stroke?: string,
   strokeWidth?: number,
 }
 
 // TODO: incorporate stroke and strokeWidth into bounding box computations
-export const rect = ({ x, y, width, height, fill, stroke, strokeWidth }: RectParams): Shape => createShape(
+export const rect = ({ x, y, width, height, fill, fillOpacity, stroke, strokeWidth }: RectParams): Shape => createShape(
   {
     // return the positioning parameters the user gave us
     bbox: { left: x, top: y, width, height },
     // and the rendering function itself
     renderFn: (canvas: BBoxValues, index?: number) => {
       return <rect key={index} x={canvas.left} y={canvas.top
-      } width={canvas.width} height={canvas.height} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
+      } width={canvas.width} height={canvas.height} fill={fill} fillOpacity={fillOpacity} stroke={stroke} strokeWidth={strokeWidth} />
     }
   }
 )
@@ -75,6 +78,7 @@ type TextParams = {
   fill?: string,
 }
 
+// TODO: use 'alphabetic' baseline in renderer? may need to figure out displacement again
 // TODO: maybe use https://airbnb.io/visx/docs/text?
 // TODO: maybe use alignmentBaseline="baseline" to measure the baseline as well?? need to add it as
 // a guide
@@ -87,7 +91,7 @@ export const text = ({ x, y, contents, fontFamily = "sans-serif", fontSize = "12
     bbox: { left: x, top: y, width: measurements.width, height: measurements.fontHeight },
     // and the rendering function itself
     renderFn: (canvas: BBoxValues, index?: number) => {
-      return <text key={index} x={canvas.left} y={canvas.bottom - measurements.fontDescent} fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fontWeight={fontWeight} fill={fill}>
+      return <text key={index} x={canvas.left} y={canvas.bottom - measurements.fontDescent} /* dominantBaseline={"alphabetic"} */ fontFamily={fontFamily} fontSize={fontSize} fontStyle={fontStyle} fontWeight={fontWeight} fill={fill}>
         {contents}
       </text>
     }
@@ -193,9 +197,33 @@ export const arrow = ({ x1, y1, x2, y2, stroke, strokeWidth = 1 }: ArrowParams):
   });
 }
 
+// box.center = line.top
+
+// box->line: [C.alignTop, C.alignLeft]
+
+// box->arrow/start: [C.alignCenter]
+
 export const nil = (): Shape => createShape(
   {
     bbox: { width: 0., height: 0, },
+    // and the rendering function itself
+    renderFn: (canvas: BBoxValues, index?: number) => {
+      return <></>
+    }
+  }
+)
+
+// an invisible mark useful for specifying locations.
+// TODO: maybe this shouldn't be a mark, but something closer measurements like width, height, top,
+// bottom, etc.?
+type LocParams = {
+  x?: number,
+  y?: number,
+}
+
+export const loc = ({ x, y }: LocParams): Shape => createShape(
+  {
+    bbox: { centerX: x, centerY: y, width: 0., height: 0, },
     // and the rendering function itself
     renderFn: (canvas: BBoxValues, index?: number) => {
       return <></>

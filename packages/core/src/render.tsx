@@ -8,11 +8,12 @@ const renderAux = (index: number, name: string, { bboxValues, encoding }: Compil
 
   const childKeys = Object.keys(encoding.children);
 
-  if (childKeys.length == 0) {
-    // render bbox directly, no need for <g> transform
-    console.log("name", name, "bboxValues", bboxValues, "branch 0");
-    return encoding.renderFn !== undefined ? (encoding.renderFn as ((canvas: BBoxValues, index?: number) => JSX.Element))(bboxValues.bbox, index) : <></>;
-  } else if (childKeys.length == 1 && encoding.renderFn === undefined) {
+  // if (childKeys.length == 0) {
+  //   // render bbox directly, no need for <g> transform
+  //   console.log("name", name, "bboxValues", bboxValues, "branch 0");
+  //   return encoding.renderFn !== undefined ? (encoding.renderFn as ((canvas: BBoxValues, index?: number) => JSX.Element))(bboxValues.bbox, index) : <></>;
+  // } else if (childKeys.length == 1 && encoding.renderFn === undefined) {
+  if (false) {
     // pass translation through to child
     console.log("name", name, "bboxValues", bboxValues, "branch 1");
     const glyphKey = childKeys[0];
@@ -40,7 +41,7 @@ const renderAux = (index: number, name: string, { bboxValues, encoding }: Compil
     return renderAux(0, glyphKey, { bboxValues: { ...bboxValues.children[glyphKey], bbox, transform: newTransform }, encoding: encoding.children[glyphKey] })
   } else {
     console.log("name", name, "bboxValues", bboxValues, "branch 2");
-    return (<g key={index} transform={`translate(${bboxValues.transform.translate.x} ${bboxValues.transform.translate.y})`}>
+    return (<g className={name} key={index} transform={`translate(${bboxValues.transform.translate.x} ${bboxValues.transform.translate.y})`}>
       {Object.keys(encoding.children).map((glyphKey: any, index: number) => (
         renderAux(index, glyphKey, { bboxValues: bboxValues.children[glyphKey], encoding: encoding.children[glyphKey] })
       )

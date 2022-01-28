@@ -1,9 +1,7 @@
 import { BBoxValues, bboxVarExprs } from './kiwiBBoxTransform';
-// import { Glyph, GlyphFn, compileGlyphFn, MyList, mkMyRef, lowerGlyphFn, glyphFnToHostGlyphFn,
-// Relation, MyRef } from './glyphExistentialAPI';
-import { render, createShape, createShapeFn, compileShapeFn, mkMyRef, lowerShapeFn, MyList, Relation, MyRef, Shape, ShapeFn, HostShapeFn, lowerShape, makePathsAbsolute } from './shapeAPI';
-import compileWithRef from './compileWithRef';
+import { render, createShape, createShapeFn, mkMyRef, MyList, Relation, MyRef, Shape, ShapeFn, HostShapeFn } from './shapeAPI';
 import * as constraints from './constraints';
+import * as marks from './marks';
 
 export {
   createShape,
@@ -11,6 +9,7 @@ export {
   mkMyRef,
   render,
   constraints,
+  marks,
 }
 
 export type {
