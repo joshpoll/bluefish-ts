@@ -5,6 +5,7 @@ import compileWithRef from './compileWithRef';
 import { objectMap, objectFilter } from "./objectMap";
 import _ from "lodash";
 import renderAST from './render';
+import { makePathsAbsolute, RelativeBFValue, AbsoluteBFValue } from './absoluteDataPaths';
 
 /// pre-amble ///
 // https://stackoverflow.com/a/49683575. merges record intersection types
@@ -331,26 +332,26 @@ const resolvePath = (pathList: (number | string)[], pathFromRoot: Key[]): string
   }
 }
 
-export const makePathsAbsolute = <T>(data: T, pathFromRoot: Key[] = []): T => {
-  console.log("current path from root", pathFromRoot);
-  if (data === null) {
-    return data
-  } else if (Array.isArray(data)) { // array/relation
-    return data.map((d, i) => makePathsAbsolute(d, [i, ...pathFromRoot])) as any as T;
-  } else if (typeof data === "object" && !("$ref" in data)) { // object/record/instance
-    return objectMap(data, (k, v) => makePathsAbsolute(v, [k, ...pathFromRoot])) as any as T;
-  } else if (typeof data === "object") { // ref (where the actual work is done!)
-    const ref = data as unknown as Ref<any, any>;
-    console.log("making this ref absolute", ref, pathFromRoot);
-    const pathList = parsePath(ref.path);
-    // automatically bump one level up when resolving paths
-    const absolutePath = resolvePath(pathList, pathFromRoot.slice(1));
-    console.log("absolute path", absolutePath);
-    return { $ref: true, path: absolutePath } as any as T;
-  } else {
-    return data;
-  }
-}
+// export const makePathsAbsolute = <T>(data: T, pathFromRoot: Key[] = []): T => {
+//   console.log("current path from root", pathFromRoot);
+//   if (data === null) {
+//     return data
+//   } else if (Array.isArray(data)) { // array/relation
+//     return data.map((d, i) => makePathsAbsolute(d, [i, ...pathFromRoot])) as any as T;
+//   } else if (typeof data === "object" && !("$ref" in data)) { // object/record/instance
+//     return objectMap(data, (k, v) => makePathsAbsolute(v, [k, ...pathFromRoot])) as any as T;
+//   } else if (typeof data === "object") { // ref (where the actual work is done!)
+//     const ref = data as unknown as Ref<any, any>;
+//     console.log("making this ref absolute", ref, pathFromRoot);
+//     const pathList = parsePath(ref.path);
+//     // automatically bump one level up when resolving paths
+//     const absolutePath = resolvePath(pathList, pathFromRoot.slice(1));
+//     console.log("absolute path", absolutePath);
+//     return { $ref: true, path: absolutePath } as any as T;
+//   } else {
+//     return data;
+//   }
+// }
 
 // TODO: make refs to refs work???
 // TODO: 
@@ -371,8 +372,8 @@ export type MyList<T> = {
 }
 
 export function render(shape: Shape): JSX.Element;
-export function render<T>(data: T, shapeFn: HostShapeFn<T>): JSX.Element;
-export function render<T>(shapeOrData: Shape | T, shapeFn?: HostShapeFn<T>): JSX.Element {
-  const shape = shapeFn ? shapeFn(makePathsAbsolute(shapeOrData as T)) : shapeOrData as Shape;
+export function render<T extends RelativeBFValue>(data: T, shapeFn: HostShapeFn<T>): JSX.Element;
+export function render<T extends RelativeBFValue>(shapeOrData: Shape | T, shapeFn?: HostShapeFn<T>): JSX.Element {
+  const shape = shapeFn ? shapeFn(makePathsAbsolute(shapeOrData as T) as T) : shapeOrData as Shape;
   return renderAST(compileWithRef(lowerShape(shape)));
 }

@@ -35,7 +35,7 @@ const listTestTooLow = {
 function App() {
   console.log(makePathsAbsolute(data));
   console.log(makePathsAbsolute(listTest));
-  console.log(makePathsAbsolute(listTestTooHigh));
+  // console.log(makePathsAbsolute(listTestTooHigh));
   // console.log(makePathsAbsolute(listTestTooLow));
   // console.log("loweredGlyphTest", loweredGlyphTest);
   return (
@@ -44,7 +44,7 @@ function App() {
         <br />
         <br />
         <br />
-        {/* {randomGraph} */}
+        {randomGraph}
         {/* <br />
         <br />
         <br />

@@ -308,8 +308,9 @@ const addGestaltConstraints = (bboxTree: BBoxTreeVVE, encoding: GlyphWithPath, c
 }
 
 const lookupPath = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTreeVVE => {
-  const hd = path[path.length - 1];
-  const tl = path.slice(0, -1);
+  // const hd = path[path.length - 1];
+  // const tl = path.slice(0, -1);
+  const [hd, ...tl] = path;
   // console.log("current path", hd, tl, bboxTreeWithRef);
   if (tl.length === 0) {
     if ("$ref" in bboxTreeWithRef) {
