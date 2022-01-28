@@ -1,6 +1,6 @@
 import { hSpace, vSpace, alignLeft, alignBottom, alignRight, alignTop, Gestalt, containsShrinkWrap, contains, alignBottomStrong, alignLeftStrong, alignTopStrong, alignRightStrong, vAlignCenter, hAlignCenter, alignTopSpace, sameWidth, sameHeight, alignRightSpace, alignBottomSpace, alignLeftSpace } from '@bfjs/constraints';
 import { debug, ellipse, line, nil, rect, text } from '@bfjs/marks';
-import { Shape, HostShapeFn, MyList, mkMyRef, createShapeFn, createShape, render } from '@bfjs/core';
+import { Shape, HostShapeFn, MyList, ref, createShapeFn, createShape, render } from '@bfjs/core';
 import * as _ from "lodash";
 import { zipWith } from 'lodash';
 import * as scale from "d3-scale";
@@ -21,7 +21,7 @@ const mkList = <T>(elements: T[]): MyList<T> => ({
     zipWith(
       _.range(elements.length - 1),
       _.range(1, elements.length),
-      (curr, next) => ({ curr: mkMyRef(`../../elements/${curr}`), next: mkMyRef(`../../elements/${next}`) })
+      (curr, next) => ({ curr: ref(`../../elements/${curr}`), next: ref(`../../elements/${next}`) })
     ),
 });
 

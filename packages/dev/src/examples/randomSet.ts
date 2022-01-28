@@ -1,5 +1,5 @@
 import { constraints as C, marks as M } from '@bfjs/core';
-import { Shape, HostShapeFn, MyList, mkMyRef as ref, createShapeFn, createShape, render } from '@bfjs/core';
+import { Shape, HostShapeFn, MyList, ref, createShapeFn, createShape, render } from '@bfjs/core';
 import * as _ from "lodash";
 import { zipWith } from 'lodash';
 import * as scale from "d3-scale";

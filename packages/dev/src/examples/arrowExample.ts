@@ -1,5 +1,5 @@
 import { constraints as C, marks as M } from '@bfjs/core';
-import { Shape, HostShapeFn, MyList, mkMyRef, createShapeFn, createShape, render } from '@bfjs/core';
+import { Shape, HostShapeFn, MyList, ref, createShapeFn, createShape, render } from '@bfjs/core';
 import * as _ from "lodash";
 import { zipWith } from 'lodash';
 import * as scale from "d3-scale";
@@ -20,7 +20,7 @@ const mkList = <T>(elements: T[]): MyList<T> => ({
     zipWith(
       _.range(elements.length - 1),
       _.range(1, elements.length),
-      (curr, next) => ({ curr: mkMyRef(`../../elements/${curr}`), next: mkMyRef(`../../elements/${next}`) })
+      (curr, next) => ({ curr: ref(`../../elements/${curr}`), next: ref(`../../elements/${next}`) })
     ),
 });
 

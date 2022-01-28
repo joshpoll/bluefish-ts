@@ -5,7 +5,7 @@ import compileWithRef from './compileWithRef';
 import { objectMap, objectFilter } from "./objectMap";
 import _ from "lodash";
 import renderAST from './render';
-import { makePathsAbsolute, RelativeBFValue, AbsoluteBFValue } from './absoluteDataPaths';
+import { makePathsAbsolute, RelativeBFValue, RelativeBFRef } from './absoluteDataPaths';
 
 /// pre-amble ///
 // https://stackoverflow.com/a/49683575. merges record intersection types
@@ -28,8 +28,8 @@ type AllowedFieldsWithType<Obj, Type> = {
 // https://stackoverflow.com/a/50900933
 type ExtractFieldsOfType<Obj, Type> = AllowedFieldsWithType<Obj, Type>[keyof Obj]
 
-type OmitRef<T> = Omit<T, ExtractFieldsOfType<T, MyRef>>
-type ExtractRefKeys<T> = keyof T[ExtractFieldsOfType<T, MyRef>]
+type OmitRef<T> = Omit<T, ExtractFieldsOfType<T, RelativeBFRef>>
+type ExtractRefKeys<T> = keyof T[ExtractFieldsOfType<T, RelativeBFRef>]
 
 /// relation semantics stuff ///
 export type Relation<T> = T[]
@@ -220,7 +220,7 @@ const lowerShapeRelation = (gr: ShapeRelation): Compile.Relation[] => {
   return rels as Compile.Relation[];
 };
 
-export const lowerShape = <T>(g: Shape | MyRef): Compile.Glyph => {
+export const lowerShape = <T>(g: Shape | RelativeBFRef): Compile.Glyph => {
   if ("$ref" in g) {
     console.log("shape", g);
     // TODO: really sus cast here
@@ -259,16 +259,6 @@ const mapDataRelation = <T, U>(r: T, f: (d: RelationInstance<T>) => U): U | Rela
 export const lowerShapeFn = <T>(gf: HostShapeFn<T>): ((data: T) => Compile.Glyph) => {
   return (data: T) => lowerShape(gf(data));
 };
-
-export type MyRef = {
-  $ref: true,
-  path: string,
-}
-
-export const mkMyRef = (path: string): MyRef => ({
-  $ref: true,
-  path,
-})
 
 // TODO: to get refs to work, I think all I need to do is push them into the relations as paths!!
 // ok but maybe instead resolve all paths to absolute paths from top-level input
@@ -366,8 +356,8 @@ export type MyList<T> = {
   elements: Relation<T>,
   // TODO: can refine Ref type even more to say what it refers to
   neighbors: Relation<{
-    curr: MyRef,
-    next: MyRef,
+    curr: RelativeBFRef,
+    next: RelativeBFRef,
   }>
 }
 

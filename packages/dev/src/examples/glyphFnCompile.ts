@@ -1,5 +1,5 @@
 import { alignCenterX, alignCenterY, alignLeft, hSpace, vAlignCenter, vSpace } from "@bfjs/constraints";
-import { createShapeFn, Shape, HostShapeFn, mkMyRef, MyList, MyRef, Relation, render } from '@bfjs/core';
+import { createShapeFn, RelativeBFRef, HostShapeFn, MyList, Relation, render, ref } from '@bfjs/core';
 import { ellipse, rect, text } from "@bfjs/marks";
 
 type myDataE2 = { color1: string, color2: string, color3: string };
@@ -71,9 +71,9 @@ type MarblesList = MyList<number>;
 const marblesList: MarblesList = {
   elements: [1, 2, 3, 4],
   neighbors: [
-    { curr: mkMyRef("../../elements/0"), next: mkMyRef("../../elements/1") },
-    { curr: mkMyRef("../../elements/1"), next: mkMyRef("../../elements/2") },
-    { curr: mkMyRef("../../elements/2"), next: mkMyRef("../../elements/3") },
+    { curr: ref("../../elements/0"), next: ref("../../elements/1") },
+    { curr: ref("../../elements/1"), next: ref("../../elements/2") },
+    { curr: ref("../../elements/2"), next: ref("../../elements/3") },
   ]
 };
 
@@ -94,13 +94,13 @@ export const testMarblesList = render(marblesList, marblesListGlyphFn);
 type MarblesListReduced = {
   marble1: number,
   marble2: number,
-  marble1Ref: MyRef,
+  marble1Ref: RelativeBFRef,
 };
 
 const marblesListReduced: MarblesListReduced = {
   marble1: 1,
   marble2: 2,
-  marble1Ref: mkMyRef("marble1"),
+  marble1Ref: ref("marble1"),
 };
 
 export const marblesListReducedGlyphFn: HostShapeFn<MarblesListReduced> = createShapeFn({
@@ -120,8 +120,8 @@ type MarblesListMoreComplex = {
   // marble1: number,
   // marble2: number,
   neighbor: Relation<{
-    curr: MyRef,
-    next: MyRef,
+    curr: RelativeBFRef,
+    next: RelativeBFRef,
   }>,
 };
 
@@ -129,12 +129,12 @@ const marblesListMoreComplex: MarblesListMoreComplex = {
   marbles: [1, 2, 3],
   neighbor: [
     {
-      curr: mkMyRef("../../marbles/0"),
-      next: mkMyRef("../../marbles/1"),
+      curr: ref("../../marbles/0"),
+      next: ref("../../marbles/1"),
     },
     {
-      curr: mkMyRef("../../marbles/1"),
-      next: mkMyRef("../../marbles/2"),
+      curr: ref("../../marbles/1"),
+      next: ref("../../marbles/2"),
     }
   ]
 };
@@ -173,12 +173,12 @@ const twoSetsOfMarblesData: {
     marbles: [1, 2, 3],
     neighbor: [
       {
-        curr: mkMyRef("../../marbles/0"),
-        next: mkMyRef("../../marbles/1"),
+        curr: ref("../../marbles/0"),
+        next: ref("../../marbles/1"),
       },
       {
-        curr: mkMyRef("../../marbles/1"),
-        next: mkMyRef("../../marbles/2"),
+        curr: ref("../../marbles/1"),
+        next: ref("../../marbles/2"),
       }
     ]
   },
@@ -186,12 +186,12 @@ const twoSetsOfMarblesData: {
     marbles: [10, 20, 30],
     neighbor: [
       {
-        curr: mkMyRef("../../marbles/0"),
-        next: mkMyRef("../../marbles/1"),
+        curr: ref("../../marbles/0"),
+        next: ref("../../marbles/1"),
       },
       {
-        curr: mkMyRef("../../marbles/1"),
-        next: mkMyRef("../../marbles/2"),
+        curr: ref("../../marbles/1"),
+        next: ref("../../marbles/2"),
       }
     ]
   },

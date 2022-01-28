@@ -69,6 +69,9 @@ function App() {
         <br />
         <br />
         {barChart} */}
+        {/* {barChart} */}
+        {constraintExample}
+        {testTwoMarbleSets}
       </header>
     </div>
   );

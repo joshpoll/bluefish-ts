@@ -1,4 +1,4 @@
-import { constraints as C, marks as M, ref, RelativeBFRef } from '@bfjs/core';
+import { constraints as C, marks as M, ref, MyList } from '@bfjs/core';
 import { Shape, HostShapeFn, createShapeFn, createShape, render } from '@bfjs/core';
 import * as _ from "lodash";
 import { zipWith } from 'lodash';
@@ -15,17 +15,6 @@ const mkList = <T>(xs: T[]) => ({
       }
     ))
 })
-
-type Relation<T> = T[];
-
-export type MyList<T> = {
-  elements: Relation<T>,
-  // TODO: can refine Ref type even more to say what it refers to
-  neighbors: Relation<{
-    curr: RelativeBFRef,
-    next: RelativeBFRef,
-  }>
-}
 
 type ArrowParams = {
   x1?: number,
