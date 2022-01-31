@@ -311,68 +311,39 @@ const lookupPath = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTr
   // const hd = path[path.length - 1];
   // const tl = path.slice(0, -1);
   const [hd, ...tl] = path;
+  // we assume the input isn't a ref, because we assert this before recursive calls
+  // the top level could be a ref, but this is extremely unlikely so we ignore it (for now)
+  bboxTreeWithRef = bboxTreeWithRef as Exclude<BBoxTreeVVEWithRef, Ref>;
   // console.log("current path", hd, tl, bboxTreeWithRef);
-  if (tl.length === 0) {
-    if ("$ref" in bboxTreeWithRef) {
-      throw "error: reference to a reference is not yet implemented"
-    } else {
-      // TODO: this is brittle
-      let child;
-      if (hd in bboxTreeWithRef.children) {
-        child = bboxTreeWithRef.children[hd];
-      } else if ("$object" in bboxTreeWithRef.children) {
-        if ("children" in bboxTreeWithRef.children["$object"] && hd in bboxTreeWithRef.children["$object"].children) {
-          child = bboxTreeWithRef.children["$object"].children[hd]
-        } else {
-          throw `error: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
-        }
-      } else {
-        throw `error: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
-      }
-      if ("$ref" in child) {
-        throw "error: unexpected ref along path"
-      } else {
-        // return {
-        //   ...child,
-        //   children: {}, // avoids complexities like circular dependencies
-        // }
-        // TODO: this cast is unsafe if the child contains refs of its own
-        return child as BBoxTreeVVE;
-      }
-    }
+  let child;
+  if (hd in bboxTreeWithRef.children) {
+    child = bboxTreeWithRef.children[hd];
   } else {
-    if ("$ref" in bboxTreeWithRef) {
-      throw "error: found reference along path to glyph"
-    } else {
-      // TODO: I feel like I'm checking for refs too many times here!
-      // TODO: this is brittle
-      let child;
-      if (hd in bboxTreeWithRef.children) {
-        child = bboxTreeWithRef.children[hd];
-      } else if ("$object" in bboxTreeWithRef.children) {
-        if ("children" in bboxTreeWithRef.children["$object"] && hd in bboxTreeWithRef.children["$object"].children) {
-          child = bboxTreeWithRef.children["$object"].children[hd]
-        } else {
-          throw `error: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
-        }
-      } else {
-        throw `error: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
-      }
-      if ("$ref" in child) {
-        throw "error: unexpected ref along path"
-      } else {
-        const bboxTreeVVE = lookupPath(child, tl);
-        return {
-          ...bboxTreeVVE,
-          bbox: {
-            // we use the inverse transform here b/c we are "moving" the bbox up to the $root
-            bboxVars: transformBBox(bboxTreeVVE.bbox.bboxVars, inverseTransformVE(child.transform)),
-          }
-        }
+    throw `error: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
+  }
+
+  if ("$ref" in child) {
+    throw "error in shape path resolution: hit a reference"
+  }
+  if (tl.length === 0) {
+    // return {
+    //   ...child,
+    //   children: {}, // avoids complexities like circular dependencies
+    // }
+    // TODO: this cast is unsafe if the child contains refs of its own
+    return child as BBoxTreeVVE;
+  } else {
+    const bboxTreeVVE = lookupPath(child, tl);
+    return {
+      ...bboxTreeVVE,
+      bbox: {
+        // we use the inverse transform here b/c we are "moving" the bbox up to the $root
+        bboxVars: transformBBox(bboxTreeVVE.bbox.bboxVars, inverseTransformVE(child.transform)),
       }
     }
   }
 }
+
 const composeTransformVE = (t1: Transform<Variable | Expression>, t2: Transform<Variable | Expression>): Transform<Variable | Expression> => ({
   translate: {
     x: new Expression(t1.translate.x, t2.translate.x),
@@ -391,6 +362,7 @@ const resolveRefs = (rootBboxTreeWithRef: BBoxTreeVVEWithRef, bboxTreeWithRef: B
   // console.log("visiting", bboxTreeWithRef, transform);
   if ("$ref" in bboxTreeWithRef) {
     console.log("hit ref at", path, "with path", bboxTreeWithRef.path);
+    // const bboxTree = oldLookupPath(rootBboxTreeWithRef, bboxTreeWithRef.path);
     const bboxTree = lookupPath(rootBboxTreeWithRef, bboxTreeWithRef.path);
     // console.log("bboxTree here", bboxTree, transform);
     // we are using the transform here because we are "moving" the bbox from the $root down to us

@@ -3,7 +3,7 @@ import { barChart } from './examples/barchartExistential';
 // import { loweredGlyphTest, loweredGlyphMarbles } from './examples/exampleRelationInterfaceExistential';
 import { boundingBox } from './examples/boundingboxexample';
 import { constraintExample } from './examples/constraintexample';
-import { testTwoMarbleSets } from './examples/glyphFnCompile';
+import { testMarblesListReduced, testTwoMarbleSets } from './examples/glyphFnCompile';
 import { arrowExample } from './examples/arrowExample';
 import { randomSet } from './examples/randomSet';
 import { randomGraph } from './examples/randomGraph';
@@ -44,7 +44,7 @@ function App() {
         <br />
         <br />
         <br />
-        {randomGraph}
+        {/* {randomGraph} */}
         {/* <br />
         <br />
         <br />
@@ -72,6 +72,7 @@ function App() {
         {/* {barChart} */}
         {constraintExample}
         {testTwoMarbleSets}
+        {testMarblesListReduced}
       </header>
     </div>
   );

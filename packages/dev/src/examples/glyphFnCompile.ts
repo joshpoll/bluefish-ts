@@ -1,6 +1,6 @@
 import { alignCenterX, alignCenterY, alignLeft, hSpace, vAlignCenter, vSpace } from "@bfjs/constraints";
 import { createShapeFn, RelativeBFRef, HostShapeFn, MyList, Relation, render, ref } from '@bfjs/core';
-import { ellipse, rect, text } from "@bfjs/marks";
+import { ellipse, rect, text, nil } from "@bfjs/marks";
 
 type myDataE2 = { color1: string, color2: string, color3: string };
 const dataE2: myDataE2 = { color1: "firebrick", color2: "steelblue", color3: "black", /* "text": "hello world!" */ };
