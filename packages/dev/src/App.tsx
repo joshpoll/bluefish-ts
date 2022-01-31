@@ -7,6 +7,7 @@ import { testMarblesListReduced, testTwoMarbleSets } from './examples/glyphFnCom
 import { arrowExample } from './examples/arrowExample';
 import { randomSet } from './examples/randomSet';
 import { randomGraph } from './examples/randomGraph';
+import { geoffreyDiagram } from './examples/geoffreyDiagram';
 import { ref, makePathsAbsolute } from '@bfjs/core';
 
 const data = { "a": 1, "b": null };
@@ -70,9 +71,10 @@ function App() {
         <br />
         {barChart} */}
         {/* {barChart} */}
-        {constraintExample}
+        {/* {constraintExample}
         {testTwoMarbleSets}
-        {testMarblesListReduced}
+        {testMarblesListReduced} */}
+        {geoffreyDiagram}
       </header>
     </div>
   );

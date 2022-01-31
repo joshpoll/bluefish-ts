@@ -326,12 +326,12 @@ const lookupPath = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTr
     throw "error in shape path resolution: hit a reference"
   }
   if (tl.length === 0) {
-    // return {
-    //   ...child,
-    //   children: {}, // avoids complexities like circular dependencies
-    // }
-    // TODO: this cast is unsafe if the child contains refs of its own
-    return child as BBoxTreeVVE;
+    // clearing the children avoids the complexities of children that are refs
+    // however, it also prevents people from using writing constraints that refer to a child of a ref
+    return {
+      ...child,
+      children: {},
+    }
   } else {
     const bboxTreeVVE = lookupPath(child, tl);
     return {
@@ -462,8 +462,11 @@ export const addBBoxConstraintsWithRef = (bboxTree: BBoxTreeVVEWithRef, constrai
 
 /* mutates constraints */
 export const addTransformConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[], name = "$root"): void => {
+  console.log("got here 1", bboxTree);
   const keys = Object.keys(bboxTree.children);
   keys.forEach((key) => addTransformConstraints(bboxTree.children[key], constraints, name + "/" + key));
+
+  console.log("got here 2");
 
   // bbox = transform(canvas)
   const constr = [];
@@ -478,12 +481,13 @@ export const addTransformConstraints = (bboxTree: BBoxTreeVVE, constraints: Cons
   // constraints.push(new Constraint(bboxTree.bbox.bboxVars.height, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.height)));
   // constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerX, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerX, bboxTree.transform.translate.x)));
   // constraints.push(new Constraint(bboxTree.bbox.bboxVars.centerY, Operator.Eq, new Expression(bboxTree.canvas.bboxVars.centerY, bboxTree.transform.translate.y)));
-
+  console.log("got here 3");
   if (bboxTree.inheritFrame) {
     // bbox and canvas should be the same (no transformation applied!)
     constraints.push(new Constraint(bboxTree.transform.translate.x, Operator.Eq, 0));
     constraints.push(new Constraint(bboxTree.transform.translate.y, Operator.Eq, 0));
   }
+  console.log("got here 4");
 }
 
 const removeRefs = (encoding: GlyphWithPath): GlyphWithPathNoRef | null => {
