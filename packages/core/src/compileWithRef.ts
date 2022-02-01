@@ -250,11 +250,17 @@ const resolveGestaltPathAux = (bboxTree: BBoxTreeVVE, path: string[]): bboxVarEx
   console.log("gestalt path", path, bboxTree);
   const [head, ...tail] = path;
   // console.log("path", "head", head, "tail", tail);
+
+  if (head !== "$canvas" && !(head in bboxTree.children)) {
+    throw `error in rels path resolution: trying to find ${head} among ${Object.keys(bboxTree.children).join(', ')}. Path remaining: ${path}`;
+  }
+
   if (tail.length === 0) {
     if (head === "$canvas") {
       return bboxTree.canvas.bboxVars;
     } else {
-      console.log("LOOK HERE", `bbox after ref before local path\n${bboxTree.children[head].bbox.bboxVars.centerX.toString()}`);
+      // console.log("LOOK HERE", `bbox after ref before local
+      // path\n${bboxTree.children[head].bbox.bboxVars.centerX.toString()}`);
       return bboxTree.children[head].bbox.bboxVars;
     }
   } else {
@@ -319,7 +325,7 @@ const lookupPath = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTr
   if (hd in bboxTreeWithRef.children) {
     child = bboxTreeWithRef.children[hd];
   } else {
-    throw `error: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
+    throw `error in shape path resolution: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
   }
 
   if ("$ref" in child) {
