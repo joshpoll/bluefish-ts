@@ -245,7 +245,6 @@ const resolvePaths = (path: string, pathList: string[], encoding: Glyph): GlyphW
   }
 }
 
-// TODO: this seems very wrong!
 const resolveGestaltPathAux = (bboxTree: BBoxTreeVVE, path: string[]): bboxVarExprs => {
   console.log("gestalt path", path, bboxTree);
   const [head, ...tail] = path;
