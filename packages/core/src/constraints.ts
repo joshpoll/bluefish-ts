@@ -201,3 +201,12 @@ export const eqWidthHeight = (left: bboxVarExprs, right: bboxVarExprs) => {
     right.height,
   )
 }
+
+export const makeEqual = (leftDim: keyof bboxVarExprs, rightDim: keyof bboxVarExprs) =>
+  (left: bboxVarExprs, right: bboxVarExprs) => {
+    return new Constraint(
+      left[leftDim],
+      Operator.Eq,
+      right[rightDim],
+    )
+  }

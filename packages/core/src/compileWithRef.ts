@@ -272,14 +272,6 @@ const resolveGestaltPath = (bboxTree: BBoxTreeVVE, path: string): bboxVarExprs =
   return resolveGestaltPathAux(bboxTree, path.split('/'));
 };
 
-// const resolveGestaltPath = (bboxTree: BBoxTreeVVE, name: string): bboxVarExprs => {
-//   if (name === "$canvas") {
-//     return bboxTree.canvas.bboxVars;
-//   } else {
-//     return bboxTree.children[name].bbox.bboxVars;
-//   }
-// }
-
 /* mutates constraints */
 const addGestaltConstraints = (bboxTree: BBoxTreeVVE, encoding: GlyphWithPath, constraints: Constraint[]): void => {
   if ("$ref" in encoding) {
@@ -342,8 +334,7 @@ const lookupPath = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTr
     return {
       ...bboxTreeVVE,
       bbox: {
-        // we use the inverse transform here b/c we are "moving" the bbox up to the $root
-        bboxVars: transformBBox(bboxTreeVVE.bbox.bboxVars, inverseTransformVE(child.transform)),
+        bboxVars: transformBBox(bboxTreeVVE.bbox.bboxVars, child.transform),
       }
     }
   }
@@ -370,8 +361,9 @@ const resolveRefs = (rootBboxTreeWithRef: BBoxTreeVVEWithRef, bboxTreeWithRef: B
     // const bboxTree = oldLookupPath(rootBboxTreeWithRef, bboxTreeWithRef.path);
     const bboxTree = lookupPath(rootBboxTreeWithRef, bboxTreeWithRef.path);
     // console.log("bboxTree here", bboxTree, transform);
-    // we are using the transform here because we are "moving" the bbox from the $root down to us
-    const bboxVars = transformBBox(bboxTree.bbox.bboxVars, transform);
+    // we are using the inverse transform here because we are "moving" the bbox from the $root down to us
+    const bboxVars = transformBBox(bboxTree.bbox.bboxVars, inverseTransformVE(transform));
+    console.log("transformed bboxVars", path, Object.fromEntries(Object.entries(bboxVars).map(([name, value]) => [name, value.toString()])));
 
     // we need a fresh transform since the relationship between the canvas and the bbox is different
     // now.

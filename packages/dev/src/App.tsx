@@ -9,6 +9,8 @@ import { randomSet } from './examples/randomSet';
 import { randomGraph } from './examples/randomGraph';
 import { geoffreyDiagram } from './examples/geoffreyDiagram';
 import { ref, makePathsAbsolute } from '@bfjs/core';
+import { geoffreyDiagramTranslationBugReduced } from './examples/geoffreyDiagramTranslationBugReduced';
+import { geoffreyDiagramTranslationBugReducedGrowing } from './examples/geoffreyDiagramTranslationBugReducedGrowing';
 
 const data = { "a": 1, "b": null };
 
@@ -74,7 +76,8 @@ function App() {
         {/* {constraintExample}
         {testTwoMarbleSets}
         {testMarblesListReduced} */}
-        {geoffreyDiagram}
+        {/* {geoffreyDiagram} */}
+        {geoffreyDiagramTranslationBugReducedGrowing}
       </header>
     </div>
   );
