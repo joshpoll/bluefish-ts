@@ -47,7 +47,7 @@ function App() {
         <br />
         <br />
         <br />
-        {/* {randomGraph} */}
+        {randomGraph}
         {/* <br />
         <br />
         <br />
@@ -77,7 +77,7 @@ function App() {
         {testTwoMarbleSets}
         {testMarblesListReduced} */}
         {/* {geoffreyDiagram} */}
-        {geoffreyDiagramTranslationBugReducedGrowing}
+        {/* {geoffreyDiagramTranslationBugReducedGrowing} */}
       </header>
     </div>
   );

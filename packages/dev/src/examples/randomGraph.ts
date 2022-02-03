@@ -50,7 +50,8 @@ const myArrow = ({ x1, y1, x2, y2, stroke, strokeWidth = 1 }: ArrowParams): Shap
   });
 }
 
-const data = mkList([1, 2, 3, 4, 5]);
+// const data = mkList([1, 2, 3, 4, 5]);
+const data = mkList([1, 2, 3]);
 // const data = mkList([0, 75, 150]);
 
 export const randomGraphShapeFn: HostShapeFn<MyList<number>> = createShapeFn({
@@ -62,28 +63,27 @@ export const randomGraphShapeFn: HostShapeFn<MyList<number>> = createShapeFn({
     // "arrow2": M.arrow({ stroke: "coral", strokeWidth: 3 }),
   },
   fields: {
-    elements: (pos) => createShape({
+    elements: (pos: any) => createShape({
       renderFn: M.debug,
       bbox: {
-        left: Math.random() * 100,
-        top: Math.random() * 100,
+        left: Math.random() * 300,
+        top: Math.random() * 300,
         // left: pos,
         // top: 1.5 * pos,
         // centerX,
         // top: 0,
       },
       shapes: {
-        "circle": M.circle({ cx: 0, cy: 0, r: 5, fill: "cornflowerblue" })
+        "circle": M.circle({ cx: 0, cy: 0, r: 10, fill: "cornflowerblue" })
       },
       rels: {
         /* TODO: why do I need this??!?!?!? */
         /* I think I relaxed this constraint when others some things were specified, but that
         shouldn't need to be the case?  */
-        "$canvas->circle": [...C.containsShrinkWrap, ...C.containsShrinkWrap],
+        // "$canvas->circle": [...C.containsShrinkWrap, ...C.containsShrinkWrap],
       }
     }),
     neighbors: createShapeFn({
-      inheritFrame: true,
       shapes: {
         // "arrow": myArrow({ stroke: "coral", strokeWidth: 3, }),
         "arrow": M.arrow({ stroke: "coral", strokeWidth: 3, }),
@@ -94,7 +94,7 @@ export const randomGraphShapeFn: HostShapeFn<MyList<number>> = createShapeFn({
       },
     }),
   },
-})
+} as any)
 
 // export const randomGraphShapeFn: Shape = createShape({
 //   shapes: {

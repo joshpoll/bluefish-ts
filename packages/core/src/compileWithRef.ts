@@ -109,6 +109,11 @@ const addChildrenConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[]
   constraints.push(new Constraint(bboxTree.canvas.bboxVars.left, Operator.Eq, 0, Strength.weak));
   constraints.push(new Constraint(bboxTree.canvas.bboxVars.top, Operator.Eq, 0, Strength.weak));
 
+  // break ties with competing bbox shrinkwraps from above and below. encourages bounding boxes to
+  // fit their contents
+  constraints.push(new Constraint(bboxTree.canvas.bboxVars.width, Operator.Eq, 0, Strength.strong));
+  constraints.push(new Constraint(bboxTree.canvas.bboxVars.height, Operator.Eq, 0, Strength.strong));
+
   const canvasWidthDefined = bboxTree.canvas.bboxValues !== undefined && bboxTree.canvas.bboxValues.width !== undefined;
   const canvasHeightDefined = bboxTree.canvas.bboxValues !== undefined && bboxTree.canvas.bboxValues.height !== undefined;
 
@@ -116,13 +121,13 @@ const addChildrenConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[]
   for (const bboxKey of Object.keys(bboxTree.children)) {
     // only shrink-wrap if width and/or height aren't defined
     if (!canvasWidthDefined) {
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.left, Operator.Eq, bboxTree.canvas.bboxVars.left, Strength.strong));
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.right, Operator.Eq, bboxTree.canvas.bboxVars.right, Strength.strong));
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.left, Operator.Eq, bboxTree.canvas.bboxVars.left, Strength.medium));
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.right, Operator.Eq, bboxTree.canvas.bboxVars.right, Strength.medium));
     }
 
     if (!canvasHeightDefined) {
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.top, Operator.Eq, bboxTree.canvas.bboxVars.top, Strength.strong));
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.bottom, Operator.Eq, bboxTree.canvas.bboxVars.bottom, Strength.strong));
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.top, Operator.Eq, bboxTree.canvas.bboxVars.top, Strength.medium));
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.bottom, Operator.Eq, bboxTree.canvas.bboxVars.bottom, Strength.medium));
     }
 
     // console.log("constraining", bboxKey, bboxTree.children[bboxKey].bbox.bboxVars);
@@ -415,6 +420,7 @@ export const addBBoxValueConstraints = (bboxTree: BBoxTreeVVEWithRef, constraint
     if (bboxTree.bbox.bboxValues !== undefined) {
       for (const key of Object.keys(bboxTree.bbox.bboxValues) as (keyof BBoxValues)[]) {
         if (bboxTree.bbox.bboxValues[key] !== undefined) {
+          console.log("bbox val constraint", (new Constraint(bboxTree.bbox.bboxVars[key], Operator.Eq, bboxTree.bbox.bboxValues[key])).toString())
           constraints.push(new Constraint(bboxTree.bbox.bboxVars[key], Operator.Eq, bboxTree.bbox.bboxValues[key]));
         }
       }
@@ -545,7 +551,10 @@ export default (encoding: Glyph): CompiledAST => {
   // console.log("constraints[0]", constraints[0]);
   // console.log("pretty printed constraints[0]", ppConstraint(constraints[0]));
   // console.log("pretty printed constraints[0]", constraints[0].toString());
-  // console.log("pretty printed constraints", constraints.map((c) => c.toString()).join("\n"));
+  console.log("pretty printed constraints", constraints
+    .map((c) => c.toString())
+    .filter((s) => s.includes("$root.elements."))
+    .join("\n"));
   solver.updateVariables();
 
   // 7. extract values
