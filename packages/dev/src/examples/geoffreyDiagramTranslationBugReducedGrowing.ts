@@ -83,9 +83,9 @@ const markOpGlyph = createShapeFn({
 
 const characterShape = createShapeFn({
   shapes: {
-    "tile": M.rect({ height: 60, width: 50, fill: "#eee" }),
-    "leftHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd" }),
-    "rightHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd" })
+    "tile": M.rect({ height: 60, width: 50, fill: "#eee", rx: 3, }),
+    "leftHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd", rx: 3, }),
+    "rightHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd", rx: 3, })
   },
   object: (charObj: any) => M.text({ contents: charObj.value.toString(), fontSize: "30px" }
   ),
