@@ -86,11 +86,28 @@ export const randomGraphShapeFn: HostShapeFn<MyList<number>> = createShapeFn({
     neighbors: createShapeFn({
       shapes: {
         // "arrow": myArrow({ stroke: "coral", strokeWidth: 3, }),
-        "arrow": M.arrow({ stroke: "coral", strokeWidth: 3, }),
+        // "box": M.rect({ width: 10, stroke: "magenta", fill: "none" }),
+        // "arrow": M.arrow({ stroke: "coral", strokeWidth: 3, }),
+        "arrow": M.line({ stroke: "coral", strokeWidth: 3, }),
+        // "arrow": createShape({
+        //   renderFn: M.debug,
+        //   shapes: {
+        //     // "start": M.nil(),
+        //     "line": M.line({ stroke: "coral", strokeWidth: 3, }),
+        //     // "end": M.nil(),
+        //   },
+        //   rels: {
+        //     // "start->line": [C.alignLeft, C.alignTop],
+        //     // "line->end": [C.alignRight, C.alignBottom],
+        //   }
+        // }),
       },
       rels: {
-        "curr->arrow/start": [C.alignCenter, C.alignMiddle],
-        "arrow/end->next": [C.alignCenter, C.alignMiddle],
+        // "curr->arrow/start": [C.alignCenter, C.alignMiddle],
+        // "arrow/end->next": [C.alignCenter, C.alignMiddle],
+        "curr->arrow": [C.makeEqual('centerX', 'left'), C.makeEqual('centerY', 'top')],
+        "arrow->next": [C.makeEqual('right', 'centerX'), C.makeEqual('bottom', 'centerY')],
+        // "box->arrow": [C.alignBottom, C.alignTop, /* C.alignLeft, C.alignRight */],
       },
     }),
   },

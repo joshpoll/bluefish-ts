@@ -100,6 +100,13 @@ export type Mark = {
   renderFn: (canvas: BBoxValues, index?: number) => JSX.Element,
 }
 
+const dimDefined = (dim: keyof BBoxValues) => (bboxTree: BBoxTreeVVE) => {
+  return bboxTree.canvas.bboxValues !== undefined && bboxTree.canvas.bboxValues[dim] !== undefined;
+}
+
+const widthDefined = dimDefined('width');
+const heightDefined = dimDefined('height');
+
 /* mutates constraints */
 const addChildrenConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[]): void => {
   const keys = Object.keys(bboxTree.children);
@@ -114,20 +121,17 @@ const addChildrenConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[]
   constraints.push(new Constraint(bboxTree.canvas.bboxVars.width, Operator.Eq, 0, Strength.strong));
   constraints.push(new Constraint(bboxTree.canvas.bboxVars.height, Operator.Eq, 0, Strength.strong));
 
-  const canvasWidthDefined = bboxTree.canvas.bboxValues !== undefined && bboxTree.canvas.bboxValues.width !== undefined;
-  const canvasHeightDefined = bboxTree.canvas.bboxValues !== undefined && bboxTree.canvas.bboxValues.height !== undefined;
-
   // 2. add canvas shrink-wrap + container constraints
   for (const bboxKey of Object.keys(bboxTree.children)) {
     // only shrink-wrap if width and/or height aren't defined
-    if (!canvasWidthDefined) {
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.left, Operator.Eq, bboxTree.canvas.bboxVars.left, Strength.medium));
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.right, Operator.Eq, bboxTree.canvas.bboxVars.right, Strength.medium));
+    if (!widthDefined(bboxTree)) {
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.left, Operator.Eq, bboxTree.canvas.bboxVars.left, widthDefined(bboxTree.children[bboxKey]) ? Strength.medium : Strength.medium));
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.right, Operator.Eq, bboxTree.canvas.bboxVars.right, widthDefined(bboxTree.children[bboxKey]) ? Strength.medium : Strength.medium));
     }
 
-    if (!canvasHeightDefined) {
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.top, Operator.Eq, bboxTree.canvas.bboxVars.top, Strength.medium));
-      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.bottom, Operator.Eq, bboxTree.canvas.bboxVars.bottom, Strength.medium));
+    if (!heightDefined(bboxTree)) {
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.top, Operator.Eq, bboxTree.canvas.bboxVars.top, heightDefined(bboxTree.children[bboxKey]) ? Strength.medium : Strength.medium));
+      constraints.push(new Constraint(bboxTree.children[bboxKey].bbox.bboxVars.bottom, Operator.Eq, bboxTree.canvas.bboxVars.bottom, heightDefined(bboxTree.children[bboxKey]) ? Strength.medium : Strength.medium));
     }
 
     // console.log("constraining", bboxKey, bboxTree.children[bboxKey].bbox.bboxVars);

@@ -11,6 +11,7 @@ import { geoffreyDiagram } from './examples/geoffreyDiagram';
 import { ref, makePathsAbsolute } from '@bfjs/core';
 import { geoffreyDiagramTranslationBugReduced } from './examples/geoffreyDiagramTranslationBugReduced';
 import { geoffreyDiagramTranslationBugReducedGrowing } from './examples/geoffreyDiagramTranslationBugReducedGrowing';
+import { geoffreyDiagramTranslationBugReducedGrowingTransposed } from './examples/geoffreyDiagramTranslationBugReducedGrowingTransposed';
 
 const data = { "a": 1, "b": null };
 
@@ -72,12 +73,14 @@ function App() {
         <br />
         <br />
         {barChart} */}
+        {/* {constraintExample} */}
         {/* {barChart} */}
         {/* {constraintExample}
         {testTwoMarbleSets}
         {testMarblesListReduced} */}
         {/* {geoffreyDiagram} */}
         {/* {geoffreyDiagramTranslationBugReducedGrowing} */}
+        {geoffreyDiagramTranslationBugReducedGrowingTransposed}
       </header>
     </div>
   );
