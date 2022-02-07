@@ -12,6 +12,7 @@ import { ref, makePathsAbsolute } from '@bfjs/core';
 import { geoffreyDiagramTranslationBugReduced } from './examples/geoffreyDiagramTranslationBugReduced';
 import { geoffreyDiagramTranslationBugReducedGrowing } from './examples/geoffreyDiagramTranslationBugReducedGrowing';
 import { geoffreyDiagramTranslationBugReducedGrowingTransposed } from './examples/geoffreyDiagramTranslationBugReducedGrowingTransposed';
+import { geoffreyDiagramTranslationBugReducedGrowingTransposedUnified } from './examples/geoffreyDiagramTranslationBugReducedGrowingTransposedUnified';
 
 const data = { "a": 1, "b": null };
 
@@ -80,7 +81,8 @@ function App() {
         {testMarblesListReduced} */}
         {/* {geoffreyDiagram} */}
         {/* {geoffreyDiagramTranslationBugReducedGrowing} */}
-        {geoffreyDiagramTranslationBugReducedGrowingTransposed}
+        {/* {geoffreyDiagramTranslationBugReducedGrowingTransposed} */}
+        {geoffreyDiagramTranslationBugReducedGrowingTransposedUnified}
       </header>
     </div>
   );

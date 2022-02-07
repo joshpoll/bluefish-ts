@@ -12,7 +12,7 @@ import { makePathsAbsolute, RelativeBFValue, RelativeBFRef, BFRef } from './abso
 type Id<T> = T extends infer U ? { [K in keyof U]: U[K] } : never
 
 // type ShapeRelation<K extends Key> = { [key in `${K & (string | number)}->${K & (string | number)}`]?: Constraint[] };
-type ShapeRelation = { [key in `${string}->${string}`]?: Constraint[] };
+type ShapeRelation<K extends string> = { [key in `${K}->${K}`]?: Constraint[] };
 
 type Key = string | number | symbol;
 
@@ -63,7 +63,6 @@ export type Mark_ = {
   inheritFrame?: boolean,
   bbox?: MaybeBBoxValues,
   renderFn: (canvas: BBoxValues, index?: number) => JSX.Element,
-  rels?: ShapeRelation,
 }
 
 export type Mark = {
@@ -72,24 +71,22 @@ export type Mark = {
   inheritFrame?: boolean,
   bbox?: MaybeBBoxValues,
   renderFn: (canvas: BBoxValues, index?: number) => JSX.Element,
-  rels?: ShapeRelation,
+  rels?: ShapeRelation<"$canvas">,
 }
 
 // https://stackoverflow.com/a/57422677
 type ShapeRecord<Shapes, ShapeFns> =
   /* should really be the instance thingy instead of T[key] */
-  ({ [key in keyof ShapeFns]: Shape<RelationInstance<ShapeFns[key]>> } &
-    { [key in keyof Shapes]:
-      // key extends "$data" ? Shape<RelationInstance<ShapeFns>> :
-      key extends keyof ShapeFns ? Shape<RelationInstance<ShapeFns[key]>> : ShapeValue }
-  )
+  { [key in keyof ShapeFns]: Shape<ShapeFns[key]> } &
+  { [key in keyof Shapes]: key extends keyof ShapeFns ? Shape<ShapeFns[key]> : ShapeValue }
 
 export type Group_<Shapes extends ShapeRecord<Shapes, T>, T> = {
   debugBBox?: boolean,
   inheritFrame?: boolean,
   bbox?: MaybeBBoxValues,
   shapes?: Shapes,
-  rels?: ShapeRelation,
+  // TODO: kinda a hack to restrict to strings here.
+  rels?: ShapeRelation<(keyof Shapes & string) | "$canvas">,
 }
 
 export type Group<T> = {
@@ -108,13 +105,7 @@ export const lowerGroup = <T>(g: Group<T>): keyof T extends never ? Group<{}> : 
   const kont = g[KONT];
   return kont(<Shapes extends ShapeRecord<Shapes, T>>(g: Group_<Shapes, T>) => {
     // recursively visit sub-groups
-    g = {
-      ...g,
-      shapes: g.shapes ?
-        objectMap(g.shapes, (_, g) => {
-          return typeof g !== `function` && g.type === 'group' ? lowerGroup(g) : g;
-        }) : {}
-    } as Group_<Shapes, T>;
+    g = { ...g, shapes: g.shapes ? objectMap(g.shapes, (_, g) => typeof g !== `function` && g.type === 'group' ? lowerGroup(g) : g) : {} } as Group_<Shapes, T>;
     const shapeFns = objectFilter(g.shapes, (_name, shape) => {
       return typeof shape === "function";
     });
@@ -130,7 +121,7 @@ export const lowerGroup = <T>(g: Group<T>): keyof T extends never ? Group<{}> : 
           // TODO: need to lower child groups first
           if (typeof shape === "function") {
             // TODO: not sure whether these casts are safe
-            const loweredShapes = mapDataRelation(name === "$data" ? data : data[name as keyof T], shape as ((d: RelationInstance<T[keyof T] | T>) => ShapeValue));
+            const loweredShapes = mapDataRelation(data[name as keyof T], shape as ((d: RelationInstance<T[keyof T]>) => ShapeValue));
             if (loweredShapes instanceof Array) {
               return createGroup({
                 inheritFrame: true,
@@ -181,6 +172,10 @@ const exampleGroup: Shape<{ "bar": number }> = createShape({
     "foo": exampleMark,
     "bar": (_x: number) => exampleMark,
   },
+  rels: {
+    "foo->bar": [],
+    // "foo->baz": [],
+  }
 })
 
 const exampleGroupInferredType: Shape<{ "bar": number }> = createShape({
@@ -222,11 +217,10 @@ const exampleGroup2: Shape<{ "bar": number }> = createShape({
   shapes: {
     "foo": exampleMark,
     "bar": (_x: number) => exampleGroupValue,
-    // "$data": (_x: { "bar": number }) => exampleGroupValue,
   },
 })
 
-const lowerShapeRelation = (gr: ShapeRelation): Compile.Relation[] => {
+const lowerShapeRelation = <K extends string>(gr: ShapeRelation<K>): Compile.Relation[] => {
   const rels = [];
   for (const [k, gestalt] of Object.entries(gr)) {
     const [left, right] = k.split('->');
@@ -251,7 +245,7 @@ export const compileShapeValue = (g: ShapeValue | BFRef): Compile.Glyph => {
         bbox: g.bbox,
         renderFn: g.renderFn,
         children: {},
-        relations: g.rels ? lowerShapeRelation(g.rels) : undefined,
+        relations: undefined,
       };
     } else if (g.type === 'group') {
       const kont = g[KONT];

@@ -58,81 +58,70 @@ type addPrefix<TKey, TPrefix extends string> = TKey extends string
 
 type Ref<T, Field extends string & keyof T> = { $ref: true, path: addPrefix<ObjPath<T[Field]>, Field> }
 
-export type Mark_ = {
-  debugBBox?: boolean,
-  inheritFrame?: boolean,
-  bbox?: MaybeBBoxValues,
-  renderFn: (canvas: BBoxValues, index?: number) => JSX.Element,
-  rels?: ShapeRelation,
-}
+// export type Mark_ = {
+//   debugBBox?: boolean,
+//   inheritFrame?: boolean,
+//   bbox?: MaybeBBoxValues,
+//   renderFn: (canvas: BBoxValues, index?: number) => JSX.Element,
+// }
 
-export type Mark = {
-  type: 'mark',
-  debugBBox?: boolean,
-  inheritFrame?: boolean,
-  bbox?: MaybeBBoxValues,
-  renderFn: (canvas: BBoxValues, index?: number) => JSX.Element,
-  rels?: ShapeRelation,
-}
+// export type Mark = {
+//   type: 'mark',
+//   debugBBox?: boolean,
+//   inheritFrame?: boolean,
+//   bbox?: MaybeBBoxValues,
+//   renderFn: (canvas: BBoxValues, index?: number) => JSX.Element,
+//   rels?: ShapeRelation,
+// }
 
 // https://stackoverflow.com/a/57422677
-type ShapeRecord<Shapes, ShapeFns> =
+type ShapeDict<Shapes, ShapeFns> =
   /* should really be the instance thingy instead of T[key] */
-  ({ [key in keyof ShapeFns]: Shape<RelationInstance<ShapeFns[key]>> } &
-    { [key in keyof Shapes]:
-      // key extends "$data" ? Shape<RelationInstance<ShapeFns>> :
-      key extends keyof ShapeFns ? Shape<RelationInstance<ShapeFns[key]>> : ShapeValue }
-  )
+  { [key in keyof ShapeFns]: ShapeRecord<ShapeFns[key]> } &
+  { [key in keyof Shapes]: key extends keyof ShapeFns ? ShapeRecord<ShapeFns[key]> : ShapeValue }
 
-export type Group_<Shapes extends ShapeRecord<Shapes, T>, T> = {
+export type ShapeRecord_<Shapes extends ShapeDict<Shapes, T>, T> = {
   debugBBox?: boolean,
   inheritFrame?: boolean,
   bbox?: MaybeBBoxValues,
+  renderFn?: (canvas: BBoxValues, index?: number) => JSX.Element,
   shapes?: Shapes,
   rels?: ShapeRelation,
 }
 
-export type Group<T> = {
-  type: 'group',
-  [KONT]: <R>(kont: <Shapes extends ShapeRecord<Shapes, T>>(_: Group_<Shapes, T>) => R) => R,
+export type ShapeRecord<T> = {
+  [KONT]: <R>(kont: <Shapes extends ShapeDict<Shapes, T>>(_: ShapeRecord_<Shapes, T>) => R) => R,
 }
 
-export const createGroup = <Shapes extends ShapeRecord<Shapes, T>, T>(exRecord_: Group_<Shapes, T>): Group<T> => ({
-  type: 'group',
+export const createShapeRecord = <Shapes extends ShapeDict<Shapes, T>, T>(exRecord_: ShapeRecord_<Shapes, T>): ShapeRecord<T> => ({
   [KONT]: (kont) => kont(exRecord_)
 });
 
-export const createMark = (mark: Mark_): Mark => ({ type: 'mark', ...mark })
+// export const createMark = (mark: Mark_): Mark => ({ type: 'mark', ...mark })
 
-export const lowerGroup = <T>(g: Group<T>): keyof T extends never ? Group<{}> : ShapeFn<T> => {
+export const lowerShapeRecord = <T>(g: ShapeRecord<T>): keyof T extends never ? Shape<{}> : ShapeFn<T> => {
   const kont = g[KONT];
-  return kont(<Shapes extends ShapeRecord<Shapes, T>>(g: Group_<Shapes, T>) => {
+  return kont(<Shapes extends ShapeDict<Shapes, T>>(g: ShapeRecord_<Shapes, T>) => {
     // recursively visit sub-groups
-    g = {
-      ...g,
-      shapes: g.shapes ?
-        objectMap(g.shapes, (_, g) => {
-          return typeof g !== `function` && g.type === 'group' ? lowerGroup(g) : g;
-        }) : {}
-    } as Group_<Shapes, T>;
+    g = { ...g, shapes: g.shapes ? objectMap(g.shapes, (_, g) => typeof g !== `function` ? lowerShapeRecord(g) : g) : {} } as ShapeRecord_<Shapes, T>;
     const shapeFns = objectFilter(g.shapes, (_name, shape) => {
       return typeof shape === "function";
     });
     if (Object.keys(shapeFns).length === 0) {
       // group value
-      return createGroup(g) as unknown as keyof T extends never ? Group<{}> : ShapeFn<T>;
+      return createShape(g) as unknown as keyof T extends never ? ShapeRecord<{}> : ShapeFn<T>;
     } else {
       // group function
-      return ((data: T): ShapeValue => createGroup({
+      return ((data: T): ShapeValue => createShape({
         bbox: g.bbox,
         inheritFrame: g.inheritFrame,
         shapes: g.shapes ? objectMap(g.shapes, (name, shape) => {
           // TODO: need to lower child groups first
           if (typeof shape === "function") {
             // TODO: not sure whether these casts are safe
-            const loweredShapes = mapDataRelation(name === "$data" ? data : data[name as keyof T], shape as ((d: RelationInstance<T[keyof T] | T>) => ShapeValue));
+            const loweredShapes = mapDataRelation(data[name as keyof T], shape as ((d: RelationInstance<T[keyof T]>) => ShapeValue));
             if (loweredShapes instanceof Array) {
-              return createGroup({
+              return createShape({
                 inheritFrame: true,
                 shapes: loweredShapes.reduce((o, g, i) => ({
                   ...o, [i]: g
@@ -146,44 +135,42 @@ export const lowerGroup = <T>(g: Group<T>): keyof T extends never ? Group<{}> : 
           }
         }) : {},
         rels: g.rels,
-      })) as keyof T extends never ? Group<{}> : ShapeFn<T>
+      })) as keyof T extends never ? ShapeRecord<{}> : ShapeFn<T>
     }
   });
 };
 
-export function createShape<Shapes extends ShapeRecord<Shapes, T>, T>(mark: Mark_): Mark
+// export function createShape<Shapes extends ShapeRecord<Shapes, T>, T>(mark: Mark_): Mark
 // TODO: refine this type? can determine which one of the two will be output
-export function createShape<Shapes extends ShapeRecord<Shapes, T>, T>(group: Group_<Shapes, T>): keyof T extends never ? Group<{}> : ShapeFn<T>
-export function createShape<Shapes extends ShapeRecord<Shapes, T>, T>(fn: ShapeFn<T>): ShapeFn<T>
-export function createShape<Shapes extends ShapeRecord<Shapes, T>, T>(preShape: PreShape<Shapes, T>): Shape<T> {
+export function createShape<Shapes extends ShapeDict<Shapes, T>, T>(group: ShapeRecord_<Shapes, T>): keyof T extends never ? ShapeRecord<{}> : ShapeFn<T>
+export function createShape<Shapes extends ShapeDict<Shapes, T>, T>(fn: ShapeFn<T>): ShapeFn<T>
+export function createShape<Shapes extends ShapeDict<Shapes, T>, T>(preShape: PreShape<Shapes, T>): Shape<T> {
   if (typeof preShape === 'function') {
     return preShape;
-  } else if ('renderFn' in preShape) {
-    return createMark(preShape);
   } else {
-    return lowerGroup(createGroup(preShape));
+    return lowerShapeRecord(createShapeRecord(preShape));
   }
 }
 
-export type PreShape<Shapes extends ShapeRecord<Shapes, T>, T> = Mark_ | Group_<Shapes, T> | ShapeFn<T>
+export type PreShape<Shapes extends ShapeDict<Shapes, T>, T> = ShapeRecord_<Shapes, T> | ShapeFn<T>
 
 export type Shape<T> = ShapeValue | ShapeFn<T>
 
-export type ShapeValue = Mark | Group<{}>
+export type ShapeValue = ShapeRecord<{}>
 export type ShapeFn<T> = (data: T) => ShapeValue
 
-const exampleMark: Mark = createShape({
+const exampleMark: ShapeValue = createShape({
   renderFn: (_a: any, _b: any) => ({}) as any
 })
 
-const exampleGroup: Shape<{ "bar": number }> = createShape({
+const exampleGroup: ShapeRecord<{ "bar": number }> = createShape({
   shapes: {
     "foo": exampleMark,
     "bar": (_x: number) => exampleMark,
   },
 })
 
-const exampleGroupInferredType: Shape<{ "bar": number }> = createShape({
+const exampleGroupInferredType: ShapeRecord<{ "bar": number }> = createShape({
   shapes: {
     "foo": exampleMark,
     "bar": (_x) => exampleMark,
@@ -218,11 +205,10 @@ const exampleGroupValue: ShapeValue = createShape({
 //   },
 // })
 
-const exampleGroup2: Shape<{ "bar": number }> = createShape({
+const exampleGroup2: ShapeRecord<{ "bar": number }> = createShape({
   shapes: {
     "foo": exampleMark,
     "bar": (_x: number) => exampleGroupValue,
-    // "$data": (_x: { "bar": number }) => exampleGroupValue,
   },
 })
 
@@ -251,7 +237,7 @@ export const compileShapeValue = (g: ShapeValue | BFRef): Compile.Glyph => {
         bbox: g.bbox,
         renderFn: g.renderFn,
         children: {},
-        relations: g.rels ? lowerShapeRelation(g.rels) : undefined,
+        relations: undefined,
       };
     } else if (g.type === 'group') {
       const kont = g[KONT];
