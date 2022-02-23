@@ -394,9 +394,11 @@ const addGestaltConstraints = (bboxTree: BBoxTreeVVE, encoding: GlyphWithPath, c
 }
 
 const lookupPath = (rootBboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTreeVVE => {
+  console.log('path in lookupPath', path);
   const lookupPathAux = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTreeVVE => {
     // const hd = path[path.length - 1];
     // const tl = path.slice(0, -1);
+    console.log('path in lookupPathAux', path);
     const [hd, ...tl] = path;
     console.log("lookup", hd, tl, bboxTreeWithRef);
     // we assume the input isn't a ref, because we assert this before recursive calls
@@ -412,10 +414,14 @@ const lookupPath = (rootBboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BB
       throw `error in shape path resolution: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
     }
 
-    if ("$ref" in child) {
+    // `$ref` tells us that the child is a reference
+    // `path` tells us that the child has not yet been resolved, so we need to resolve it first
+    if ("$ref" in child && 'path' in child) {
+      console.log("hit ref in lookup:", child);
       // throw "error in shape path resolution: hit a reference"
       // lookup th child reference, and continue as normal
-      child = lookupPathAux(rootBboxTreeWithRef, child.path);
+      child = lookupPath(rootBboxTreeWithRef, child.path);
+      console.log("hit ref in lookup (resolved):", child);
     }
 
     if (tl.length === 0) {
@@ -447,13 +453,15 @@ const inverseTransformVE = (t: Transform<Variable | Expression>): Transform<Vari
   }
 })
 
+// NOTE: This mutates the input trees! Make sure you don't need them again.
 const resolveRefs = (rootBboxTreeWithRef: BBoxTreeVVEWithRef, bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[], transform: Transform<Variable | Expression>): BBoxTreeVVE => {
+  console.log('resolving refs visiting path', path.slice().reverse(), '$ref' in bboxTreeWithRef ? 'ref' : 'bbox');
   // console.log("visiting", bboxTreeWithRef, transform);
   if ("$ref" in bboxTreeWithRef) {
     console.log("hit ref at", path, "with path", bboxTreeWithRef.path);
     // const bboxTree = oldLookupPath(rootBboxTreeWithRef, bboxTreeWithRef.path);
     const bboxTree = lookupPath(rootBboxTreeWithRef, bboxTreeWithRef.path);
-    // console.log("bboxTree here", bboxTree, transform);
+    console.log('resolving refs bbox', bboxTree, transform);
     // we are using the inverse transform here because we are "moving" the bbox from the $root down to us
     const bboxVars = transformBBox(bboxTree.bbox.bboxVars, inverseTransformVE(transform));
     console.log("transformed bboxVars", path, Object.fromEntries(Object.entries(bboxVars).map(([name, value]) => [name, value.toString()])));
@@ -487,6 +495,8 @@ const resolveRefs = (rootBboxTreeWithRef: BBoxTreeVVEWithRef, bboxTreeWithRef: B
         ...o, [glyphKey]: resolveRefs(rootBboxTreeWithRef, bboxTreeWithRef.children[glyphKey], [glyphKey, ...path], newTransform)
       }
     ), {});
+    // need this mutation here so that the graph sharing is preserved
+    bboxTreeWithRef.children = compiledChildren;
     console.log("path", path)
     console.log("rootBboxTreeWithRef", rootBboxTreeWithRef)
     console.log("bboxTreeWithRef", bboxTreeWithRef)
@@ -496,7 +506,7 @@ const resolveRefs = (rootBboxTreeWithRef: BBoxTreeVVEWithRef, bboxTreeWithRef: B
       ...bboxTreeWithRef,
       children: compiledChildren,
       $ref: false,
-    }
+    } as BBoxTreeVVE /* this is safe I swear! */
   }
 }
 

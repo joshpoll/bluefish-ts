@@ -123,7 +123,9 @@ export type BBoxTree<T, U> = {
   children: { [key: string]: BBoxTree<T, U> },
 }
 
+// TODO: I think this needs to throw away refs b/c they shouldn't be rendered
 export const getBBoxValues = (bboxVars: BBoxTreeVV | BBoxTreeVVE): BBoxTreeValue => {
+  console.log("bboxVar children", bboxVars.children);
   console.log("canvas x y", bboxVars.canvas.bboxVars.left.value(), bboxVars.canvas.bboxVars.top.value(), "\ntranslate x y", bboxVars.transform.translate.x.value(), bboxVars.transform.translate.y.value(), "\nbbox x y", bboxVars.bbox.bboxVars.left.value(), bboxVars.bbox.bboxVars.top.value());
   return {
     bbox: {
