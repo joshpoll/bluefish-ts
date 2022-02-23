@@ -18,7 +18,7 @@ import { refrefTest1 } from './examples/refref';
 import { treeExample } from './examples/treeExample';
 import { treeSplatTestBugMin } from './examples/treeSplatTestBugMinimization';
 import { treeSplatTestGrowing } from './examples/treeSplatTestGrowing';
-import { subtreeTest } from './examples/subtreeTest';
+import { subtreeTest, subtreeTest3 } from './examples/subtreeTest';
 
 const data = { "a": 1, "b": null };
 
@@ -101,6 +101,7 @@ function App() {
         {refrefTest1}
         {treeExample}
         {subtreeTest}
+        {subtreeTest3}
       </header>
     </div>
   );

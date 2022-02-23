@@ -155,3 +155,43 @@ export const treeSplatTestShape: Shape<any> = createShape({
 // console.log('output after compileShapeValue', compileShapeValue((treeSplatTestShape as any)(makePathsAbsolute(splatTestData2 as any) as any)))
 // export const treeSplatTestGrowing = render(splatTestData2 as any, treeSplatTestShape as any);
 export const subtreeTest = render(treeData, tree as any)
+
+const treeData3 = ({
+  // set of nodes
+  nodes: ['a', 'b', 'c'],
+  // parent-child relation. useful for drawing links
+  parentChild: [
+    { parent: ref('../../nodes/0'), child: ref('../../nodes/1') },
+    { parent: ref('../../nodes/0'), child: ref('../../nodes/2') }
+  ],
+  // set of trees. useful for putting space between a node and its subtrees (root-subtree relation in GoTree)
+  trees: [
+    { node: ref('../../nodes/1'), subtrees: mkList([]) },
+    { node: ref('../../nodes/2'), subtrees: mkList([]) },
+    { node: ref('../../nodes/0'), subtrees: mkList([ref("../../../0"), ref("../../../1")]) },
+  ],
+})
+
+const tree3 = createShape2({
+  // $nodes$: (contents: any) => M.ellipse({ rx: 50, ry: 50, 'fill': 'blue' }),
+  $nodes$: (contents: any) => M.text({ contents, fontSize: '30px' }),
+  $parentChild$: (_: any) => M.nil(),
+  $trees$: createShape2({
+    $node$: 'ref',
+    $subtrees$: createShape2({
+      $elements$: 'ref',
+      // relation between subtrees
+      $neighbors$: createShape2({
+        $curr$: 'ref',
+        $next$: 'ref',
+      }, {
+        'curr->next': [C.alignTop, C.hSpace(50)],
+      }),
+    })
+  }, {
+    // relation between node and subtree group
+    'node->subtrees': [C.vSpace(10), C.alignCenter],
+  }),
+})
+
+export const subtreeTest3 = render(treeData3, tree3 as any)
