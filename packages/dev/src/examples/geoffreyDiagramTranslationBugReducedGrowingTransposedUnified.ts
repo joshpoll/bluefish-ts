@@ -1,11 +1,5 @@
-import { ref, constraints as C, unified, BFRef, RelativeBFRef } from "@bfjs/core";
+import { ref, constraints as C, createShape, marks as M, render, Shape, ShapeValue, BFRef, RelativeBFRef } from "@bfjs/core";
 import * as _ from 'lodash';
-
-const createShape = unified.createShape;
-const M = unified.marks;
-const render = unified.render;
-type Shape<T> = unified.Shape<T>;
-type ShapeValue = unified.ShapeValue;
 
 const mkList = (name: string, xs: any) => ({
   [name]: xs,
@@ -92,7 +86,7 @@ const diagramData: DiagramData = ({
     start: ref("..", "..", "charsList", "charsList", op.start.index.toString()),
     // end: ref(makePath("..", "..", "charsList", "charsList", op.end.index))
   }))
-})
+} as any)
 
 const relations = Object.fromEntries([
   ["charsList->markOps", [C.vSpace(10)]],
@@ -124,11 +118,11 @@ const characterShape: Shape<{ value: number }> = createShape({
     "tile": M.rect({ height: 60, width: 50, fill: "#eee", rx: 3, }),
     "leftHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd", rx: 3, }),
     "rightHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd", rx: 3, }),
-    "value": (charObj) => M.nil(),
+    "$$value": (charObj) => M.text({ contents: charObj.value.toString(), fontSize: "30px" }),
     // "$data": (charObj) => M.text({ contents: charObj.value.toString(), fontSize: "30px" }),
   },
   rels: {
-    "$data->tile": [C.alignCenterX, C.alignCenterY],
+    "value->tile": [C.alignCenterX, C.alignCenterY],
     "leftHandle->tile": [C.alignLeft, C.alignCenterY],
     "rightHandle->tile": [C.alignRight, C.alignCenterY]
   },
@@ -136,23 +130,28 @@ const characterShape: Shape<{ value: number }> = createShape({
 
 const listOfCharactersShape: Shape<DiagramData> = createShape({
   shapes: {
-    "markOps": createShape({
+    "$markOps$": createShape({
       shapes: {
-        "markOps": markOpGlyph,/*  M.nil(), */
-        "neighbors": M.nil(),
+        "$markOps$": markOpGlyph,/*  M.nil(), */
+        "$neighbors$": (_: any) => M.nil(),
       },
     }),
-    "charsList": createShape({
+    "$charsList$": createShape({
       shapes: {
-        charsList: characterShape,
-        neighbors: createShape({
+        $charsList$: characterShape,
+        $neighbors$: createShape({
+          shapes: {
+            "$curr$": 'ref',
+            "$next$": 'ref',
+          },
           rels: { "curr->next": [C.vSpace(5), C.hSpace(5)] }
         })
       },
     }),
-    "markOpsToChars": createShape({
+    "$markOpsToChars$": createShape({
       shapes: {
-        "box": M.rect({ fill: "red" })
+        "box": M.rect({ fill: "red" }),
+        "$op$": 'ref',
       },
       rels: {
         "box->op": [C.alignTop, C.alignBottom, C.alignLeft, C.alignRight]

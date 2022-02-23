@@ -7,12 +7,17 @@ import { testMarblesListReduced, testTwoMarbleSets } from './examples/glyphFnCom
 import { arrowExample } from './examples/arrowExample';
 import { randomSet } from './examples/randomSet';
 import { randomGraph } from './examples/randomGraph';
-import { geoffreyDiagram } from './examples/geoffreyDiagram';
+// import { geoffreyDiagram } from './examples/geoffreyDiagram';
 import { ref, makePathsAbsolute } from '@bfjs/core';
-import { geoffreyDiagramTranslationBugReduced } from './examples/geoffreyDiagramTranslationBugReduced';
-import { geoffreyDiagramTranslationBugReducedGrowing } from './examples/geoffreyDiagramTranslationBugReducedGrowing';
+// import { geoffreyDiagramTranslationBugReduced } from './examples/geoffreyDiagramTranslationBugReduced';
+// import { geoffreyDiagramTranslationBugReducedGrowing } from './examples/geoffreyDiagramTranslationBugReducedGrowing';
 import { geoffreyDiagramTranslationBugReducedGrowingTransposed } from './examples/geoffreyDiagramTranslationBugReducedGrowingTransposed';
 import { geoffreyDiagramTranslationBugReducedGrowingTransposedUnified } from './examples/geoffreyDiagramTranslationBugReducedGrowingTransposedUnified';
+import { treeSplatTest } from './examples/treeSplatTest';
+import { refrefTest1 } from './examples/refref';
+import { treeExample } from './examples/treeExample';
+import { treeSplatTestBugMin } from './examples/treeSplatTestBugMinimization';
+import { treeSplatTestGrowing } from './examples/treeSplatTestGrowing';
 
 const data = { "a": 1, "b": null };
 
@@ -49,7 +54,7 @@ function App() {
         <br />
         <br />
         <br />
-        {randomGraph}
+        {/* {randomGraph} */}
         {/* <br />
         <br />
         <br />
@@ -83,6 +88,17 @@ function App() {
         {/* {geoffreyDiagramTranslationBugReducedGrowing} */}
         {/* {geoffreyDiagramTranslationBugReducedGrowingTransposed} */}
         {geoffreyDiagramTranslationBugReducedGrowingTransposedUnified}
+        <br />
+        <br />
+        <br />
+        {/* {treeSplatTestBugMin} */}
+        {/* {treeSplatTest} */}
+        {treeSplatTestGrowing}
+        <br />
+        <br />
+        <br />
+        {refrefTest1}
+        {treeExample}
       </header>
     </div>
   );

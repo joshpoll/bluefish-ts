@@ -247,6 +247,7 @@ export const compileShapeValue = (g: ShapeValue | BFRef): Compile.Glyph => {
   } else {
     if (g.type === 'mark') {
       return {
+        isSet: false,
         inheritFrame: g.inheritFrame ?? false,
         bbox: g.bbox,
         renderFn: g.renderFn,
@@ -256,6 +257,7 @@ export const compileShapeValue = (g: ShapeValue | BFRef): Compile.Glyph => {
     } else if (g.type === 'group') {
       const kont = g[KONT];
       return kont((g) => ({
+        isSet: false,
         inheritFrame: g.inheritFrame ?? false,
         bbox: g.bbox,
         children: g.shapes ? objectMap(g.shapes, (_k, v) => compileShapeValue(v)) : {},

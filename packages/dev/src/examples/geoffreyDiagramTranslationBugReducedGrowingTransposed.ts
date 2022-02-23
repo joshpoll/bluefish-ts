@@ -1,4 +1,4 @@
-import { createShapeFn, ref, constraints as C, marks as M, render } from "@bfjs/core";
+import { createShape, ref, constraints as C, marks as M, render, Shape } from "@bfjs/core";
 import * as _ from 'lodash';
 
 const mkList = (name: string, xs: any) => ({
@@ -65,56 +65,57 @@ const relations = Object.fromEntries([
   ]),
 ])
 
-const markOpGlyph = createShapeFn({
+const markOpGlyph: Shape<{ action: string, markType: string }> = createShape({
   shapes: {
     "rect": M.rect({ fill: "pink", height: 20 }),
+    $$object: (op) => { console.log("DEBUG", op); return M.text({ contents: `${op.action} ${op.markType}`, fontSize: "18px" }) },
   },
-  object: (op: any) => { console.log("DEBUG", op); return M.text({ contents: `${op.action} ${op.markType}`, fontSize: "18px" }) },
   // fields: {
   //   "start": createShapeFn({ fields: {} }),
   //   "end": createShapeFn({ fields: {} }),
   // },
   rels: {
-    "rect->$object": [C.alignCenterX, C.alignCenterY],
+    "rect->object": [C.alignCenterX, C.alignCenterY],
     // "startCharRef->rect": [C.alignLeft],
     // "endCharRef->rect": [C.alignRight],
   },
 })
 
-const characterShape = createShapeFn({
+const characterShape: Shape<{ value: string }> = createShape({
   renderFn: M.debug,
   shapes: {
     "tile": M.rect({ height: 60, width: 50, fill: "#eee", rx: 3, }),
     "leftHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd", rx: 3, }),
-    "rightHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd", rx: 3, })
+    "rightHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd", rx: 3, }),
+    $$object: (charObj: any) => M.text({ contents: charObj.value.toString(), fontSize: "30px" }
+    ),
   },
-  object: (charObj: any) => M.text({ contents: charObj.value.toString(), fontSize: "30px" }
-  ),
   rels: {
-    "$object->tile": [C.alignCenterX, C.alignCenterY],
+    "object->tile": [C.alignCenterX, C.alignCenterY],
     "leftHandle->tile": [C.alignLeft, C.alignCenterY],
     "rightHandle->tile": [C.alignRight, C.alignCenterY]
   },
 });
 
-const listOfCharactersShape = createShapeFn({
-  fields: {
-    "markOps": createShapeFn({
-      fields: {
-        markOps: markOpGlyph,
+const listOfCharactersShape: Shape<{ markOps: any, charsList: any, markOpsToChars: any }> = createShape({
+  shapes: {
+    "$markOps$": createShape({
+      shapes: {
+        $markOps$: markOpGlyph,
       },
-    } as any),
-    "charsList": createShapeFn({
-      fields: {
-        charsList: characterShape,
-        neighbors: createShapeFn({
+    }),
+    "$charsList$": createShape({
+      shapes: {
+        $charsList$: characterShape,
+        $neighbors$: createShape({
           rels: { "curr->next": [C.vSpace(5), C.hSpace(5)] }
         })
       },
-    } as any),
-    "markOpsToChars": createShapeFn({
+    }),
+    "$markOpsToChars$": createShape({
       shapes: {
-        "box": M.rect({ fill: "red" })
+        "box": M.rect({ fill: "red" }),
+        "$op$": 'ref',
       },
       rels: {
         "box->op": [C.alignTop, C.alignBottom, C.alignLeft, C.alignRight]
@@ -122,6 +123,6 @@ const listOfCharactersShape = createShapeFn({
     })
   },
   rels: relations
-} as any)
+})
 
 export const geoffreyDiagramTranslationBugReducedGrowingTransposed = render(diagramData, listOfCharactersShape);

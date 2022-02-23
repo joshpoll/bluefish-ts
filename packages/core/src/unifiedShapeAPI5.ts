@@ -227,6 +227,7 @@ export const compileShapeValue = (g: ShapeValue | BFRef): Compile.Glyph => {
     if (g.type === 'group') {
       const kont = g[KONT];
       return kont((g) => ({
+        isSet: false,
         inheritFrame: g.inheritFrame ?? false,
         bbox: g.bbox,
         renderFn: g.renderFn,

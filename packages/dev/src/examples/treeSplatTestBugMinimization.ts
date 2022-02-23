@@ -16,7 +16,7 @@ const mkList = (xs: any) => ({
     ))
 })
 
-const data = mkList([1, 2, 3, 4, 5]);
+const data = { elements: 1 };
 
 type MyList<T> = {
   elements: Array<T>,
@@ -27,26 +27,32 @@ type MyList<T> = {
   }>
 }
 
-export const randomSetShapeFn: Shape<MyList<number>> = createShape({
+type SplatTest = {
+  node: number,
+  children: { elements: number }
+}
+
+const splatTestData: SplatTest = {
+  node: 20,
+  children: data,
+}
+
+export const treeSplatTestShape: Shape<SplatTest> = createShape({
   shapes: {
-    "box": M.rect({ /* width: 100, height: 50,  */fill: "coral", fillOpacity: 0.3, }),
-    "circle": M.circle({ cx: 0, cy: 100, r: 10 }),
-    "circle2": M.circle({ r: 5 }),
-    $elements$: (_) => createShape({
-      bbox: {
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-      },
+    $node$: (_) => M.rect({ width: 50, height: 50, fill: 'red', opacity: 0.5 }),
+    $children$: createShape({
       shapes: {
-        "circle": M.circle({ cx: 0, cy: 0, r: 5, fill: "cornflowerblue" })
-      }
+        $elements$: (_: any) => M.rect({ width: 20, height: 30, fill: 'blue', opacity: 0.5 }),
+      },
     }),
-    $neighbors$: (_) => M.nil(),
   },
   rels: {
-    "box->elements": C.containsShrinkWrap,
-    "circle2->box": [C.hSpace(20), C.alignMiddle],
+    /* TODO: this constraint doesn't seem to be enforced properly... */
+    // "node->children/elements": [C.vSpace(5)],
+    "node->children/elements": [C.vSpace(5)],
+    // "node->children": [C.vSpace(5)],
+    // "node->children/neighbors": [C.vSpace(5)],
   }
 })
 
-export const randomSet = render(data, randomSetShapeFn);
+export const treeSplatTestBugMin = render(splatTestData, treeSplatTestShape);

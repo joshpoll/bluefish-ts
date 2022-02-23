@@ -1,7 +1,7 @@
-import { createShapeFn, HostShapeFn } from "@bfjs/core";
-import { nil, text } from "@bfjs/marks";
+import { createShape, Shape, ShapeValue, marks } from "@bfjs/core";
+const { nil, text } = marks;
 
-const glyphV3Example: HostShapeFn<{}> = createShapeFn(
+const glyphV3Example: ShapeValue = createShape(
   {
     shapes: {
       "text": text({ contents: "hello world!", fontSize: "24px" }),
@@ -12,12 +12,12 @@ const glyphV3Example: HostShapeFn<{}> = createShapeFn(
   }
 );
 
-const objectGlyphExample: HostShapeFn<number> = createShapeFn(
+const objectGlyphExample: Shape<number> = createShape(
   {
     shapes: {
       "text": text({ contents: "hello world!", fontSize: "24px" }),
+      "$$object": (d: number) => text({ contents: "hello world!", fontSize: "24px" }),
     },
-    object: createShapeFn((d: number) => text({ contents: "hello world!", fontSize: "24px" })),
     rels: {
       "$canvas->text": [],
     }
@@ -46,12 +46,10 @@ const objectGlyphExample: HostShapeFn<number> = createShapeFn(
 //   })
 // }
 
-const fieldsGlyphExample: HostShapeFn<{ item: number }> = createShapeFn({
+const fieldsGlyphExample: Shape<{ item: number }> = createShape({
   shapes: {
     foo: nil(),
-  },
-  fields: {
-    item: createShapeFn((d: number) => nil()),
+    $item$: (d: number) => nil(),
   },
   rels: {
     "$canvas->$canvas": [],

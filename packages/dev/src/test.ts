@@ -1,5 +1,4 @@
-import * as M from '@bfjs/marks';
-import * as C from '@bfjs/constraints';
+import { marks as M, constraints as C } from '@bfjs/core';
 
 const foo = {
   objs: {

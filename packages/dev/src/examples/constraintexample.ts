@@ -1,12 +1,22 @@
 import { hSpace, vSpace, alignLeft, alignBottom, alignRight, alignTop, Gestalt, containsShrinkWrap, contains, alignBottomStrong, alignLeftStrong, alignTopStrong, alignRightStrong, vAlignCenter, hAlignCenter, alignTopSpace, sameWidth, sameHeight, alignRightSpace, alignBottomSpace, alignLeftSpace } from '@bfjs/constraints';
-import { debug, ellipse, line, nil, rect, text } from '@bfjs/marks';
-import { Shape, HostShapeFn, MyList, ref, createShapeFn, createShape, render } from '@bfjs/core';
+import { Shape, ref, createShape, render, marks, RelativeBFRef, ShapeValue, } from '@bfjs/core';
 import * as _ from "lodash";
 import { zipWith } from 'lodash';
 import * as scale from "d3-scale";
 import { summarize, tidy, min, max } from '@tidyjs/tidy';
 
+const { debug, ellipse, line, nil, rect, text } = marks;
+
 type Data = { category: string, value: number };
+
+type MyList<T> = {
+  elements: Array<T>,
+  // TODO: can refine Ref type even more to say what it refers to
+  neighbors: Array<{
+    curr: RelativeBFRef,
+    next: RelativeBFRef,
+  }>
+}
 
 /* https://vega.github.io/vega-lite/examples/bar.html */
 export const data: Data[] = [
@@ -25,13 +35,11 @@ const mkList = <T>(elements: T[]): MyList<T> => ({
     ),
 });
 
-const bar: HostShapeFn<Data> = createShapeFn({
+const bar: Shape<Data> = createShape({
   shapes: {
-    "tick": rect({ width: 1., height: 8., fill: "gray" })
-  },
-  fields: {
-    "category": createShapeFn((contents) => text({ contents, fontSize: "12px" })),
-    "value": createShapeFn((height) => rect({ width: 20, height, fill: "steelblue" })),
+    "tick": rect({ width: 1., height: 8., fill: "gray" }),
+    "$category$": (contents) => text({ contents, fontSize: "12px" }),
+    "$value$": (height) => rect({ width: 20, height, fill: "steelblue" }),
   },
   rels: {
     "value->tick": [vSpace(5), vAlignCenter],
@@ -39,10 +47,10 @@ const bar: HostShapeFn<Data> = createShapeFn({
   }
 })
 
-export const bars: HostShapeFn<MyList<Data>> = createShapeFn({
-  fields: {
-    elements: bar,
-    neighbors: createShapeFn({
+export const bars: Shape<MyList<Data>> = createShape({
+  shapes: {
+    $elements$: bar,
+    $neighbors$: createShape({
       rels: { "curr/value->next/value": [alignBottom, hSpace(0)] }
     })
   }
@@ -66,10 +74,10 @@ type Input = {
   yTicks: MyList<number>,
 }
 
-const yTicks: HostShapeFn<MyList<number>> = createShapeFn({
+const yTicks: Shape<MyList<number>> = createShape({
   // renderFn: debug,
-  fields: {
-    elements: createShapeFn((pos) => createShape({
+  shapes: {
+    $elements$: (pos) => createShape({
       /* This bbox use might be a little surprising. Why should it go on tick? It's because of local coordinate systems */
       bbox: {
         // TODO: is there a way to get rid of this negation "hack"? It not very nice
@@ -80,14 +88,14 @@ const yTicks: HostShapeFn<MyList<number>> = createShapeFn({
         label: text({ contents: pos.toString(), fontSize: "10px" }),
       },
       rels: { "label->tick": [hSpace(2.), hAlignCenter] }
-    })),
-    neighbors: createShapeFn({
+    }),
+    $neighbors$: createShape({
       rels: { "curr->next": [alignRight] }
     })
   }
 });
 
-export const barChartGlyphFn: HostShapeFn<{}> = createShapeFn({
+export const barChartGlyphFn: Shape<{}> = createShape({
   renderFn: debug,
   shapes: {
     "rect": rect({ width: 200, height: 100, fill: "none", stroke: "black" })
@@ -222,7 +230,7 @@ const dimensionWidth = 3;
 //   ]
 // })
 
-export const example: Shape = createShape({
+export const example: ShapeValue = createShape({
   shapes: {
     /* TODO: maybe make RHS a _list_ of glyphs? */
     "topRect": rect({ width: 500 / 3, height: 200 / 3, fill: "firebrick" }),
@@ -239,7 +247,7 @@ export const example: Shape = createShape({
   }
 })
 
-const measuringGlyph: Shape = createShape({
+const measuringGlyph: ShapeValue = createShape({
   shapes: {
     // "rect": rect({ width: 200, height: 100, fill: "none", stroke: "#a3a3a3", strokeWidth: 5 })
     // "ellipse": ellipse({ rx: 100, ry: 50, fill: "coral" }),
@@ -247,7 +255,7 @@ const measuringGlyph: Shape = createShape({
   }
 })
 
-const hSpaceGuide: Shape = createShape({
+const hSpaceGuide: ShapeValue = createShape({
   shapes: {
     "leftEdge": rect({ width: 2, height: 10, fill: "firebrick" }),
     "rightEdge": rect({ width: 2, height: 10, fill: "firebrick" }),
@@ -260,13 +268,13 @@ const hSpaceGuide: Shape = createShape({
   }
 })
 
-const alignBottomGuide: Shape = createShape({
+const alignBottomGuide: ShapeValue = createShape({
   shapes: {
     "middle": rect({ height: 2, fill: "firebrick" }),
   },
 })
 
-export const chartWithThings: HostShapeFn<unknown> = createShapeFn({
+export const chartWithThings: ShapeValue = createShape({
   shapes: {
     "leftRect": rect({ width: 75, height: 200, fill: "steelblue" }),
     "rightRect": rect({ width: 50, height: 100, fill: "cornflowerblue" }),
@@ -386,7 +394,4 @@ export const chartWithThings: HostShapeFn<unknown> = createShapeFn({
   }
 })
 
-export const constraintExample = render({
-  data: mkList(data),
-  yTicks: mkList(ticks),
-}, chartWithThings);
+export const constraintExample = render(chartWithThings);

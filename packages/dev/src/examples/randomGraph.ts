@@ -1,5 +1,5 @@
-import { constraints as C, marks as M, ref, MyList } from '@bfjs/core';
-import { Shape, HostShapeFn, createShapeFn, createShape, render } from '@bfjs/core';
+import { constraints as C, marks as M, ref, RelativeBFRef, ShapeValue, } from '@bfjs/core';
+import { Shape, createShape, render } from '@bfjs/core';
 import * as _ from "lodash";
 import { zipWith } from 'lodash';
 import * as scale from "d3-scale";
@@ -16,6 +16,15 @@ const mkList = <T>(xs: T[]) => ({
     ))
 })
 
+type MyList<T> = {
+  elements: Array<T>,
+  // TODO: can refine Ref type even more to say what it refers to
+  neighbors: Array<{
+    curr: RelativeBFRef,
+    next: RelativeBFRef,
+  }>
+}
+
 type ArrowParams = {
   x1?: number,
   y1?: number,
@@ -26,7 +35,7 @@ type ArrowParams = {
 }
 
 
-const myArrow = ({ x1, y1, x2, y2, stroke, strokeWidth = 1 }: ArrowParams): Shape => {
+const myArrow = ({ x1, y1, x2, y2, stroke, strokeWidth = 1 }: ArrowParams): ShapeValue => {
   return createShape({
     shapes: {
       "start": createShape({
@@ -54,16 +63,14 @@ const myArrow = ({ x1, y1, x2, y2, stroke, strokeWidth = 1 }: ArrowParams): Shap
 const data = mkList([1, 2, 3]);
 // const data = mkList([0, 75, 150]);
 
-export const randomGraphShapeFn: HostShapeFn<MyList<number>> = createShapeFn({
+export const randomGraphShapeFn: Shape<MyList<number>> = createShape({
   shapes: {
     // "box": M.rect({ /* width: 100, height: 50,  */fill: "coral", fillOpacity: 0.3, }),
     // "circle": M.circle({ cx: 0, cy: 100, r: 10 }),
     // "circle2": M.circle({ r: 5 }),
     // "arrow": M.arrow({ stroke: "steelblue", strokeWidth: 3 }),
     // "arrow2": M.arrow({ stroke: "coral", strokeWidth: 3 }),
-  },
-  fields: {
-    elements: (pos: any) => createShape({
+    $elements$: (pos: any) => createShape({
       renderFn: M.debug,
       bbox: {
         left: Math.random() * 300,
@@ -83,7 +90,7 @@ export const randomGraphShapeFn: HostShapeFn<MyList<number>> = createShapeFn({
         // "$canvas->circle": [...C.containsShrinkWrap, ...C.containsShrinkWrap],
       }
     }),
-    neighbors: createShapeFn({
+    $neighbors$: createShape({
       shapes: {
         // "arrow": myArrow({ stroke: "coral", strokeWidth: 3, }),
         // "box": M.rect({ width: 10, stroke: "magenta", fill: "none" }),
@@ -111,7 +118,7 @@ export const randomGraphShapeFn: HostShapeFn<MyList<number>> = createShapeFn({
       },
     }),
   },
-} as any)
+})
 
 // export const randomGraphShapeFn: Shape = createShape({
 //   shapes: {
@@ -133,7 +140,7 @@ export const randomGraphShapeFn: HostShapeFn<MyList<number>> = createShapeFn({
 //   },
 // })
 
-// export const randomGraphShapeFn: HostShapeFn<MyList<number>> = createShapeFn({
+// export const randomGraphShapeFn: Shape<MyList<number>> = createShape({
 //   shapes: {
 //     // "box": M.rect({ /* width: 100, height: 50,  */fill: "coral", fillOpacity: 0.3, }),
 //     // "circle": M.circle({ cx: 0, cy: 100, r: 10 }),
@@ -148,7 +155,7 @@ export const randomGraphShapeFn: HostShapeFn<MyList<number>> = createShapeFn({
 //         "circle2": M.circle({ cx: 0, cy: 100, r: 5, fill: "cornflowerblue" })
 //       }
 //     }),
-//     neighbors: createShapeFn({
+//     neighbors: createShape({
 //       shapes: {
 //         "arrow": M.arrow({ stroke: "coral", strokeWidth: 3, }),
 //       },

@@ -229,6 +229,7 @@ export const lowerShape = <T>(g: Shape | RelativeBFRef): Compile.Glyph => {
     const kont = g[KONT];
     const glyph_ = kont((x: Shape_<any, ReservedKeywords>) => x);
     return {
+      isSet: false,
       inheritFrame: glyph_.inheritFrame ?? false,
       bbox: glyph_.bbox,
       renderFn: glyph_.renderFn,
@@ -367,3 +368,24 @@ export function render<T extends RelativeBFValue>(shapeOrData: Shape | T, shapeF
   const shape = shapeFn ? shapeFn(makePathsAbsolute(shapeOrData as T) as T) : shapeOrData as Shape;
   return renderAST(compileWithRef(lowerShape(shape)));
 }
+
+// TODO: convert to this form? can also maybe take away createShape vs. createShapeFn.
+// can figure out which one is which from whether or not the shapeFns record is present.
+// but this requires us to have some way to refer to refs in shapeFns. I think we can just write
+// e.g. charRef: 'ref'. And that lets us know to actually render this ref.
+// we can also throw warnings if some fields aren't being rendered.
+
+// another nice thing about combining createShape and createShapeFn is that you can pun shapes and
+// thunked shapes, which further eases the ramp up abstraction
+
+/* 
+({
+  shapes: {
+    "g1": M.text({contents: "Hello", fontSize: "18pt", }),
+  },
+  shapeFns: {
+    $data: (name) => M.text({contents: name + "!", fontSize: "18pt", })
+  },
+  rels: { "g1->$data": [C.hAlignCenter, C.hSpace(spacing)] }
+})
+*/

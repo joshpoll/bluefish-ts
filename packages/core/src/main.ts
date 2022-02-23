@@ -1,9 +1,9 @@
 import { BBoxValues, bboxVarExprs } from './kiwiBBoxTransform';
 // import { render, createShape, createShapeFn, MyList, Relation, Shape, ShapeFn, HostShapeFn } from './shapeAPI';
-import { render, createShape, Relation, Shape, ShapeFn, Mark, Group, ShapeValue } from './unifiedMain';
+import { render, createShape, Relation, Shape, ShapeFn, ShapeValue, compileShapeValue } from './unifiedMain';
 import * as constraints from './constraints';
 // import * as marks from './marks';
-import * as marks from './marksUnified';
+import * as marks from './marksUnifiedFinal';
 
 import { BFPrimitive, BFObject, BFArray, RelativePath, AbsolutePath, Ref, RelativeBFRef, BFRef, BFValue, RelativeBFValue, AbsoluteBFValue, ref, makePathsAbsolute } from './absoluteDataPaths';
 
@@ -14,6 +14,7 @@ export {
   marks,
   ref,
   makePathsAbsolute,
+  compileShapeValue,
 }
 
 export type {
@@ -32,5 +33,6 @@ export type {
   BFValue,
   RelativeBFValue,
   AbsoluteBFValue,
-  ShapeFn, Mark, Group, ShapeValue
+  ShapeFn,
+  ShapeValue
 }

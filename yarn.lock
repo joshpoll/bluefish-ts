@@ -1209,17 +1209,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@bfjs/constraints@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@bfjs/constraints/-/constraints-0.1.0.tgz#9e900c4efc3fea44d9d294e84e9451397fd41253"
-  integrity sha512-/FKUfenUsjOEH1Lgg9yeLgD/yQ1Ee4zzcjKde/kQy4GbZ74EBW1piUbQ3F1v9kLIqEnYnerMeo8Xc0xtplFJkw==
-  dependencies:
-    "@bfjs/core" "0.1.0"
-
-"@bfjs/core@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@bfjs/core/-/core-0.1.0.tgz#689a3a010f0978156a813243865f72da14711c45"
-  integrity sha512-e5FQkMO6v626EIxJ0qx50xfhcZFXfBvfOVuipZ0XizMUY1BvXWxCuMKkfCQ+pOXu7OF/LEaWsZtPgV0yA3kUWA==
+"@bfjs/core@0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@bfjs/core/-/core-0.3.0.tgz#3ea63fc12fe410c9ec4b766b37ed16331747a38a"
+  integrity sha512-8HclZkEvTI/z+arciTZLCOqNC4W2UpWQfOQiMMssYj4rgQ1JYVyG3IO5KIReVLb9X1qB0zOf6e/zMo+DxFl+Zg==
   dependencies:
     "@types/node" "^12.0.0"
     "@types/react" "^17.0.0"
@@ -1228,15 +1221,25 @@
     react "^17.0.2"
     react-dom "^17.0.2"
     react-scripts "4.0.3"
+    rollup "^2.60.0"
     typescript "^4.4.3"
     web-vitals "^1.0.1"
 
-"@bfjs/marks@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@bfjs/marks/-/marks-0.1.0.tgz#2900089416dfc07787deb21f196c2c28bf1968dc"
-  integrity sha512-/XiKpo4EkBRvNCgp/AV3YIXaf48aYEYlswIqZoapHZPmEZbfTHnEZh/rxGjqRdjwc2KVTUC9Omx1A/J7GBKqNg==
+"@bfjs/core@0.4.1":
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/@bfjs/core/-/core-0.4.1.tgz#540a304a26f6a303a065c517c40b2927141edcd3"
+  integrity sha512-BakHgK6bnW5PruCDsS4ts8iZKac5X3DMcB1k+egl2rFKpcVHdvxz3vNX5PPtjE2Ugo7ksAn5sjH6g7ziRKyyHQ==
   dependencies:
-    "@bfjs/core" "0.1.0"
+    "@types/node" "^12.0.0"
+    "@types/react" "^17.0.0"
+    "@types/react-dom" "^17.0.0"
+    kiwi.js "^1.1.2"
+    react "^17.0.2"
+    react-dom "^17.0.2"
+    react-scripts "4.0.3"
+    rollup "^2.60.0"
+    typescript "^4.4.3"
+    web-vitals "^1.0.1"
 
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"

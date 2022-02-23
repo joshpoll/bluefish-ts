@@ -1,5 +1,5 @@
-import { constraints as C, marks as M } from '@bfjs/core';
-import { Shape, HostShapeFn, MyList, ref, createShapeFn, createShape, render } from '@bfjs/core';
+import { constraints as C, marks as M, RelativeBFRef, ShapeValue } from '@bfjs/core';
+import { Shape, ref, createShape, render } from '@bfjs/core';
 import * as _ from "lodash";
 import { zipWith } from 'lodash';
 import * as scale from "d3-scale";
@@ -24,6 +24,14 @@ const mkList = <T>(elements: T[]): MyList<T> => ({
     ),
 });
 
+type MyList<T> = {
+  elements: Array<T>,
+  // TODO: can refine Ref type even more to say what it refers to
+  neighbors: Array<{
+    curr: RelativeBFRef,
+    next: RelativeBFRef,
+  }>
+}
 
 /* TODO:
    - replace rect with line?
@@ -43,7 +51,7 @@ type Input = {
   yTicks: MyList<number>,
 }
 
-export const barChartGlyphFn: HostShapeFn<{}> = createShapeFn({
+export const barChartGlyphFn: ShapeValue = createShape({
   renderFn: M.debug,
   shapes: {
     "rect": M.rect({ width: 200, height: 100, fill: "none", stroke: "black" })

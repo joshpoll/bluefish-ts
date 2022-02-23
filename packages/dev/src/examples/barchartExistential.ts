@@ -1,9 +1,19 @@
 // import { debug, ellipse, line, nil, rect, text } from '@bfjs/marks';
-import { render, createShape, createShapeFn, HostShapeFn, MyList, ref, marks as M, constraints as C } from '@bfjs/core';
+import { render, Shape, createShape, ref, marks as M, constraints as C, RelativeBFRef } from '@bfjs/core';
 import * as _ from "lodash";
 import { zipWith } from 'lodash';
 import * as scale from "d3-scale";
 import { summarize, tidy, min, max } from '@tidyjs/tidy';
+
+
+type MyList<T> = {
+  elements: Array<T>,
+  // TODO: can refine Ref type even more to say what it refers to
+  neighbors: Array<{
+    curr: RelativeBFRef,
+    next: RelativeBFRef,
+  }>
+}
 
 type Data = { category: string, value: number };
 
@@ -24,15 +34,13 @@ const mkList = <T>(elements: T[]): MyList<T> => ({
     ),
 });
 
-const bar: HostShapeFn<Data> = createShapeFn({
+const bar: Shape<Data> = createShape({
   inheritFrame: true,
   shapes: {
     "origin": M.loc({ x: 0, y: 0 }),
-    "tick": M.rect({ width: 1., height: 8., fill: "gray" })
-  },
-  fields: {
-    "category": createShapeFn((contents) => M.text({ contents, fontSize: "12px" })),
-    "value": createShapeFn((height) => M.rect({ width: 20, height, fill: "steelblue" })),
+    "tick": M.rect({ width: 1., height: 8., fill: "gray" }),
+    "$category$": (contents) => M.text({ contents, fontSize: "12px" }),
+    "$value$": (height) => M.rect({ width: 20, height, fill: "steelblue" }),
   },
   rels: {
     "value->tick": [C.vSpace(5), C.vAlignCenter],
@@ -41,11 +49,11 @@ const bar: HostShapeFn<Data> = createShapeFn({
   }
 })
 
-export const bars: HostShapeFn<MyList<Data>> = createShapeFn({
+export const bars: Shape<MyList<Data>> = createShape({
   inheritFrame: true,
-  fields: {
-    elements: bar,
-    neighbors: createShapeFn({
+  shapes: {
+    $elements$: bar,
+    $neighbors$: createShape({
       rels: {
         "curr/value->next/value": [C.alignBottom, C.hSpace(0)],
       }
@@ -71,14 +79,12 @@ type Input = {
   yTicks: MyList<number>,
 }
 
-const yTicks: HostShapeFn<MyList<number>> = createShapeFn({
+const yTicks: Shape<MyList<number>> = createShape({
   // renderFn: debug,
   shapes: {
     "origin": M.loc({ x: 0, y: 0, }),
     // "originText": M.text({ contents: "O-ticks", x: 0, y: 0, fontSize: "18px", fill: "red" }),
-  },
-  fields: {
-    elements: createShapeFn((pos) => createShape({
+    $elements$: (pos) => createShape({
       /* This bbox use might be a little surprising. Why should it go on tick? It's because of local coordinate systems */
       bbox: {
         // TODO: is there a way to get rid of this negation "hack"? It not very nice
@@ -92,8 +98,8 @@ const yTicks: HostShapeFn<MyList<number>> = createShapeFn({
       rels: {
         "label->tick": [C.hSpace(2.), C.hAlignCenter],
       }
-    })),
-    neighbors: createShapeFn({
+    }),
+    $neighbors$: createShape({
       rels: {
         "curr->next": [C.alignRight],
       }
@@ -101,29 +107,27 @@ const yTicks: HostShapeFn<MyList<number>> = createShapeFn({
   }
 });
 
-export const yAxis: HostShapeFn<MyList<number>> = createShapeFn({
+export const yAxis: Shape<MyList<number>> = createShape({
   inheritFrame: true,
   shapes: {
     "origin": M.loc({ x: 0, y: 0, }),
     // "originText": M.text({ contents: "O-axis", x: 0, y: 0, fontSize: "12px", fill: "red" }),
     "yAxis": M.rect({ width: 1, fill: "gray" }),
+    $$object: yTicks,
   },
-  object: yTicks,
   rels: {
-    "$object->yAxis": [C.hSpace(0)],
+    "object->yAxis": [C.hSpace(0)],
     "origin->yAxis": [C.alignBottom],
   }
 });
 
-export const barChartShapeFn: HostShapeFn<Input> = createShapeFn({
+export const barChartShape: Shape<Input> = createShape({
   renderFn: M.debug,
   shapes: {
     "origin": M.loc({ x: 0, y: 0, }),
     // origin: M.text({ contents: "O", x: 0, y: 0, fontSize: "18px", fill: "red" })
-  },
-  fields: {
-    data: bars,
-    yTicks: yAxis,
+    $data$: bars,
+    $yTicks$: yAxis,
   },
   rels: {
     "yTicks->data": [C.hSpace(5)],
@@ -131,13 +135,13 @@ export const barChartShapeFn: HostShapeFn<Input> = createShapeFn({
   }
 })
 
-export const chartWithThings: HostShapeFn<Input> = createShapeFn({
+export const chartWithThings: Shape<Input> = createShape({
   shapes: {
-    "title": M.text({ contents: "Bar chart!", fontSize: "12px" })
+    "title": M.text({ contents: "Bar chart!", fontSize: "12px" }),
+    $$object: barChartShape,
   },
-  object: barChartShapeFn,
   rels: {
-    "title->$object": [C.vSpace(25), C.vAlignCenter],
+    "title->object": [C.vSpace(25), C.vAlignCenter],
   }
 })
 

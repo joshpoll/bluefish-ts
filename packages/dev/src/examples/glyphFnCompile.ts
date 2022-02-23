@@ -1,19 +1,19 @@
 import { alignCenterX, alignCenterY, alignLeft, hSpace, vAlignCenter, vSpace } from "@bfjs/constraints";
-import { createShapeFn, RelativeBFRef, HostShapeFn, MyList, Relation, render, ref } from '@bfjs/core';
-import { ellipse, rect, text, nil } from "@bfjs/marks";
+import { RelativeBFRef, Relation, render, ref, Shape, createShape, marks } from '@bfjs/core';
+// import { ellipse, rect, text, nil } from "@bfjs/marks";
+import { BFRef } from '../../../core/src/absoluteDataPaths';
+
+const { ellipse, rect, text, nil } = marks;
 
 type myDataE2 = { color1: string, color2: string, color3: string };
 const dataE2: myDataE2 = { color1: "firebrick", color2: "steelblue", color3: "black", /* "text": "hello world!" */ };
 
-export const exampleRelationInterface2: HostShapeFn<myDataE2> = createShapeFn({
+export const exampleRelationInterface2: Shape<myDataE2> = createShape({
   shapes: {
     "text": text({ contents: "hello world!", fontSize: "24px" }),
-  },
-  fields: {
-    "color1": createShapeFn((color1) => rect({ width: 500 / 3, height: 200 / 3, fill: color1 })),
-    "color2": createShapeFn((color2) => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: color2 })),
-    "color3": createShapeFn((color3) => ellipse({ rx: 50, ry: 50, fill: color3 })),
-    // "text": (textData) => text({ text: textData, fontSize: "calc(10px + 2vmin)" }),
+    "$color1$": (color1) => rect({ width: 500 / 3, height: 200 / 3, fill: color1 }),
+    "$color2$": (color2) => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: color2 }),
+    "$color3$": (color3) => ellipse({ rx: 50, ry: 50, fill: color3 }),
   },
   rels: {
     "color1->color2": [vSpace(50.), alignCenterX],
@@ -31,22 +31,20 @@ const marblesData: MarblesData = {
   elements: [1, 2, 3, 4],
 };
 
-const element: HostShapeFn<number> = createShapeFn({
+const element: Shape<number> = createShape({
   shapes: {
     "circle": ellipse({ rx: 300 / 6, ry: 200 / 6, fill: "coral" }),
+    "$$object": (n) => text({ contents: n.toString(), fontSize: "24px" }),
   },
-  object: createShapeFn((n) => text({ contents: n.toString(), fontSize: "24px" })),
   rels: {
-    "$object->circle": [alignCenterX, alignCenterY]
+    "object->circle": [alignCenterX, alignCenterY]
   }
 });
 
-export const marbles: HostShapeFn<MarblesData> = createShapeFn({
+export const marbles: Shape<MarblesData> = createShape({
   shapes: {
     // "text": text({ text: "hello world!", fontSize: "24px" }),
-  },
-  fields: {
-    elements: element,
+    $elements$: element,
     // "color1": (color1) => rect({ width: 500 / 3, height: 200 / 3, fill: color1 }),
     // "color2": (color2) => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: color2 }),
     // "color3": (color3) => ellipse({ rx: 50, ry: 50, fill: color3 }),
@@ -66,7 +64,13 @@ export const marbles: HostShapeFn<MarblesData> = createShapeFn({
 export const testCompiledGlyphFnExample = render(dataE2, exampleRelationInterface2);
 export const testCompiledGlyphFnMarbles = render(marblesData, marbles);
 
-type MarblesList = MyList<number>;
+type MarblesList = {
+  elements: number[],
+  neighbors: Array<{
+    curr: RelativeBFRef,
+    next: RelativeBFRef,
+  }>
+};
 
 const marblesList: MarblesList = {
   elements: [1, 2, 3, 4],
@@ -77,13 +81,15 @@ const marblesList: MarblesList = {
   ]
 };
 
-export const marblesListGlyphFn: HostShapeFn<MarblesList> = createShapeFn({
+export const marblesListGlyphFn: Shape<MarblesList> = createShape({
   shapes: {
     // "text": text({ text: "hello world!", fontSize: "24px" }),
-  },
-  fields: {
-    elements: element,
-    neighbors: createShapeFn({
+    "$elements$": element,
+    "$neighbors$": createShape({
+      shapes: {
+        '$curr$': 'ref',
+        '$next$': 'ref',
+      },
       rels: { "curr->next": [hSpace(5), alignCenterY] }
     })
   },
@@ -103,10 +109,11 @@ const marblesListReduced: MarblesListReduced = {
   marble1Ref: ref("marble1"),
 };
 
-export const marblesListReducedGlyphFn: HostShapeFn<MarblesListReduced> = createShapeFn({
-  fields: {
-    marble1: () => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: "coral" }),
-    marble2: () => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: "coral" }),
+export const marblesListReducedGlyphFn: Shape<MarblesListReduced> = createShape({
+  shapes: {
+    "$marble1$": () => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: "coral" }),
+    "$marble2$": () => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: "coral" }),
+    "$marble1Ref$": 'ref',
   },
   rels: {
     "marble1Ref->marble2": [hSpace(5), alignCenterY],
@@ -139,10 +146,14 @@ const marblesListMoreComplex: MarblesListMoreComplex = {
   ]
 };
 
-export const marblesListMoreComplexGlyphFn: HostShapeFn<MarblesListMoreComplex> = createShapeFn({
-  fields: {
-    marbles: element,
-    neighbor: createShapeFn({
+export const marblesListMoreComplexGlyphFn: Shape<MarblesListMoreComplex> = createShape({
+  shapes: {
+    $marbles$: element,
+    $neighbor$: createShape({
+      shapes: {
+        '$curr$': 'ref',
+        '$next$': 'ref',
+      },
       rels: {
         "curr->next": [hSpace(5.) /* TODO: not sure how to remove the specific value here and instead control the size of the entire thing */, alignCenterY],
       }
@@ -152,13 +163,13 @@ export const marblesListMoreComplexGlyphFn: HostShapeFn<MarblesListMoreComplex> 
 
 export const testMarblesListMoreComplex = render(marblesListMoreComplex, marblesListMoreComplexGlyphFn);
 
-export const twoSetsOfMarbles: HostShapeFn<{
+export const twoSetsOfMarbles: Shape<{
   one: MarblesListMoreComplex,
   two: MarblesListMoreComplex
-}> = createShapeFn({
-  fields: {
-    one: marblesListMoreComplexGlyphFn,
-    two: marblesListMoreComplexGlyphFn,
+}> = createShape({
+  shapes: {
+    $one$: marblesListMoreComplexGlyphFn,
+    $two$: marblesListMoreComplexGlyphFn,
   },
   rels: {
     "one->two": [vAlignCenter, vSpace(20)],

@@ -12,3 +12,12 @@ export function objectMap<O, T>(o: O, f: (key: keyof O, val: O[keyof O]) => T): 
 export function objectFilter<O>(o: O, f: (key: string, val: O[keyof O]) => boolean): object {
   return Object.entries(o).reduce((o: object, [key, val]) => f(key, val) ? ({ ...o, [key]: val }) : o, {});
 }
+
+export function objectMapKV<O, T, U>(o: O, f: (key: keyof O, val: O[keyof O]) => [keyof U, T]): ({ [key in keyof U]: T }) {
+  return Object.entries(o).reduce((o: { [key in keyof U]: T }, [key, val]) => {
+    const [newKey, newVal] = f(key as keyof O, val);
+    return {
+      ...o, [newKey]: newVal
+    };
+  }, {} as { [key in keyof U]: T });
+}
