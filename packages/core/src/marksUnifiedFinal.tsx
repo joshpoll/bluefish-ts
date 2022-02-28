@@ -2,6 +2,7 @@ import * as C from './constraints';
 import { BBoxValues } from './kiwiBBoxTransform';
 import { measureText } from './measureText';
 import { createShape, ShapeValue } from './unifiedShapeAPIFinal';
+// import XArrow from 'react-xarrows';
 
 type Rect = React.SVGProps<SVGRectElement> & Partial<{
   x: number,
@@ -128,6 +129,81 @@ export const arrow = (params: Arrow): ShapeValue => {
     rels: {
       "start->line": [C.alignLeft, C.alignTop],
       "line->end": [C.alignRight, C.alignBottom],
+    }
+  });
+}
+
+// https://stackoverflow.com/a/61756305
+// set rotation on transform
+function rotateBegin(pathCoords: { x: number; y: number }[]) {
+  const endPoint = pathCoords[1];
+  const startPoint = pathCoords[0];
+  const angleDeg = determineRotationAngle(endPoint, startPoint);
+  return `rotate(${angleDeg}, ${startPoint.x}, ${startPoint.y})`;
+}
+
+function rotateEnd(pathCoords: { x: number; y: number }[]) {
+  const endPoint = pathCoords[pathCoords.length - 1];
+  const startPoint = pathCoords[pathCoords.length - 2];
+  const angleDeg = determineRotationAngle(endPoint, startPoint);
+  return `rotate(${angleDeg}, ${endPoint.x}, ${endPoint.y})`;
+}
+
+function determineRotationAngle(endPoint: { x: number; y: number }, startPoint: { x: number; y: number }) {
+  const deltaX = Math.abs(endPoint.x - startPoint.x);
+  const deltaY = endPoint.y - startPoint.y;
+  return Math.atan2(deltaY, deltaX) * 180 / Math.PI + 180; // invert by turning 180 degrees
+}
+
+function determineRotationAngleRadians(endPoint: { x: number; y: number }, startPoint: { x: number; y: number }) {
+  const deltaX = Math.abs(endPoint.x - startPoint.x);
+  const deltaY = endPoint.y - startPoint.y;
+  return Math.atan2(deltaY, deltaX);
+}
+
+function getPolygonCoords(coords: { x: number; y: number }, index: number) {
+  const { x, y } = coords;
+  const p1 = `${x} ${y}`;
+  const p2 = `${x + 7.5} ${y + 5}`;
+  const p3 = `${x + 7.5} ${y - 5}`;
+  return `${p1}, ${p2}, ${p3}`;
+}
+
+type Arrow2 = Omit<Rect, 'x' | 'y' | 'width' | 'height'> & {
+  x1?: number,
+  y1?: number,
+  x2?: number,
+  y2?: number,
+}
+
+/* <rect id={startId} x={canvas.left} y={canvas.top} width={10} height={10} /* visibility={'hidden'} */
+// <rect id={endId} x={canvas.right} y={canvas.bottom} width={10} height={10} /* visibility={'hidden'} */ /> */}
+/* XArrow doesn't work b/c it puts the result in a div! And when I take it out of the div it still doesn't work. */
+/* <XArrow start={startId} end={endId} /> */
+export const arrow2 = (params: Arrow2): ShapeValue => {
+  params = { strokeWidth: 1, ...params };
+  return createShape({
+    // return the positioning parameters the user gave us
+    bbox: { left: params.x1, top: params.y1, right: params.x2, bottom: params.y2 },
+    // and the rendering function itself
+    renderFn: (canvas: BBoxValues, index?: number) => {
+      // const rotationAngleRadians = determineRotationAngleRadians({ x: canvas.right, y: canvas.bottom }, { x: canvas.left, y: canvas.top });
+      const start = { x: canvas.left, y: canvas.top };
+      const end = { x: canvas.right, y: canvas.bottom };
+      const length = Math.sqrt((canvas.left - canvas.right) ** 2 + (canvas.top - canvas.bottom) ** 2)
+      const width = 5;
+      const arrowHeadHeight = 7.5;
+      // TODO: need to add controls for which arrowhead to show
+      // TODO: need to be able to control arrowhead size
+      // NOTE: the weird +1 and -1 gets rid of a white-line artifact between the rect and the arrowhead.
+      return <g>
+        {/* < line {...params} key={index} x1={canvas.left} x2={canvas.right - arrowHeadHeight * Math.cos(rotationAngleRadians)} y1={canvas.top} y2={canvas.bottom - arrowHeadHeight * Math.sin(rotationAngleRadians)} /> */}
+        {/* <rect x={canvas.left - length / 2 + 7.5} y={canvas.top - width / 2} width={length} height={20} transform={rotateBegin([start, end])} /> */}
+        {/* <rect fill="magenta" x={canvas.right} y={canvas.bottom - width / 2} width={length} height={width} /> */}
+        {/* <polygon fill={params.fill} points={getPolygonCoords(start, 0)} transform={rotateBegin([start, end])} /> */}
+        <polygon fill={params.fill} points={getPolygonCoords(end, 1)} transform={rotateEnd([start, end])} />
+        <rect {...params} x={Math.floor(canvas.right + arrowHeadHeight) - 1} y={canvas.bottom - width / 2} width={Math.ceil(length - arrowHeadHeight) + 1} height={width} transform={rotateEnd([start, end])} />
+      </g>
     }
   });
 }

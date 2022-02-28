@@ -189,13 +189,13 @@ const dimensionWidth = 3;
 export const arrowTestShape = createShape({
   shapes: {
     "circle": M.circle({ r: 5, fill: "steelblue" }),
-    "arrow": M.arrow({ stroke: "steelblue", strokeWidth: 3 }),
     "secondBox": M.rect({ width: 100, height: 50, fill: "coral" }),
+    "arrow": M.arrow2({ fill: "steelblue" }),
   },
   rels: {
-    "circle->secondBox": [C.hSpace(50), C.alignMiddle],
-    "circle->arrow/start": [C.alignCenter, C.alignMiddle],
-    "arrow/end->secondBox": [C.alignLeft, C.alignMiddle],
+    "circle->secondBox": [C.hSpace(50), C.makeEqual('bottom', 'top')],
+    "circle->arrow": [C.makeEqual('centerX', 'left'), C.makeEqual('centerY', 'top')],
+    "arrow->secondBox": [C.makeEqual('right', 'left'), C.makeEqual('bottom', 'centerY')],
   }
 })
 

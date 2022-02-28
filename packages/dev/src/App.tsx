@@ -55,6 +55,10 @@ function App() {
         <br />
         <br />
         <br />
+        {arrowExample}
+        <br />
+        <br />
+        <br />
         {/* {randomGraph} */}
         {/* <br />
         <br />
