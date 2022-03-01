@@ -4,6 +4,7 @@ import { render, createShape, Relation, Shape, ShapeFn, ShapeValue, compileShape
 import * as constraints from './constraints';
 // import * as marks from './marks';
 import * as marks from './marksUnifiedFinal';
+import { Strength } from 'kiwi.js';
 
 import { BFPrimitive, BFObject, BFArray, RelativePath, AbsolutePath, Ref, RelativeBFRef, BFRef, BFValue, RelativeBFValue, AbsoluteBFValue, ref, makePathsAbsolute } from './absoluteDataPaths';
 
@@ -15,6 +16,7 @@ export {
   ref,
   makePathsAbsolute,
   compileShapeValue,
+  Strength,
 }
 
 export type {
