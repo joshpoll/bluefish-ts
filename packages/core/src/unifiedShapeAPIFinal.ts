@@ -163,6 +163,7 @@ type ShapeRecord3<Shapes, T> =
   )
 
 export type Shape_<Shapes extends ShapeRecord3<Shapes, T>, T> = {
+  dataMap?: { [key: string]: string },
   isSet?: boolean,
   inheritFrame?: boolean,
   bbox?: MaybeBBoxValues,
@@ -172,6 +173,9 @@ export type Shape_<Shapes extends ShapeRecord3<Shapes, T>, T> = {
 }
 
 export type ShapeObject<T> = {
+  // maps data names to shape names
+  // used to resolve references at shape time
+  dataMap?: { [key: string]: string },
   isSet?: boolean,
   inheritFrame?: boolean,
   bbox?: MaybeBBoxValues,
@@ -213,7 +217,9 @@ export const lowerShape = <T>(g: ShapeEx<T> | 'ref'): T extends Ref<any> ? 'ref'
     // remove refs. TODO: maybe add more complex behavior for refs?
     // go = { ...go, shapes: objectFilter(go.shapes, (_k, v) => v !== 'ref') as { [x: string]: ShapeObject<{}> } }
     // shape function
+    const dataMap: { [key: string]: string } = {};
     return ((data: T): ShapeValue => ({
+      dataMap,
       bbox: go.bbox,
       inheritFrame: go.inheritFrame,
       shapes: go.shapes ? objectMapKV(go.shapes, (name, shape: any) => {
@@ -223,11 +229,13 @@ export const lowerShape = <T>(g: ShapeEx<T> | 'ref'): T extends Ref<any> ? 'ref'
             throw `Error: Expected ${name.toString()} to be a function.`
           }
           const [dataName, shapeName] = getDataAndShapeNames(name as FunctionName);
+          dataMap[dataName ?? ""] = shapeName;
           console.log("name, data, shape", name, dataName, shapeName);
           const shapeData = dataName === null ? data : data[dataName as keyof T];
           const loweredShapes = mapDataRelation(shapeData, shape as ((d: RelationInstance<T[keyof T] | T>) => ShapeValue));
           if (loweredShapes instanceof Array) {
             return [shapeName, hideShapesType({
+              dataMap: Object.fromEntries(_.range(loweredShapes.length).map((i) => [i.toString(), i.toString()])),
               isSet: true,
               inheritFrame: true,
               shapes: loweredShapes.reduce((o, go, i) => ({
@@ -344,6 +352,7 @@ export const compileShapeValue = (g: ShapeValue | BFRef): Compile.Glyph => {
     return { $ref: true, path: g.path };
   } else {
     return {
+      dataMap: g.dataMap ?? {},
       isSet: g.isSet ?? false,
       inheritFrame: g.inheritFrame ?? false,
       bbox: g.bbox,

@@ -19,6 +19,7 @@ import { treeExample } from './examples/treeExample';
 import { treeSplatTestBugMin } from './examples/treeSplatTestBugMinimization';
 import { treeSplatTestGrowing } from './examples/treeSplatTestGrowing';
 import { subtreeTest, subtreeTest3 } from './examples/subtreeTest';
+import { combinatorTest } from './examples/combinatorTest';
 
 const data = { "a": 1, "b": null };
 
@@ -52,6 +53,10 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <br />
+        <br />
+        <br />
+        {combinatorTest}
         <br />
         <br />
         <br />
