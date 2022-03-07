@@ -3,46 +3,45 @@ import { bboxVarExprs } from './kiwiBBoxTransform';
 
 export type Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => Constraint;
 
-export const alignTop: Gestalt = (left: bboxVarExprs, right: bboxVarExprs, strength?: number) => {
+export const alignTop: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     left.top,
     Operator.Eq,
-    right.top,
-    strength,
+    right.top
   )
 }
 
-export const alignTopSpace = (spacing: number | Variable = new Variable(), strength?: number): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+export const alignTopSpace = (spacing: number | Variable = new Variable(), strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     new Expression(left.top),
-    Operator.Eq,
+    operator ?? Operator.Eq,
     new Expression(right.top, spacing),
     strength,
   );
 }
 
-export const alignRightSpace = (spacing: number | Variable = new Variable(), strength?: number): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+export const alignRightSpace = (spacing: number | Variable = new Variable(), strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     new Expression(left.right),
-    Operator.Eq,
+    operator ?? Operator.Eq,
     new Expression(right.right, spacing),
     strength,
   );
 }
 
-export const alignBottomSpace = (spacing: number | Variable = new Variable(), strength?: number): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+export const alignBottomSpace = (spacing: number | Variable = new Variable(), strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     new Expression(left.bottom, spacing),
-    Operator.Eq,
+    operator ?? Operator.Eq,
     new Expression(right.bottom),
     strength,
   );
 }
 
-export const alignLeftSpace = (spacing: number | Variable = new Variable(), strength?: number): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+export const alignLeftSpace = (spacing: number | Variable = new Variable(), strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     new Expression(left.left, spacing),
-    Operator.Eq,
+    operator ?? Operator.Eq,
     new Expression(right.left),
     strength,
   );
@@ -106,6 +105,24 @@ export const alignCenterYStrong: Gestalt = (left: bboxVarExprs, right: bboxVarEx
   )
 }
 
+export const alignCenterXOptions = (strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.centerX,
+    operator ?? Operator.Eq,
+    right.centerX,
+    strength,
+  )
+}
+
+export const alignCenterYOptions = (strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.centerY,
+    operator ?? Operator.Eq,
+    right.centerY,
+    strength,
+  )
+}
+
 export const hAlignCenter = alignCenterY;
 export const vAlignCenter = alignCenterX;
 
@@ -118,19 +135,25 @@ export const vAlignCenterStrong = alignCenterXStrong;
 export const alignCenterStrong = alignCenterXStrong;
 export const alignMiddleStrong = alignCenterYStrong;
 
-export const hSpace = (spacing: number | Variable = new Variable(), strength?: number): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+export const hAlignCenterOptions = alignCenterYOptions;
+export const vAlignCenterOptions = alignCenterXOptions;
+
+export const alignCenterOptions = alignCenterXOptions;
+export const alignMiddleOptions = alignCenterYOptions;
+
+export const hSpace = (spacing: number | Variable = new Variable(), strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     new Expression(left.right, spacing),
-    Operator.Eq,
+    operator ?? Operator.Eq,
     new Expression(right.left),
     strength,
   );
 }
 
-export const vSpace = (spacing: number | Variable = new Variable(), strength?: number): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+export const vSpace = (spacing: number | Variable = new Variable(), strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     new Expression(left.bottom, spacing),
-    Operator.Eq,
+    operator ?? Operator.Eq,
     new Expression(right.top),
     strength,
   );
@@ -204,6 +227,42 @@ export const alignRightStrong: Gestalt = (left: bboxVarExprs, right: bboxVarExpr
   )
 }
 
+export const alignTopOptions = (strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.top,
+    operator ?? Operator.Eq,
+    right.top,
+    strength,
+  )
+}
+
+export const alignBottomOptions = (strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.bottom,
+    operator ?? Operator.Eq,
+    right.bottom,
+    strength,
+  )
+}
+
+export const alignLeftOptions = (strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.left,
+    operator ?? Operator.Eq,
+    right.left,
+    strength,
+  )
+}
+
+export const alignRightOptions = (strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.right,
+    operator ?? Operator.Eq,
+    right.right,
+    strength,
+  )
+}
+
 export const sameWidth: Gestalt = (left: bboxVarExprs, right: bboxVarExprs) => {
   return new Constraint(
     left.width,
@@ -238,6 +297,24 @@ export const sameHeightStrong: Gestalt = (left: bboxVarExprs, right: bboxVarExpr
   )
 }
 
+export const sameWidthOptions = (strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.width,
+    operator ?? Operator.Eq,
+    right.width,
+    strength,
+  )
+}
+
+export const sameHeightOptions = (strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.height,
+    operator ?? Operator.Eq,
+    right.height,
+    strength,
+  )
+}
+
 export const contains: Gestalt[] = [containsLeft, containsRight, containsTop, containsBottom];
 
 export const containsShrinkWrap: Gestalt[] = [...contains, alignLeftStrong, alignRightStrong, alignTopStrong, alignBottomStrong];
@@ -251,12 +328,13 @@ export const eqWidthHeight = (left: bboxVarExprs, right: bboxVarExprs) => {
   )
 }
 
-export const makeEqual = (leftDim: keyof bboxVarExprs, rightDim: keyof bboxVarExprs) =>
+export const makeEqual = (leftDim: keyof bboxVarExprs, rightDim: keyof bboxVarExprs, strength?: number, operator?: Operator) =>
   (left: bboxVarExprs, right: bboxVarExprs) => {
     return new Constraint(
       left[leftDim],
-      Operator.Eq,
+      operator ?? Operator.Eq,
       right[rightDim],
+      strength,
     )
   }
 
@@ -269,12 +347,11 @@ export const eqWidthHeightStrong = (left: bboxVarExprs, right: bboxVarExprs) => 
   )
 }
 
-export const makeEqualStrong = (leftDim: keyof bboxVarExprs, rightDim: keyof bboxVarExprs) =>
-  (left: bboxVarExprs, right: bboxVarExprs) => {
-    return new Constraint(
-      left[leftDim],
-      Operator.Eq,
-      right[rightDim],
-      Strength.strong,
-    )
-  }
+export const eqWidthHeightOptions = (strength?: number, operator?: Operator): Gestalt => (left: bboxVarExprs, right: bboxVarExprs) => {
+  return new Constraint(
+    left.width,
+    operator ?? Operator.Eq,
+    right.height,
+    Strength.strong,
+  )
+}

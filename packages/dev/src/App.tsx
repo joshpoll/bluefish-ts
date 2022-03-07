@@ -56,7 +56,7 @@ function App() {
         <br />
         <br />
         <br />
-        {combinatorTest}
+        {/* {combinatorTest} */}
         <br />
         <br />
         <br />

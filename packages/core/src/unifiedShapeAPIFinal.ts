@@ -352,7 +352,7 @@ export const compileShapeValue = (g: ShapeValue | BFRef): Compile.Glyph => {
     return { $ref: true, path: g.path };
   } else {
     return {
-      dataMap: g.dataMap ?? {},
+      // dataMap: g.dataMap ?? {},
       isSet: g.isSet ?? false,
       inheritFrame: g.inheritFrame ?? false,
       bbox: g.bbox,
