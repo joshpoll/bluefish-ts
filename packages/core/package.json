@@ -1,6 +1,6 @@
 {
   "name": "@bfjs/core",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
   "license": "MIT",
