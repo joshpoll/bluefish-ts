@@ -1,3 +1,4 @@
+import { TextProps, useText } from '@visx/text';
 import * as C from './constraints';
 import { BBoxValues } from './kiwiBBoxTransform';
 import { measureText } from './measureText';
@@ -268,3 +269,94 @@ export const html = (params: HTML): ShapeValue => {
 
 export const debug = (canvas: BBoxValues): JSX.Element =>
   (<rect x={canvas.left} y={canvas.top} width={canvas.width} height={canvas.height} fill="none" stroke="magenta" />);
+
+type Image = React.SVGProps<SVGImageElement>
+  & Partial<{
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  }>
+
+export const image = (params: Image): ShapeValue => createShape(
+  {
+    // return the positioning parameters the user gave us
+    bbox: { left: params.x, top: params.y, width: params.width, height: params.height },
+    // and the rendering function itself
+    renderFn: (canvas: BBoxValues, index?: number) => {
+      return <image {...params} key={index} x={canvas.left} y={canvas.top
+      } width={canvas.width} height={canvas.height} />
+    }
+  }
+)
+
+// type VisxText = TextProps
+//   & { contents: string }
+//   & Partial<{
+//     x: number,
+//     y: number,
+//   }>
+
+// // TODO: use 'alphabetic' baseline in renderer? may need to figure out displacement again
+// // TODO: maybe use https://airbnb.io/visx/docs/text?
+// // TODO: maybe use alignmentBaseline="baseline" to measure the baseline as well?? need to add it as
+// // a guide
+// // TODO: very close to good alignment, but not quite there. Can I use more of the canvas
+// // measurements somehow?
+// export const visxText = (params: VisxText): ShapeValue => {
+//   const { contents, ...textParams } = params;
+
+//   const {
+//     dx = 0,
+//     dy = 0,
+//     textAnchor = 'start',
+//     innerRef,
+//     innerTextRef,
+//     verticalAnchor,
+//     angle,
+//     lineHeight = '1em',
+//     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+//     scaleToFit = false,
+//     capHeight,
+//     width,
+//     ...textProps
+//   } = textParams;
+
+//   const { /* x = 0,  */fontSize } = textProps;
+//   const { wordsByLines, startDy, transform } = useText(textParams);
+
+//   // TODO: need to determine whether width is known or not and update accordingly
+
+//   return createShape({
+//     bbox: {
+//       left: params.x,
+//       top: params.y,
+//       width,
+//       // TODO: height,
+//     },
+//     renderFn: (canvas: BBoxValues, index?: number) => {
+//       return <g x={canvas.left} y={canvas.top} key={index}>
+//         {wordsByLines.length > 0 ? (
+//           <text ref={innerTextRef} fontSize={fontSize} transform={transform} {...textProps} textAnchor={textAnchor}>
+//             {wordsByLines.map((line, index) => (
+//               <tspan key={index} /* x={x} */ dy={index === 0 ? startDy : lineHeight}>
+//                 {line.words.join(' ')}
+//               </tspan>
+//             ))}
+//           </text>
+//         ) : null}
+//       </g>
+//     },
+//   });
+
+//   return createShape({
+//     // return the positioning parameters the user gave us
+//     bbox: { left: params.x, top: params.y, width: measurements.width, height: measurements.fontHeight },
+//     // and the rendering function itself
+//     renderFn: (canvas: BBoxValues, index?: number) => {
+//       return <text {...textParams} key={index} x={canvas.left} y={canvas.bottom - measurements.fontDescent}>
+//         {contents}
+//       </text>
+//     }
+//   })
+// }

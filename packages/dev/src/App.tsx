@@ -8,7 +8,7 @@ import { arrowExample } from './examples/arrowExample';
 import { randomSet } from './examples/randomSet';
 import { randomGraph } from './examples/randomGraph';
 // import { geoffreyDiagram } from './examples/geoffreyDiagram';
-import { ref, makePathsAbsolute } from '@bfjs/core';
+import { ref, makePathsAbsolute, render, marks as M } from '@bfjs/core';
 // import { geoffreyDiagramTranslationBugReduced } from './examples/geoffreyDiagramTranslationBugReduced';
 // import { geoffreyDiagramTranslationBugReducedGrowing } from './examples/geoffreyDiagramTranslationBugReducedGrowing';
 import { geoffreyDiagramTranslationBugReducedGrowingTransposed } from './examples/geoffreyDiagramTranslationBugReducedGrowingTransposed';
@@ -61,6 +61,9 @@ function App() {
         <br />
         <br />
         {arrowExample}
+        {/* photo by Marco Verch, CC 2.0 */}
+        {/* https://creativecommons.org/licenses/by/2.0/ */}
+        {render(M.image({ x: 0, y: 0, width: 1024 / 3, height: 683 / 3, href: "https://foto.wuestenigel.com/wp-content/uploads/api2/freshly-cooked-homemade-omelet-with-herbs.jpeg" }))}
         <br />
         <br />
         <br />
