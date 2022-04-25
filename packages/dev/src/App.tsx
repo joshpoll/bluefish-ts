@@ -20,6 +20,7 @@ import { treeSplatTestBugMin } from './examples/treeSplatTestBugMinimization';
 import { treeSplatTestGrowing } from './examples/treeSplatTestGrowing';
 import { subtreeTest, subtreeTest3 } from './examples/subtreeTest';
 import { combinatorTest } from './examples/combinatorTest';
+import { helloIndigo, indigoGroup, indigoConstraint } from './examples/indigoTest';
 
 const data = { "a": 1, "b": null };
 
@@ -56,6 +57,10 @@ function App() {
         <br />
         <br />
         <br />
+        {helloIndigo()}
+        {/* {indigoConstraint()} */}
+        {/* {indigoGroup()}
+        {indigoConstraint()} */}
         {/* {combinatorTest} */}
         <br />
         <br />

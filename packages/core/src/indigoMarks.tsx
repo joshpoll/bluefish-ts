@@ -1,8 +1,8 @@
 import { TextProps, useText } from '@visx/text';
-import * as C from './constraints';
+import * as C from './indigoConstraints';
 import { BBoxValues } from './kiwiBBoxTransform';
 import { measureText } from './measureText';
-import { createShape, ShapeValue } from './unifiedShapeAPIFinal';
+import { createShape, ShapeValue } from './indigoShapeAPI';
 // import XArrow from 'react-xarrows';
 
 type Rect = React.SVGProps<SVGRectElement> & Partial<{
