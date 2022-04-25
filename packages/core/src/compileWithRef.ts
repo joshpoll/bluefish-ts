@@ -5,7 +5,11 @@ import { BBoxTree, getBBoxValues, makeBBoxVars, bboxVars, BBoxValues, MaybeBBoxV
 import { objectFilter, objectMap } from './objectMap';
 import { ppConstraint } from './ppKiwi';
 
+// non-empty string is a field, empty string is an object
+export type DataMap = { [key: string]: string }
+
 export type BBoxTreeInherit<T, U> = {
+  dataMap: DataMap,
   isSet: boolean,
   inheritFrame: boolean,
   bbox: T, // equals transform(canvas)
@@ -23,6 +27,7 @@ export type BBoxTreeInherit<T, U> = {
 
 export type BBoxTreeInheritRef<T, U> = {
   $ref: boolean,
+  dataMap: DataMap,
   isSet: boolean,
   inheritFrame: boolean,
   bbox: T, // equals transform(canvas)
@@ -56,6 +61,7 @@ export type Relation = {
 export type Ref = { $ref: true, path: string[] }
 
 export type Glyph = {
+  dataMap: DataMap,
   isSet: boolean,
   inheritFrame: boolean,
   bbox?: MaybeBBoxValues,
@@ -65,6 +71,7 @@ export type Glyph = {
 } | Ref
 
 export type GlyphNoRef = {
+  dataMap: DataMap,
   isSet: boolean,
   inheritFrame: boolean,
   bbox?: MaybeBBoxValues,
@@ -74,6 +81,7 @@ export type GlyphNoRef = {
 }
 
 export type GlyphWithPath = {
+  dataMap: DataMap,
   isSet: boolean,
   inheritFrame: boolean,
   pathList: string[],
@@ -85,6 +93,7 @@ export type GlyphWithPath = {
 } | Ref
 
 export type GlyphWithPathNoRef = {
+  dataMap: DataMap,
   isSet: boolean,
   inheritFrame: boolean,
   pathList: string[],
@@ -169,6 +178,7 @@ const addChildrenConstraints = (bboxTree: BBoxTreeVVE, constraints: Constraint[]
 }
 
 type BBoxTreeInheritWithRef<T, U> = {
+  dataMap: DataMap,
   isSet: boolean,
   inheritFrame: boolean,
   bbox: T, // equals transform(canvas)
@@ -217,6 +227,7 @@ const makeBBoxTreeWithRef = (encoding: GlyphWithPath): BBoxTreeVVEWithRef => {
     };
 
     return {
+      dataMap: encoding.dataMap,
       isSet: encoding.isSet,
       inheritFrame: encoding.inheritFrame,
       bbox,
@@ -393,21 +404,50 @@ const addGestaltConstraints = (bboxTree: BBoxTreeVVE, encoding: GlyphWithPath, c
   }
 }
 
+/* Doesn't work because must account for refs. so this is folded into the main function */
+// const findField = (field: string, bboxTreeWithRef: BBoxTreeVVE): BBoxTreeVVE | null => {
+//   if (field in bboxTreeWithRef.dataMap) {
+//     const child = bboxTreeWithRef.dataMap[field];
+//     return bboxTreeWithRef.children[child];
+//   } else if ('' in bboxTreeWithRef.dataMap) {
+//     // pass-through
+//     const child = bboxTreeWithRef.dataMap[''];
+//     return findField(field, bboxTreeWithRef.children[child]);
+//   } else {
+//     return null
+//   }
+// }
+
 const lookupPath = (rootBboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTreeVVE => {
   console.log('path in lookupPath', path);
   const lookupPathAux = (bboxTreeWithRef: BBoxTreeVVEWithRef, path: string[]): BBoxTreeVVE => {
     // const hd = path[path.length - 1];
     // const tl = path.slice(0, -1);
     console.log('path in lookupPathAux', path);
-    const [hd, ...tl] = path;
+    let [hd, ...tl] = path;
     console.log("lookup", hd, tl, bboxTreeWithRef);
     // we assume the input isn't a ref, because we assert this before recursive calls
     // the top level could be a ref, but this is extremely unlikely so we ignore it (for now)
     bboxTreeWithRef = bboxTreeWithRef as Exclude<BBoxTreeVVEWithRef, Ref>;
     // console.log("current path", hd, tl, bboxTreeWithRef);
+    // let child;
+    // if (hd in bboxTreeWithRef.children) {
+    //   child = bboxTreeWithRef.children[hd];
+    // } else {
+    //   console.log('bboxTree', rootBboxTreeWithRef);
+    //   console.log('local bboxTree', bboxTreeWithRef);
+    //   throw `error in shape path resolution: trying to find ${hd} among ${Object.keys(bboxTreeWithRef.children).join(', ')}. Path remaining: ${path}`
+    // }
     let child;
-    if (hd in bboxTreeWithRef.children) {
-      child = bboxTreeWithRef.children[hd];
+    if (hd in bboxTreeWithRef.dataMap) {
+      const childName = bboxTreeWithRef.dataMap[hd];
+      child = bboxTreeWithRef.children[childName];
+    } else if ('' in bboxTreeWithRef.dataMap) {
+      // pass-through
+      const childName = bboxTreeWithRef.dataMap[''];
+      child = bboxTreeWithRef.children[childName];
+      // this ensures we keep looking for the hd element
+      tl = [hd, ...tl];
     } else {
       console.log('bboxTree', rootBboxTreeWithRef);
       console.log('local bboxTree', bboxTreeWithRef);

@@ -163,7 +163,7 @@ type ShapeRecord3<Shapes, T> =
   )
 
 export type Shape_<Shapes extends ShapeRecord3<Shapes, T>, T> = {
-  dataMap?: { [key: string]: string },
+  dataMap?: Compile.DataMap,
   isSet?: boolean,
   inheritFrame?: boolean,
   bbox?: MaybeBBoxValues,
@@ -175,7 +175,7 @@ export type Shape_<Shapes extends ShapeRecord3<Shapes, T>, T> = {
 export type ShapeObject<T> = {
   // maps data names to shape names
   // used to resolve references at shape time
-  dataMap?: { [key: string]: string },
+  dataMap?: Compile.DataMap,
   isSet?: boolean,
   inheritFrame?: boolean,
   bbox?: MaybeBBoxValues,
@@ -217,7 +217,7 @@ export const lowerShape = <T>(g: ShapeEx<T> | 'ref'): T extends Ref<any> ? 'ref'
     // remove refs. TODO: maybe add more complex behavior for refs?
     // go = { ...go, shapes: objectFilter(go.shapes, (_k, v) => v !== 'ref') as { [x: string]: ShapeObject<{}> } }
     // shape function
-    const dataMap: { [key: string]: string } = {};
+    const dataMap: Compile.DataMap = {};
     return ((data: T): ShapeValue => ({
       dataMap,
       bbox: go.bbox,
@@ -352,7 +352,7 @@ export const compileShapeValue = (g: ShapeValue | BFRef): Compile.Glyph => {
     return { $ref: true, path: g.path };
   } else {
     return {
-      // dataMap: g.dataMap ?? {},
+      dataMap: g.dataMap ?? {},
       isSet: g.isSet ?? false,
       inheritFrame: g.inheritFrame ?? false,
       bbox: g.bbox,

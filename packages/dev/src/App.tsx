@@ -61,14 +61,14 @@ function App() {
         {/* {indigoConstraint()} */}
         {/* {indigoGroup()}
         {indigoConstraint()} */}
-        {/* {combinatorTest} */}
+        {combinatorTest}
         <br />
         <br />
         <br />
-        {arrowExample}
+        {/* {arrowExample} */}
         {/* photo by Marco Verch, CC 2.0 */}
         {/* https://creativecommons.org/licenses/by/2.0/ */}
-        {render(M.image({ x: 0, y: 0, width: 1024 / 3, height: 683 / 3, href: "https://foto.wuestenigel.com/wp-content/uploads/api2/freshly-cooked-homemade-omelet-with-herbs.jpeg" }))}
+        {/* {render(M.image({ x: 0, y: 0, width: 1024 / 3, height: 683 / 3, href: "https://foto.wuestenigel.com/wp-content/uploads/api2/freshly-cooked-homemade-omelet-with-herbs.jpeg" }))} */}
         <br />
         <br />
         <br />
@@ -105,20 +105,20 @@ function App() {
         {/* {geoffreyDiagram} */}
         {/* {geoffreyDiagramTranslationBugReducedGrowing} */}
         {/* {geoffreyDiagramTranslationBugReducedGrowingTransposed} */}
-        {geoffreyDiagramTranslationBugReducedGrowingTransposedUnified}
+        {/* {geoffreyDiagramTranslationBugReducedGrowingTransposedUnified} */}
         <br />
         <br />
         <br />
         {/* {treeSplatTestBugMin} */}
         {/* {treeSplatTest} */}
-        {treeSplatTestGrowing}
+        {/* {treeSplatTestGrowing} */}
         <br />
         <br />
         <br />
-        {refrefTest1}
+        {/* {refrefTest1}
         {treeExample}
         {subtreeTest}
-        {subtreeTest3}
+        {subtreeTest3} */}
       </header>
     </div>
   );
