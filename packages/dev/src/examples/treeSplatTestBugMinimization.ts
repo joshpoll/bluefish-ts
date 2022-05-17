@@ -39,7 +39,7 @@ const splatTestData: SplatTest = {
 
 export const treeSplatTestShape: Shape<SplatTest> = createShape({
   shapes: {
-    $node$: (_) => M.rect({ width: 50, height: 50, fill: 'red', opacity: 0.5 }),
+    $node$: (_: any) => M.rect({ width: 50, height: 50, fill: 'red', opacity: 0.5 }),
     $children$: createShape({
       shapes: {
         $elements$: (_: any) => M.rect({ width: 20, height: 30, fill: 'blue', opacity: 0.5 }),

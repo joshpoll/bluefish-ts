@@ -35,7 +35,7 @@ type ExtractRefKeys<T> = keyof T[ExtractFieldsOfType<T, RelativeBFRef>]
 export type Relation<T> = T[]
 
 // unwraps a Relation into a RelationInstance, and keeps RelationInstances unchanged
-type RelationInstance<T> = T extends Array<infer _> ? T[number] : T
+export type RelationInstance<T> = T extends Array<infer _> ? T[number] : T
 
 // ObjPath based on: https://twitter.com/SferaDev/status/1413761483213783045
 type StringKeys<O> = Extract<keyof O, string>;
@@ -126,6 +126,12 @@ type UnionToIntersection<U> = (U extends any
   ? I
   : never;
 
+// https://stackoverflow.com/a/54911272
+type IsUnion<T> =
+  [T] extends [UnionToIntersection<T>] ? false : true
+type DisjointUnion<T extends { key: string }> =
+  { [k in T["key"]]: IsUnion<Extract<T, { key: k }>> } extends { [k in T["key"]]: false } ? T : never;
+
 // TODO: read about how this works
 // https://flut1.medium.com/deep-flatten-typescript-types-with-finite-recursion-cb79233d93ca
 type ValuesOf<T> = T[keyof T];
@@ -162,17 +168,90 @@ type ShapeRecord3<Shapes, T> =
     //   key extends keyof ShapeFns ? Shape<RelationInstance<ShapeFns[key]>> : ShapeValue }
   )
 
-export type Shape_<Shapes extends ShapeRecord3<Shapes, T>, T> = {
-  dataMap?: Compile.DataMap,
-  isSet?: boolean,
-  inheritFrame?: boolean,
-  bbox?: MaybeBBoxValues,
-  renderFn?: (canvas: BBoxValues, index?: number) => JSX.Element,
-  shapes?: Shapes,
-  rels?: ShapeRelation,
-}
+/* https://stackoverflow.com/a/57117594 (comments copied from there, too) */
+// First, define a type that, when passed a union of keys, creates an object which 
+// cannot have those properties. I couldn't find a way to use this type directly,
+// but it can be used with the below type.
+type Impossible<K extends keyof any> = {
+  [P in K]: never;
+};
 
-export type ShapeObject<T> = {
+// The secret sauce! Provide it the type that contains only the properties you want,
+// and then a type that extends that type, based on what the caller provided
+// using generics.
+type NoExtraProperties<T, U extends T = T> = U & Impossible<Exclude<keyof U, keyof T>>;
+
+type Foo = Exclude<string, `$${string}$${string}`>
+
+import type { Except, Merge, SetRequired, Simplify } from 'type-fest';
+
+type FooExcept = {
+  unicorn: string;
+  rainbow: boolean;
+};
+
+type FooWithoutRainbow = Except<FooExcept, 'rainbow'>;
+
+type ShapeRecord4<Shapes, T> =
+  (
+
+    Simplify<Merge<
+      // shapes
+      { [key in Exclude<keyof Shapes, `$${string}$${string}`>]: ShapeValue },
+      Simplify<Merge<
+        // fields
+        // Id<Merge<
+        { [field in (string & keyof T) as`$${field}$${string}`]?: 'ref' | ShapeFn<RelationInstance<T[field]>> },
+        // { [field in (string & keyof T) as`$${field}$`]?: 'ref' | ShapeFn<RelationInstance<T[field]>> }
+        // >>,
+        // objects
+        { [key in `$$${string}`]?: 'ref' | ShapeFn<RelationInstance<T>> }
+      >>
+    >>
+    // ensure/encourage that Shapes has the same keys as this record
+    & { [key in keyof Shapes]: unknown }
+    // & { [key in keyof Shapes]: 'ref' | ShapeValue | ShapeFn<any> }
+  )
+
+// like 4 but with stronger types for shape names so they can be enforced in relations
+// TODO: this doesn't work with a shared S b/c TS expects _all_ keys with all S strings to be occupied
+// e.g. if you have foo and $bar$bar, you must also have $bar$foo
+// TODO: it also doesn't work with S, SF, and SO. For some reason they all infer foo. I need to make
+// SF and SO more precise somehow...
+type ShapeRecord5<
+  Shapes,
+  S extends string & Exclude<keyof Shapes, `$${string}$${string}`>,
+  SF extends {},
+  SO extends string,
+  T> =
+  (
+    // shapes
+    { [key in S]: Shapes[key] extends ShapeEx<{}> ? Shapes[key] : never }
+    // fields
+    & { [field in (string & keyof T) as `$${field}$${string & keyof SF}`]: 'ref' | ShapeEx<RelationInstance<T[field]>> }
+    // objects
+    & { [key in `$$${SO}`]: ShapeEx<RelationInstance<T>> }
+    // ensure/encourage that Shapes has the same keys as this record
+    & { [key in keyof Shapes]: unknown }
+  )
+
+export type Shape_<
+  Shapes extends ShapeRecord4<Shapes, T>,
+  // S extends string & Exclude<keyof Shapes, `$${string}$${string}`>,
+  // SF extends {},
+  // SO extends string,
+  T> = {
+    dataMap?: Compile.DataMap,
+    isSet?: boolean,
+    inheritFrame?: boolean,
+    bbox?: MaybeBBoxValues,
+    renderFn?: (canvas: BBoxValues, index?: number) => JSX.Element,
+    // shapes?: NoExtraProperties<ShapeRecord4<Shapes, T>, Shapes>,
+    shapes?: NoExtraProperties<Shapes>,
+    rels?: ShapeRelation,
+  }
+
+export type ShapeGroup<T> = {
   // maps data names to shape names
   // used to resolve references at shape time
   dataMap?: Compile.DataMap,
@@ -184,19 +263,21 @@ export type ShapeObject<T> = {
   rels?: ShapeRelation,
 }
 
-export type ShapeEx<T> = ShapeObject<T> | ({} extends T ? never : ShapeFn<T>)
+export type ShapeEx<T> = ShapeGroup<T> | ({} extends T ? never : ShapeFn<T>)
 
 export type ShapeFn<T> = (data: T) => ShapeValue;
 
-export type ShapeValue = ShapeObject<{}>
+export type ShapeValue = ShapeGroup<{}>
 
 export type Shape<T> = {} extends T ? ShapeValue : ShapeFn<T>;
 
-export const lowerShape = <T>(g: ShapeEx<T> | 'ref'): T extends Ref<any> ? 'ref' : {} extends T ? ShapeValue : ShapeFn<T> => {
+export function lowerShape<T>(g: 'ref'): T extends Ref<any> ? 'ref' : never
+export function lowerShape<T>(g: ShapeEx<T>): Shape<T>
+export function lowerShape<T>(g: ShapeEx<T> | 'ref'): T extends Ref<any> ? 'ref' : Shape<T> {
   // TODO: remove this cast?
   // this cast is here b/c the input could be a shape function where T is never
-  if (g === 'ref') return 'ref' as T extends Ref<any> ? 'ref' : {} extends T ? ShapeValue : ShapeFn<T>;
-  if (typeof g === 'function') return g as unknown as T extends Ref<any> ? 'ref' : {} extends T ? ShapeValue : ShapeFn<T>;
+  if (g === 'ref') return 'ref' as T extends Ref<any> ? 'ref' : Shape<T>;
+  if (typeof g === 'function') return g as unknown as T extends Ref<any> ? 'ref' : Shape<T>;
   // recursively visit child shapes
   let /* it */ go = {
     ...g,
@@ -212,7 +293,7 @@ export const lowerShape = <T>(g: ShapeEx<T> | 'ref'): T extends Ref<any> ? 'ref'
   // names are correct. Can parse them actually, but might not be necessary.
   if (Object.keys(shapeFns).length === 0) {
     // shape value
-    return go as T extends Ref<any> ? 'ref' : {} extends T ? ShapeValue : ShapeFn<T>;
+    return go as T extends Ref<any> ? 'ref' : Shape<T>;
   } else {
     // remove refs. TODO: maybe add more complex behavior for refs?
     // go = { ...go, shapes: objectFilter(go.shapes, (_k, v) => v !== 'ref') as { [x: string]: ShapeObject<{}> } }
@@ -240,7 +321,7 @@ export const lowerShape = <T>(g: ShapeEx<T> | 'ref'): T extends Ref<any> ? 'ref'
               inheritFrame: true,
               shapes: loweredShapes.reduce((o, go, i) => ({
                 ...o, [i]: go
-              }), {})
+              }), {}) as any /* TODO: remove */
             })];
           } else {
             return [shapeName, loweredShapes];
@@ -251,28 +332,86 @@ export const lowerShape = <T>(g: ShapeEx<T> | 'ref'): T extends Ref<any> ? 'ref'
         }
       }) : {},
       rels: go.rels,
-    })) as T extends Ref<any> ? 'ref' : {} extends T ? ShapeValue : ShapeFn<T>
+    })) as T extends Ref<any> ? 'ref' : Shape<T>
   }
 };
 
 // Shapes is inferred by this function. It acts as an existential type.
 // Currently Shapes is only used to typecheck `rels` based on field names in `shapes`.
 // Well that's what it would be for if that was implemented...
-const hideShapesType = <Shapes extends ShapeRecord3<Shapes, T>, T>(shape_: Shape_<Shapes, T>): ShapeEx<T> => shape_;
+const hideShapesType = <
+  Shapes extends ShapeRecord4<Shapes, T>,
+  // S extends string & Exclude<keyof Shapes, `$${string}$${string}`>,
+  // SF extends {},
+  // SO extends string,
+  T>(shape_: Shape_<Shapes, T>): ShapeEx<T> => shape_;
 
-export const createShape = <Shapes extends ShapeRecord3<Shapes, T>, T>(shape_: Shape_<Shapes, T>): T extends Ref<any> ? 'ref' : {} extends T ? ShapeValue : ShapeFn<T> => lowerShape(hideShapesType(shape_));
+export const createShape = <
+  Shapes extends ShapeRecord4<Shapes, T>,
+  // S extends string & Exclude<keyof Shapes, `$${string}$${string}`>,
+  // SF extends {},
+  // SO extends string,
+  T>(shape_: Shape_<Shapes, T>): Shape<T> => lowerShape(hideShapesType(shape_));
 
 namespace test {
   const newExampleMark: ShapeValue = hideShapesType({
     renderFn: (_a: any, _b: any) => ({}) as any
   })
 
+  type ExampleShapeType = {
+    foo: ShapeValue,
+    bar: ShapeValue,
+    $$foo: ShapeValue;
+    $bar$bar: (_x: number) => ShapeValue;
+  };
+
+  type IsolateShapeValues<Shapes> = Exclude<keyof Shapes, `$${string}$${string}`>;
+
+  type ExcludedShapeType = IsolateShapeValues<ExampleShapeType>;
+
+  type Foo = ShapeRecord4<{
+    foo: (_x: any) => ShapeValue;
+    $bar$bar: (_x: number) => ShapeValue;
+  }, {
+    bar: number;
+  }>
+
   const newExampleGroup: ShapeEx<{ "bar": number }> = hideShapesType({
     shapes: {
+      // "foo": (_x) => newExampleMark,
       "foo": newExampleMark,
-      "$bar$bar": (_x) => newExampleMark,
+      "$bar$bar": (_x: number) => newExampleMark,
     },
   })
+
+  const _foo: Shape<{ 'bar': number }> = createShape({
+    shapes: {
+      "foo": newExampleMark,
+      // "$bar$bar": (_x) => newExampleMark,
+      "$$baz": (_x: { 'bar': number }) => newExampleMark,
+    }
+  })
+
+  // fails... makes sense b/c there's no other info.
+  // const newExampleGroupInferredFailure = hideShapesType({
+  //   shapes: {
+  //     // "foo": (_x) => newExampleMark,
+  //     "foo": newExampleMark,
+  //     "$bar$bar": (_x) => newExampleMark,
+  //   },
+  // })
+
+  // fails... makes sense I guess.
+  // const newExampleGroupInferredFailure2 = hideShapesType({
+  //   shapes: {
+  //     // "foo": (_x) => newExampleMark,
+  //     "foo": newExampleMark,
+  //     "$bar$bar": (_x) => { console.log(_x + 5); return newExampleMark },
+  //   },
+  // })
+
+  // this fails, too so I guess TS can't infer this anyway...
+  // const foobar = (x) => x + 5;
 
   const newExampleGroupObjectFunction: ShapeEx<{ "bar": number }> = hideShapesType({
     shapes: {
@@ -290,22 +429,22 @@ namespace test {
 
   // const exampleGroupInferredType: Shape<{ "bar": number }> = createShape({
   //   shapes: {
-  //     "foo": exampleMark,
-  //     "bar": (_x) => exampleMark,
+  //     "foo": newExampleMark,
+  //     "bar": (_x) => newExampleMark,
   //   },
   // })
 
   // const BADexampleGroup: Shape<{ "bar": number }> = createShape({
   //   shapes: {
-  //     "foo": exampleMark,
-  //     "bar": (_x: string) => exampleMark,
+  //     "foo": newExampleMark,
+  //     "$bar$": (_x: string) => newExampleMark,
   //   },
   // })
 
   // const BADexampleGroup2: Shape<{ "bar": number }> = createShape({
   //   shapes: {
-  //     "foo": (_x: number) => exampleMark,
-  //     "bar": (_x: number) => exampleMark,
+  //     "$foo$": (_x) => newExampleMark,
+  //     "$bar$": (_x) => newExampleMark,
   //   },
   // })
 

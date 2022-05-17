@@ -68,7 +68,7 @@ const relations = Object.fromEntries([
 const markOpGlyph: Shape<{ action: string, markType: string }> = createShape({
   shapes: {
     "rect": M.rect({ fill: "pink", height: 20 }),
-    $$object: (op) => { console.log("DEBUG", op); return M.text({ contents: `${op.action} ${op.markType}`, fontSize: "18px" }) },
+    $$object: (op: { action: string, markType: string }) => { console.log("DEBUG", op); return M.text({ contents: `${op.action} ${op.markType}`, fontSize: "18px" }) },
   },
   // fields: {
   //   "start": createShapeFn({ fields: {} }),

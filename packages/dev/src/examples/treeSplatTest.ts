@@ -39,7 +39,7 @@ const splatTestData: SplatTest = {
 
 export const treeSplatTestShape: Shape<SplatTest> = createShape({
   shapes: {
-    $node$: (n) => M.text({ contents: n.toString(), fontSize: "18px" }),
+    $node$: (n: number) => M.text({ contents: n.toString(), fontSize: "18px" }),
     $children$: createShape({
       shapes: {
         $elements$: (n: number) => M.text({ contents: n.toString(), fontSize: "18px" }),

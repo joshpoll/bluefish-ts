@@ -68,7 +68,7 @@ const relations = Object.fromEntries([
 const markOpGlyph: Shape<{ action: string, markType: string }> = createShape({
   shapes: {
     "rect": M.rect({ fill: "pink", height: 20 }),
-    "$$object": (op) => { console.log("DEBUG", op); return M.text({ contents: `${op.action} ${op.markType}`, fontSize: "18px" }) },
+    "$$object": (op: { action: string, markType: string }) => { console.log("DEBUG", op); return M.text({ contents: `${op.action} ${op.markType}`, fontSize: "18px" }) },
   },
   // fields: {
   //   "start": createShapeFn({ fields: {} }),
@@ -86,7 +86,7 @@ const characterShape: Shape<{ value: string }> = createShape({
     "tile": M.rect({ height: 60, width: 50, fill: "#eee" }),
     "leftHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd" }),
     "rightHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd" }),
-    $$char: (charObj) => M.text({ contents: charObj.value.toString(), fontSize: "30px" }
+    $$char: (charObj: { value: string }) => M.text({ contents: charObj.value.toString(), fontSize: "30px" }
     ),
   },
   rels: {

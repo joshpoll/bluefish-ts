@@ -117,7 +117,7 @@ export const randomGraphShapeFn: Shape<MyList<number>> = createShape({
         // "box->arrow": [C.alignBottom, C.alignTop, /* C.alignLeft, C.alignRight */],
       },
     }),
-  },
+  } as any,
 })
 
 // export const randomGraphShapeFn: Shape = createShape({

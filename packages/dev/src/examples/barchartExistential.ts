@@ -39,8 +39,8 @@ const bar: Shape<Data> = createShape({
   shapes: {
     "origin": M.loc({ x: 0, y: 0 }),
     "tick": M.rect({ width: 1., height: 8., fill: "gray" }),
-    "$category$": (contents) => M.text({ contents, fontSize: "12px" }),
-    "$value$": (height) => M.rect({ width: 20, height, fill: "steelblue" }),
+    "$category$": (contents: string) => M.text({ contents, fontSize: "12px" }),
+    "$value$": (height: number) => M.rect({ width: 20, height, fill: "steelblue" }),
   },
   rels: {
     "value->tick": [C.vSpace(5), C.vAlignCenter],
@@ -84,7 +84,7 @@ const yTicks: Shape<MyList<number>> = createShape({
   shapes: {
     "origin": M.loc({ x: 0, y: 0, }),
     // "originText": M.text({ contents: "O-ticks", x: 0, y: 0, fontSize: "18px", fill: "red" }),
-    $elements$: (pos) => createShape({
+    $elements$: (pos: number) => createShape({
       /* This bbox use might be a little surprising. Why should it go on tick? It's because of local coordinate systems */
       bbox: {
         // TODO: is there a way to get rid of this negation "hack"? It not very nice

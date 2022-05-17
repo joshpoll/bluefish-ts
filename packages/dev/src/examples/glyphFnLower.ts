@@ -9,9 +9,9 @@ const dataE2: myDataE2 = { color1: "firebrick", color2: "steelblue", color3: "bl
 export const exampleRelationInterface2: Shape<myDataE2> = createShape({
   shapes: {
     "text": text({ contents: "hello world!", fontSize: "24px" }),
-    "$color1$": (color1) => rect({ width: 500 / 3, height: 200 / 3, fill: color1 }),
-    "$color2$": (color2) => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: color2 }),
-    "$color3$": (color3) => ellipse({ rx: 50, ry: 50, fill: color3 }),
+    "$color1$": (color1: string) => rect({ width: 500 / 3, height: 200 / 3, fill: color1 }),
+    "$color2$": (color2: string) => ellipse({ rx: 300 / 6, ry: 200 / 6, fill: color2 }),
+    "$color3$": (color3: string) => ellipse({ rx: 50, ry: 50, fill: color3 }),
     // "text": (textData) => text({ text: textData, fontSize: "calc(10px + 2vmin)" }),
   },
   rels: {
@@ -33,7 +33,7 @@ const marblesData: MarblesData = {
 const element: Shape<number> = createShape({
   shapes: {
     "circle": ellipse({ rx: 300 / 6, ry: 200 / 6, fill: "coral" }),
-    "$$object": (n) => text({ contents: n.toString(), fontSize: "24px" }),
+    "$$object": (n: number) => text({ contents: n.toString(), fontSize: "24px" }),
   },
   // TODO: no longer sure what this comment is referring to...
   rels: {} // uh oh! no way to write constraints since dataGlyphs is anonymous!!!

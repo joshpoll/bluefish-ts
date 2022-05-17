@@ -1,0 +1,22 @@
+[
+    "$root.width ≡ 10 (Infinity)",
+    "$root.height ≡ 20 (Infinity)",
+    "$root.width ≡ (+ $root.right (* -1 $root.left)) (Infinity)",
+    "$root.height ≡ (+ $root.bottom (* -1 $root.top)) (Infinity)",
+    "$root.centerX ≡ (* 0.5 (+ $root.left $root.right)) (Infinity)",
+    "$root.centerY ≡ (* 0.5 (+ $root.top $root.bottom)) (Infinity)",
+    "$root.canvas.width ≡ (+ $root.canvas.right (* -1 $root.canvas.left)) (Infinity)",
+    "$root.canvas.height ≡ (+ $root.canvas.bottom (* -1 $root.canvas.top)) (Infinity)",
+    "$root.canvas.centerX ≡ (* 0.5 (+ $root.canvas.left $root.canvas.right)) (Infinity)",
+    "$root.canvas.centerY ≡ (* 0.5 (+ $root.canvas.top $root.canvas.bottom)) (Infinity)",
+    "$root.width ≡ $root.canvas.width (Infinity)",
+    "$root.height ≡ $root.canvas.height (Infinity)",
+    "$root.centerX ≡ (+ $root.canvas.centerX $root.transform.translate.x) (Infinity)",
+    "$root.centerY ≡ (+ $root.canvas.centerY $root.transform.translate.y) (Infinity)",
+    "$root.left ≡ 0 (Infinity)",
+    "$root.top ≡ 0 (Infinity)",
+    "$root.canvas.left ≡ 0 (7)",
+    "$root.canvas.top ≡ 0 (7)",
+    "$root.canvas.width ≡ 0 (9)",
+    "$root.canvas.height ≡ 0 (9)"
+]

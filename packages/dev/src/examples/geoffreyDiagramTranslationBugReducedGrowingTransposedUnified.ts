@@ -118,7 +118,7 @@ const characterShape: Shape<{ value: number }> = createShape({
     "tile": M.rect({ height: 60, width: 50, fill: "#eee", rx: 3, }),
     "leftHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd", rx: 3, }),
     "rightHandle": M.rect({ height: 30, width: 10, fill: "#fff", stroke: "#ddd", rx: 3, }),
-    "$$value": (charObj) => M.text({ contents: charObj.value.toString(), fontSize: "30px" }),
+    "$$value": (charObj: { value: number }) => M.text({ contents: charObj.value.toString(), fontSize: "30px" }),
     // "$data": (charObj) => M.text({ contents: charObj.value.toString(), fontSize: "30px" }),
   },
   rels: {

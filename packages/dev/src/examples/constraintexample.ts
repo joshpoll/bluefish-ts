@@ -38,8 +38,8 @@ const mkList = <T>(elements: T[]): MyList<T> => ({
 const bar: Shape<Data> = createShape({
   shapes: {
     "tick": rect({ width: 1., height: 8., fill: "gray" }),
-    "$category$": (contents) => text({ contents, fontSize: "12px" }),
-    "$value$": (height) => rect({ width: 20, height, fill: "steelblue" }),
+    "$category$": (contents: string) => text({ contents, fontSize: "12px" }),
+    "$value$": (height: number) => rect({ width: 20, height, fill: "steelblue" }),
   },
   rels: {
     "value->tick": [vSpace(5), vAlignCenter],
@@ -77,7 +77,7 @@ type Input = {
 const yTicks: Shape<MyList<number>> = createShape({
   // renderFn: debug,
   shapes: {
-    $elements$: (pos) => createShape({
+    $elements$: (pos: number) => createShape({
       /* This bbox use might be a little surprising. Why should it go on tick? It's because of local coordinate systems */
       bbox: {
         // TODO: is there a way to get rid of this negation "hack"? It not very nice

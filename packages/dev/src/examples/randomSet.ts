@@ -32,7 +32,7 @@ export const randomSetShapeFn: Shape<MyList<number>> = createShape({
     "box": M.rect({ /* width: 100, height: 50,  */fill: "coral", fillOpacity: 0.3, }),
     "circle": M.circle({ cx: 0, cy: 100, r: 10 }),
     "circle2": M.circle({ r: 5 }),
-    $elements$: (_) => createShape({
+    $elements$: (_: number[]) => createShape({
       bbox: {
         left: Math.random() * 100,
         top: Math.random() * 100,
@@ -41,7 +41,7 @@ export const randomSetShapeFn: Shape<MyList<number>> = createShape({
         "circle": M.circle({ cx: 0, cy: 0, r: 5, fill: "cornflowerblue" })
       }
     }),
-    $neighbors$: (_) => M.nil(),
+    $neighbors$: (_: any) => M.nil(),
   },
   rels: {
     "box->elements": C.containsShrinkWrap,

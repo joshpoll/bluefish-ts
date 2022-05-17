@@ -2,7 +2,7 @@ import { TextProps, useText } from '@visx/text';
 import * as C from './constraints';
 import { BBoxValues } from './kiwiBBoxTransform';
 import { measureText } from './measureText';
-import { createShape, ShapeValue } from './unifiedShapeAPIFinal';
+import { createShape, RelationInstance, Shape, ShapeFn, ShapeValue } from './unifiedShapeAPIFinal';
 // import XArrow from 'react-xarrows';
 
 type Rect = React.SVGProps<SVGRectElement> & Partial<{
@@ -224,6 +224,83 @@ export const nil = (): ShapeValue => createShape(
     }
   }
 )
+
+export const flex = (params?: { left?: number, top?: number, right?: number, bottom?: number, width?: number, height?: number, centerX?: number, centerY?: number }): ShapeValue => createShape(
+  {
+    bbox: params,
+    renderFn: (canvas: BBoxValues, index?: number) => {
+      return <></>
+    }
+  }
+)
+
+export function padding<T>(params: { left?: number, top?: number, right?: number, bottom?: number, }, shape: Shape<RelationInstance<T>>): Shape<T> {
+  if (typeof shape === 'function') {
+    return createShape(
+      {
+        shapes: {
+          $$shape: shape,
+          flex: flex(),
+        },
+        rels: {
+          '$canvas->flex': [C.sameWidth, C.sameHeight],
+          'flex->shape': [
+            C.alignTopSpace(-(params.top ?? 0)),
+            C.alignLeftSpace(params.left ?? 0),
+            C.alignBottomSpace(-(params.bottom ?? 0)),
+            C.alignRightSpace(params.right ?? 0),
+          ],
+        }
+      } as any
+    )
+  } else {
+    return createShape(
+      {
+        shapes: {
+          shape: shape as ShapeValue,
+          flex: flex(),
+        },
+        rels: {
+          '$canvas->flex': [C.sameWidth, C.sameHeight],
+          'flex->shape': [
+            C.alignTopSpace(-(params.top ?? 0)),
+            C.alignLeftSpace(params.left ?? 0),
+            C.alignBottomSpace(-(params.bottom ?? 0)),
+            C.alignRightSpace(params.right ?? 0),
+          ],
+        }
+      } as any
+    )
+  }
+}
+
+export function background<T>(params: { fill: string, }, shape: Shape<RelationInstance<T>>): Shape<T> {
+  if (typeof shape === 'function') {
+    return createShape(
+      {
+        shapes: {
+          bg: rect({ fill: params.fill }),
+          $$shape: shape,
+        },
+        rels: {
+          'bg->shape': [C.sameWidth, C.sameHeight],
+        }
+      } as any
+    )
+  } else {
+    return createShape(
+      {
+        shapes: {
+          bg: rect({ fill: params.fill }),
+          shape: shape,
+        },
+        rels: {
+          'bg->shape': [C.sameWidth, C.sameHeight],
+        }
+      } as any
+    )
+  }
+}
 
 // an invisible mark useful for specifying locations.
 // TODO: maybe this shouldn't be a mark, but something closer measurements like width, height, top,

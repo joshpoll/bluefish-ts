@@ -19,7 +19,7 @@ import { treeExample } from './examples/treeExample';
 import { treeSplatTestBugMin } from './examples/treeSplatTestBugMinimization';
 import { treeSplatTestGrowing } from './examples/treeSplatTestGrowing';
 import { subtreeTest, subtreeTest3 } from './examples/subtreeTest';
-import { combinatorTest } from './examples/combinatorTest';
+import { combinatorTest, combinatorTestMarks } from './examples/combinatorTest';
 import { helloIndigo, indigoGroup, indigoConstraint } from './examples/indigoTest';
 
 const data = { "a": 1, "b": null };
@@ -62,13 +62,14 @@ function App() {
         {/* {indigoGroup()}
         {indigoConstraint()} */}
         {combinatorTest}
+        {combinatorTestMarks}
         <br />
         <br />
         <br />
-        {/* {arrowExample} */}
+        {arrowExample}
         {/* photo by Marco Verch, CC 2.0 */}
         {/* https://creativecommons.org/licenses/by/2.0/ */}
-        {/* {render(M.image({ x: 0, y: 0, width: 1024 / 3, height: 683 / 3, href: "https://foto.wuestenigel.com/wp-content/uploads/api2/freshly-cooked-homemade-omelet-with-herbs.jpeg" }))} */}
+        {render(M.image({ x: 0, y: 0, width: 1024 / 3, height: 683 / 3, href: "https://foto.wuestenigel.com/wp-content/uploads/api2/freshly-cooked-homemade-omelet-with-herbs.jpeg" }))}
         <br />
         <br />
         <br />
@@ -97,28 +98,28 @@ function App() {
         <br />
         <br />
         {barChart} */}
-        {/* {constraintExample} */}
-        {/* {barChart} */}
+        {/* {constraintExample}
+        {barChart} */}
         {/* {constraintExample}
         {testTwoMarbleSets}
         {testMarblesListReduced} */}
         {/* {geoffreyDiagram} */}
         {/* {geoffreyDiagramTranslationBugReducedGrowing} */}
         {/* {geoffreyDiagramTranslationBugReducedGrowingTransposed} */}
-        {/* {geoffreyDiagramTranslationBugReducedGrowingTransposedUnified} */}
+        {geoffreyDiagramTranslationBugReducedGrowingTransposedUnified}
         <br />
         <br />
         <br />
         {/* {treeSplatTestBugMin} */}
         {/* {treeSplatTest} */}
-        {/* {treeSplatTestGrowing} */}
+        {treeSplatTestGrowing}
         <br />
         <br />
         <br />
-        {/* {refrefTest1}
+        {refrefTest1}
         {treeExample}
         {subtreeTest}
-        {subtreeTest3} */}
+        {subtreeTest3}
       </header>
     </div>
   );

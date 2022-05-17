@@ -29,7 +29,7 @@ const listData = mkList([1, 2, 3]);
 const charShape: Shape<number> = createShape({
   shapes: {
     node: M.rect({ width: 60, height: 60, fill: "rgb(249, 135, 120)", stroke: /* "rgb(117, 116, 107)" */"rgb(125, 124, 111)", strokeWidth: 5, rx: 20, ry: 20 }),
-    $$char: (c) => M.text({ contents: c.toString(), fontSize: '24px' }),
+    $$char: (c: number) => M.text({ contents: c.toString(), fontSize: '24px' }),
   },
   rels: {
     'node->char': [C.alignCenter, C.alignMiddle],
@@ -46,7 +46,7 @@ const marblesListShape: Shape<MyList<number>> = createShape({
       },
       rels: { "curr->next": [C.hSpace(20.), C.alignMiddle] }
     })
-  },
+  } as any,
 })
 
 // TODO: the type system is unhappy because refs are not handled properly
@@ -64,4 +64,6 @@ const paddingBackground = <T>(s: Shape<T>): any => createShape({
 console.log('output before compiling', (paddingBackground(marblesListShape) as any)(makePathsAbsolute(listData as any) as any))
 
 export const combinatorTest = render(listData, paddingBackground(marblesListShape));
+
+export const combinatorTestMarks = render(listData, M.background({ fill: "rgb(235, 231, 213)" }, M.padding({ top: 20, left: 20, right: 20, bottom: 20 }, marblesListShape)));
 // export const combinatorTest = render(listData, marblesListShape);
